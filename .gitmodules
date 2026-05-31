@@ -1,0 +1,3 @@
+[submodule "vendor/uesp-esochardata"]
+	path = vendor/uesp-esochardata
+	url = git@github.com:srtomy/uesp-esochardata.git

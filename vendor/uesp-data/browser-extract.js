@@ -1,0 +1,64 @@
+/**
+ * EXTRAÇÃO DE DADOS DO MOTOR DA UESP
+ * ====================================
+ * Execute este script no DevTools Console do browser enquanto estiver na página:
+ *   https://esobuilds.uesp.net/
+ *
+ * PASSO A PASSO:
+ *   1. Abra https://esobuilds.uesp.net/ no Chrome/Firefox
+ *   2. Aguarde a página carregar completamente
+ *   3. Pressione F12 → aba "Console"
+ *   4. Cole TODO o conteúdo deste arquivo e pressione Enter
+ *   5. Um arquivo "uesp-init-data.json" será baixado automaticamente
+ *   6. Mova o arquivo para: vendor/uesp-data/uesp-init-data.json
+ *
+ * QUANDO RE-EXTRAIR:
+ *   - Quando a ZeniMax lançar um novo patch ou DLC
+ *   - Quando cálculos ficarem incorretos após atualização do jogo
+ *   - Ao fazer sync/merge do fork com o repositório upstream da UESP
+ */
+
+(function extractUespData() {
+  var missing = [];
+
+  if (!window.g_EsoComputedStats || Object.keys(window.g_EsoComputedStats).length === 0) {
+    missing.push('g_EsoComputedStats');
+  }
+  if (!window.g_EsoInputStats || Object.keys(window.g_EsoInputStats).length === 0) {
+    missing.push('g_EsoInputStats');
+  }
+
+  if (missing.length > 0) {
+    console.error('[eso-extract] Variáveis não encontradas: ' + missing.join(', '));
+    console.error('Certifique-se de que a página carregou completamente antes de executar.');
+    return;
+  }
+
+  var data = {
+    extractedAt: new Date().toISOString(),
+    pageUrl: window.location.href,
+    computedStats: window.g_EsoComputedStats,
+    inputStats:    window.g_EsoInputStats,
+    buffData:      window.g_EsoInitialBuffData  || {},
+    cpData:        window.g_EsoInitialCpData    || {},
+    buildRules:    window.g_EsoBuildRules        || {},
+  };
+
+  var statCount = Object.keys(data.computedStats).length;
+  console.log('[eso-extract] Extraindo ' + statCount + ' fórmulas de g_EsoComputedStats...');
+
+  // Serializa para JSON e baixa como arquivo
+  var json = JSON.stringify(data, null, 2);
+  var blob = new Blob([json], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'uesp-init-data.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  console.log('[eso-extract] Download iniciado: uesp-init-data.json');
+  console.log('[eso-extract] Mova o arquivo para: vendor/uesp-data/uesp-init-data.json');
+})();
