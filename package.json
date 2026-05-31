@@ -13,7 +13,11 @@
     "wrapper"
   ],
   "license": "MIT",
-  "author": "",
+  "author": {
+    "name": "Tarcisio Scotta",
+    "email": "tarcisioscotta2@gmail.com",
+    "url": "https://github.com/srtomy"
+  },
   "homepage": "https://github.com/srtomy/uesp-eso-build-wrapper#readme",
   "repository": {
     "type": "git",
