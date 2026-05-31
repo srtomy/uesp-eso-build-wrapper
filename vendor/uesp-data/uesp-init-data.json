@@ -8290,5 +8290,227 @@
       "StatusDamageDone": 0,
       "FlatDamageDone": 0
     }
+  },
+  "buildRules": {
+    "armorenchant": {
+      "6000": {
+        "matchRegex": "/Adds ([0-9]+) Maximum Magicka\\./",
+        "displayRegex": null,
+        "statId": "Magicka",
+        "nameId": "MaximumMagickaEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6001": {
+        "matchRegex": "/Adds ([0-9]+) Maximum Stamina\\./",
+        "displayRegex": null,
+        "statId": "Stamina",
+        "nameId": "MaximumStaminaEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6002": {
+        "matchRegex": "/Adds ([0-9]+) Maximum Health\\./",
+        "displayRegex": null,
+        "statId": "Health",
+        "nameId": "MaximumHealthEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6003": {
+        "matchRegex": "/Adds ([0-9]+) Magicka Recovery\\./",
+        "displayRegex": null,
+        "statId": "MagickaRegen",
+        "nameId": "MagickaRecoveryEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6004": {
+        "matchRegex": "/Adds ([0-9]+) Stamina Recovery\\./",
+        "displayRegex": null,
+        "statId": "StaminaRegen",
+        "nameId": "StaminaRecoveryEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6005": {
+        "matchRegex": "/Adds ([0-9]+) Health Recovery\\./",
+        "displayRegex": null,
+        "statId": "HealthRegen",
+        "nameId": "HealthRecoveryEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6006": {
+        "matchRegex": "/Adds ([0-9]+) Spell Resistance\\./",
+        "displayRegex": null,
+        "statId": "SpellResist",
+        "nameId": "SpellResistanceEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6007": {
+        "matchRegex": "/Adds ([0-9]+) Physical Resistance\\./",
+        "displayRegex": null,
+        "statId": "PhysicalResist",
+        "nameId": "PhysicalResistanceEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6008": {
+        "matchRegex": "/Adds ([0-9]+) Spell Damage\\./",
+        "displayRegex": null,
+        "statId": "SpellDamage",
+        "nameId": "SpellDamageEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6009": {
+        "matchRegex": "/Adds ([0-9]+) Weapon Damage\\./",
+        "displayRegex": null,
+        "statId": "WeaponDamage",
+        "nameId": "WeaponDamageEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6010": {
+        "matchRegex": "/Adds ([0-9]+) Spell Critical\\./",
+        "displayRegex": null,
+        "statId": "SpellCrit",
+        "nameId": "SpellCriticalEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6011": {
+        "matchRegex": "/Adds ([0-9]+) Weapon Critical\\./",
+        "displayRegex": null,
+        "statId": "WeaponCrit",
+        "nameId": "WeaponCriticalEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6012": {
+        "matchRegex": "/Adds ([0-9]+) Physical Penetration\\./",
+        "displayRegex": null,
+        "statId": "PhysicalPenetration",
+        "nameId": "PhysicalPenetrationEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6013": {
+        "matchRegex": "/Adds ([0-9]+) Spell Penetration\\./",
+        "displayRegex": null,
+        "statId": "SpellPenetration",
+        "nameId": "SpellPenetrationEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": ""
+      },
+      "6014": {
+        "matchRegex": "/Adds ([0-9]+) Weapon and Spell Damage\\./",
+        "displayRegex": null,
+        "statId": null,
+        "nameId": "WeaponAndSpellDamageEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": "",
+        "effects": [
+          {
+            "statId": "WeaponDamage",
+            "value": "0",
+            "regexVar": "1"
+          },
+          {
+            "statId": "SpellDamage",
+            "value": "0",
+            "regexVar": "1"
+          }
+        ]
+      },
+      "6015": {
+        "matchRegex": "/Adds ([0-9]+) Physical and Spell Resistance\\./",
+        "displayRegex": null,
+        "statId": null,
+        "nameId": "PhysicalAndSpellResistanceEnchant",
+        "originalId": 0,
+        "ruleType": "armorenchant",
+        "isVisible": true,
+        "isToggle": false,
+        "isEnabled": true,
+        "customData": "",
+        "effects": [
+          {
+            "statId": "PhysicalResist",
+            "value": "0",
+            "regexVar": "1"
+          },
+          {
+            "statId": "SpellResist",
+            "value": "0",
+            "regexVar": "1"
+          }
+        ]
+      }
+    },
+    "weaponenchant": {},
+    "offhandweaponenchant": {}
   }
 }
