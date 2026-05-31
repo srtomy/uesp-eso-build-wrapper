@@ -83,7 +83,7 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   (global as any).g_EsoBuildItemData    = {};
   (global as any).g_EsoBuildSetData     = {};
   (global as any).g_EsoBuildAllSetData  = {};
-  (global as any).g_EsoBuildRules       = {};
+  // g_EsoBuildRules já foi injetado acima a partir de initData.buildRules — não sobrescrever aqui.
   (global as any).g_EsoInitialItemData  = {};
 
   // 3. Pré-declara todos os g_* globais como undefined no contexto Node.js.
