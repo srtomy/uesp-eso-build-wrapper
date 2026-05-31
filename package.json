@@ -1,0 +1,55 @@
+{
+  "name": "uesp-eso-build-wrapper",
+  "version": "0.1.0",
+  "description": "Node.js wrapper around the UESP ESO Build Editor math engine. Calculate Elder Scrolls Online character stats (Health, Magicka, Stamina, mitigation, crit, etc.) without rewriting any game formulas.",
+  "keywords": [
+    "elder-scrolls-online",
+    "eso",
+    "uesp",
+    "build-editor",
+    "character-stats",
+    "eso-build",
+    "game",
+    "wrapper"
+  ],
+  "license": "MIT",
+  "author": "",
+  "homepage": "https://github.com/srtomy/uesp-eso-build-wrapper#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/srtomy/uesp-eso-build-wrapper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/srtomy/uesp-eso-build-wrapper/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "dist/lib/eso-engine/index.js",
+  "types": "dist/lib/eso-engine/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/lib/eso-engine/index.js",
+      "default": "./dist/lib/eso-engine/index.js",
+      "types": "./dist/lib/eso-engine/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "vendor/uesp-esochardata/resources/esoEditBuild.js",
+    "vendor/uesp-esochardata/resources/esobuilddata.js",
+    "vendor/uesp-esochardata/LICENSE",
+    "vendor/uesp-data/uesp-init-data.json",
+    "THIRD_PARTY_NOTICES"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build && node -e \"require('fs').existsSync('vendor/uesp-data/uesp-init-data.json')||process.exit(1)\"",
+    "test": "ts-node --project tsconfig.scripts.json scripts/test-engine.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.41",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
