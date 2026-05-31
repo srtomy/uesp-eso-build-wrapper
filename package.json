@@ -49,11 +49,13 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build && node -e \"require('fs').existsSync('vendor/uesp-data/uesp-init-data.json')||process.exit(1)\"",
-    "test": "ts-node --project tsconfig.scripts.json scripts/test-engine.ts"
+    "test": "vitest run",
+    "test:explore": "ts-node --project tsconfig.scripts.json scripts/test-engine.ts"
   },
   "devDependencies": {
     "@types/node": "^20.19.41",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.7"
   }
 }
