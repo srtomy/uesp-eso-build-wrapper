@@ -819,6 +819,59 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
         });
     });
 
+    // ── Stats finais absolutos com 12 itens ───────────────────────────────────────
+    //
+    // Valores calculados pelo motor da UESP com os 12 itens reais + The Thief CP160.
+    // Set bonuses e named buffs NÃO aplicam neste env (g_EsoBuildRules['set'/'buff'] = null),
+    // portanto os valores refletem apenas: atributos base + enchants + traits + mundus.
+    //
+    // SpellCrit breakdown:
+    //   base 0.10 + The Thief (1333×1.637/21912 ≈ 0.0996) + Precise (+0.072) = 0.2716
+    //   (1.637 = 1 + 7×0.091, cada Divines amplifica o mundus em 9.1%)
+    describe('stats finais — valores absolutos com 12 itens, sem CP2', () => {
+        let stats: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            stats = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
+        });
+
+        it('Magicka = 21893  [base 19104 + enchants: 868+351+868+351+351 = 2789]', () => {
+            expect(stats.Magicka).toBe(21893);
+        });
+
+        it('Stamina = 12868  [base 12000 + 868 enchant no capacete Slimecraw]', () => {
+            expect(stats.Stamina).toBe(12868);
+        });
+
+        it('Health = 16000  [base — 0 pontos de Health atribuídos]', () => {
+            expect(stats.Health).toBe(16000);
+        });
+
+        it('SpellDamage = 2335  [base 1000 + weapon power 1335 do Inferno Staff]', () => {
+            expect(stats.SpellDamage).toBe(2335);
+        });
+
+        it('SpellCrit ≈ 0.2716  [base 0.10 + The Thief (7×Divines) + Precise do staff]', () => {
+            expect(stats.SpellCrit).toBeCloseTo(0.2716, 3);
+        });
+
+        it('SpellCritDamage = 0.5  [base 50% — sem bônus de CP ou set bonus]', () => {
+            expect(stats.SpellCritDamage).toBe(0.5);
+        });
+
+        it('MagickaRegen = 514  [nenhum enchant de regen no build]', () => {
+            expect(stats.MagickaRegen).toBe(514);
+        });
+
+        it('EffectiveSpellPower = 3636  [fórmula UESP: (round(21893/10.5)+2335)×(1+0.2716×0.5)×(1−0.276)]', () => {
+            expect(stats.EffectiveSpellPower).toBe(3636);
+        });
+
+        it('EffectivePower = 3636  [max(EffectiveSpellPower, EffectiveWeaponPower)]', () => {
+            expect(stats.EffectivePower).toBe(3636);
+        });
+    });
+
     // ── CP2 node injection — delta tests ─────────────────────────────────────────
     describe('CP2 node injection — delta por nó', () => {
         let withItems: ReturnType<typeof calculateBuild>;
