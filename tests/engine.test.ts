@@ -384,6 +384,7 @@ describe('calculateBuild', () => {
 });
 
 describe('calculateBuild with itens', () => {
+    // resource test
     describe('baseline — High Elf Sorcerer lv50, 64 Magicka pts', () => {
         let stats: ReturnType<typeof calculateBuild>;
 
@@ -404,5 +405,498 @@ describe('calculateBuild with itens', () => {
             expect(stats.Stamina).toBe(12868);
         });
 
+        it('MagickaRegen = 514  [baseline — enchants de Max Magicka/Stamina não afetam regen]', () => {
+            expect(stats.MagickaRegen).toBe(514);
+        });
+
+        it('StaminaRegen = 514  [baseline — sem enchant de regen]', () => {
+            expect(stats.StaminaRegen).toBe(514);
+        });
+
+        it('HealthRegen = 309  [baseline — sem enchant de regen]', () => {
+            expect(stats.HealthRegen).toBe(309);
+        });
+    });
+
+    // ── Armor section ─────────────────────────────────────────────────────────────
+    describe('armor rating — head médio Ansuul (1823) empilhado com chest leve Jerkin (1220)', () => {
+        let basePhysicalResist: number;
+        let baseSpellResist: number;
+        let withHeadPhysicalResist: number;
+        let withHeadSpellResist: number;
+        let withBothPhysicalResist: number;
+
+        beforeAll(() => {
+            const base = calculateBuild({character: HIGH_ELF_SORC_64MAG});
+            basePhysicalResist = base.raw['PhysicalResist'] ?? 0;
+            baseSpellResist    = base.raw['SpellResist']    ?? 0;
+
+            const withHead = calculateBuild({
+                character: HIGH_ELF_SORC_64MAG,
+                items: {Head: ANSUULS_HELMET},
+            });
+            withHeadPhysicalResist = withHead.raw['PhysicalResist'] ?? 0;
+            withHeadSpellResist    = withHead.raw['SpellResist']    ?? 0;
+
+            const withBoth = calculateBuild({
+                character: HIGH_ELF_SORC_64MAG,
+                items: {Chest: JERKIN_OF_THE_DEPTHS, Head: ANSUULS_HELMET},
+            });
+            withBothPhysicalResist = withBoth.raw['PhysicalResist'] ?? 0;
+        });
+
+        it('PhysicalResist gain = 1823  [formula: armorRating do head médio Ansuul]', () => {
+            expect(withHeadPhysicalResist - basePhysicalResist).toBe(1823);
+        });
+
+        it('SpellResist gain = 1823  [armor concede ambas as resistências igualmente]', () => {
+            expect(withHeadSpellResist - baseSpellResist).toBe(1823);
+        });
+
+        it('PhysicalResist empilhado = 3043  [formula: 1220 chest leve + 1823 head médio]', () => {
+            expect(withBothPhysicalResist - basePhysicalResist).toBe(3043);
+        });
+    });
+
+    // ── Critical section ──────────────────────────────────────────────────────────
+    describe('critical — SpellCrit base, crit damage e CritResist', () => {
+        let stats: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            stats = calculateBuild({character: HIGH_ELF_SORC_64MAG});
+        });
+
+        it('SpellCrit = 0.1  [base 10% — High Elf Sorcerer sem CP adicional]', () => {
+            expect(stats.SpellCrit).toBe(0.1);
+        });
+
+        it('WeaponCrit = 0.1  [base 10% — sem CP adicional]', () => {
+            expect(stats.WeaponCrit).toBe(0.1);
+        });
+
+        it('SpellCritDamage = 0.5  [base 50% multiplicador de dano crítico]', () => {
+            expect(stats.SpellCritDamage).toBe(0.5);
+        });
+
+        it('WeaponCritDamage = 0.5  [base 50% multiplicador de dano crítico]', () => {
+            expect(stats.WeaponCritDamage).toBe(0.5);
+        });
+
+        it('CritResist = 1320  [base de raça/classe — sem itens de resistência a crítico adicionais]', () => {
+            expect(stats.CritResist).toBe(1320);
+        });
+    });
+
+    // ── Mundus Stone section ──────────────────────────────────────────────────────
+    describe('mundus stone — The Apprentice (spell dmg) e The Tower (stamina)', () => {
+        let statsNoMundus: ReturnType<typeof calculateBuild>;
+        let statsApprentice: ReturnType<typeof calculateBuild>;
+        let statsApprenticeDivines: ReturnType<typeof calculateBuild>;
+        let statsTowerNord: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            statsNoMundus = calculateBuild({character: HIGH_ELF_SORC_64MAG});
+            statsApprentice = calculateBuild({
+                character: {...HIGH_ELF_SORC_64MAG, mundusStone: 'The Apprentice'},
+            });
+            statsApprenticeDivines = calculateBuild({
+                character: {...HIGH_ELF_SORC_64MAG, mundusStone: 'The Apprentice'},
+                items: {Chest: JERKIN_OF_THE_DEPTHS},
+            });
+            statsTowerNord = calculateBuild({character: {...NORD_DK_64HEA, mundusStone: 'The Tower'}});
+        });
+
+        it('The Apprentice: SpellDamage = 1238  [base 1000 + bônus de mundus de magia]', () => {
+            expect(statsApprentice.SpellDamage).toBe(1238);
+        });
+
+        it('The Apprentice: WeaponDamage = 1000  [mundus mágico não afeta weapon damage]', () => {
+            expect(statsApprentice.WeaponDamage).toBe(statsNoMundus.WeaponDamage);
+        });
+
+        it('The Apprentice + Divines chest: SpellDamage = 1250  [Divines (5.1%) amplifica efeito do mundus]', () => {
+            expect(statsApprenticeDivines.SpellDamage).toBe(1250);
+        });
+
+        it('The Tower: Nord DK Stamina = 14023  [base 12000 + bônus de mundus de stamina]', () => {
+            expect(statsTowerNord.Stamina).toBe(14023);
+        });
+
+        it('mundus stone reseta entre chamadas  [sem bleed-through de chamada anterior]', () => {
+            calculateBuild({character: {...HIGH_ELF_SORC_64MAG, mundusStone: 'The Apprentice'}});
+            const clean = calculateBuild({character: HIGH_ELF_SORC_64MAG});
+            expect(clean.SpellDamage).toBe(statsNoMundus.SpellDamage);
+        });
+    });
+
+    // ── Effective Power section ───────────────────────────────────────────────────
+    describe('effective power — High Elf Sorcerer lv50, 64 Magicka, target lv66 resist=18200', () => {
+        let stats: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            stats = calculateBuild({character: HIGH_ELF_SORC_64MAG});
+        });
+
+        it('EffectiveSpellPower = 2144  [formula: (round(19104/10.5) + 1000) × (1 + 0.1×0.5) × (1 - 0.276)]', () => {
+            expect(stats.EffectiveSpellPower).toBe(2144);
+        });
+
+        it('EffectiveWeaponPower = 1630  [formula: (round(12000/10.5) + 1000) × (1 + 0.1×0.5) × (1 - 0.276)]', () => {
+            expect(stats.EffectiveWeaponPower).toBe(1630);
+        });
+
+        it('EffectivePower = 2144  [formula: max(EffectiveSpellPower, EffectiveWeaponPower)]', () => {
+            expect(stats.EffectivePower).toBe(2144);
+        });
+    });
+
+})
+
+// ── Full build integration test ───────────────────────────────────────────────
+//
+// Real High Elf Sorcerer build (data from actual UESP session).
+// Items sourced from esolog.uesp.net API (resonse.json / user-provided).
+//
+// Note: g_EsoBuildRules['set'] / ['buff'] are not loaded in this env — set bonus
+// stat effects and named buffs (Major Prophecy, etc.) won't apply. What IS tested:
+//   • Magicka/Stamina enchants from item slots                (GetEsoInputArmorEnchantValues)
+//   • Armor rating accumulation across weight classes         (GetEsoInputArmorValues)
+//   • Weapon damage contribution to SpellDamage/WeaponDamage  (GetEsoInputWeaponValues)
+//   • Weapon trait (Precise) adding SpellCrit as direct %     (Item.SpellCrit)
+//   • CP2 node injection: Magicka, CritDamage, Resistance     (ParseEsoCP2Value)
+//   • EffectivePower after items
+//
+// ── Item fixtures (real UESP API payloads) ────────────────────────────────────
+
+/** Head — Slimecraw (medium, Divines, +868 Stamina, 1pc: +657 Crit) */
+const SLIMECRAW_MASK: UespItemApiData = {
+    itemId: '95045', name: 'Slimecraw Mask',
+    armorRating: '1823', weaponPower: '0', armorType: '2', weaponType: '0',
+    type: '2', equipType: '1', trait: '18',
+    traitDesc: 'Increases Mundus Stone effects by 9.1%.',
+    enchantDesc: 'Adds 868 Maximum Stamina.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '270', setName: 'Slimecraw', setBonusCount: '3', setMaxEquipCount: '2',
+    setBonusCount1: '1', setBonusDesc1: '(1 item) Adds 657 Critical Chance',
+    setBonusCount2: '2', setBonusDesc2: '(2 items) Adds 113 Critical Chance',
+    setBonusCount3: '2', setBonusDesc3: '(2 items) Gain Minor Berserk at all times, increasing your damage done by 5%.',
+};
+
+/** Shoulders — Order's Wrath (medium, Divines, no enchant) */
+const ORDERS_WRATH_SHOULDERS: UespItemApiData = {
+    itemId: '184894', name: "Arm Cops of the Order's Wrath",
+    armorRating: '1823', weaponPower: '0', armorType: '2', weaponType: '0',
+    type: '2', equipType: '4', trait: '18',
+    traitDesc: 'Increases Mundus Stone effects by 9.1%.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '640', setName: "Order's Wrath", setBonusCount: '5', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 657 Critical Chance',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 657 Critical Chance',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) Adds 943 Critical Chance',
+    setBonusCount5: '5', setBonusDesc5: '(5 items) Increases your Critical Damage and Critical Healing by 8%.',
+};
+
+/** Chest — Whorl of the Depths (light, Divines, +868 Magicka) */
+const WHORL_ROBE: UespItemApiData = {
+    itemId: '186446', name: 'Robe of the Depths',
+    armorRating: '1396', weaponPower: '0', armorType: '1', weaponType: '0',
+    type: '2', equipType: '3', trait: '18',
+    traitDesc: 'Increases Mundus Stone effects by 9.1%.',
+    enchantDesc: 'Adds 868 Maximum Magicka.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '646', setName: 'Whorl of the Depths', setBonusCount: '4', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Gain Minor Slayer at all times, increasing your damage done to Dungeon, Trial, and Arena Monsters by 5%.',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) When you deal damage with a Light Attack, you apply Whorl of the Depths...',
+};
+
+/** Hands — Whorl of the Depths (light, Divines, +351 Magicka) */
+const WHORL_GLOVES: UespItemApiData = {
+    itemId: '186448', name: 'Gloves of the Depths',
+    armorRating: '698', weaponPower: '0', armorType: '1', weaponType: '0',
+    type: '2', equipType: '13', trait: '18',
+    traitDesc: 'Increases Mundus Stone effects by 9.1%.',
+    enchantDesc: 'Adds 351 Maximum Magicka.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '646', setName: 'Whorl of the Depths', setBonusCount: '4', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Gain Minor Slayer at all times, increasing your damage done to Dungeon, Trial, and Arena Monsters by 5%.',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) When you deal damage with a Light Attack, you apply Whorl of the Depths...',
+};
+
+/** Legs — Whorl of the Depths (light, Divines, +868 Magicka) */
+const WHORL_BREECHES: UespItemApiData = {
+    itemId: '186450', name: 'Breeches of the Depths',
+    armorRating: '1221', weaponPower: '0', armorType: '1', weaponType: '0',
+    type: '2', equipType: '9', trait: '18',
+    traitDesc: 'Increases Mundus Stone effects by 9.1%.',
+    enchantDesc: 'Adds 868 Maximum Magicka.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '646', setName: 'Whorl of the Depths', setBonusCount: '4', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Gain Minor Slayer at all times, increasing your damage done to Dungeon, Trial, and Arena Monsters by 5%.',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) When you deal damage with a Light Attack, you apply Whorl of the Depths...',
+};
+
+/** Waist — Whorl of the Depths (light, Divines, +351 Magicka) */
+const WHORL_SASH: UespItemApiData = {
+    itemId: '186453', name: 'Sash of the Depths',
+    armorRating: '523', weaponPower: '0', armorType: '1', weaponType: '0',
+    type: '2', equipType: '8', trait: '18',
+    traitDesc: 'Increases Mundus Stone effects by 9.1%.',
+    enchantDesc: 'Adds 351 Maximum Magicka.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '646', setName: 'Whorl of the Depths', setBonusCount: '4', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Gain Minor Slayer at all times, increasing your damage done to Dungeon, Trial, and Arena Monsters by 5%.',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) When you deal damage with a Light Attack, you apply Whorl of the Depths...',
+};
+
+/** Feet — Whorl of the Depths (light, Divines, +351 Magicka) */
+const WHORL_SHOES: UespItemApiData = {
+    itemId: '186447', name: 'Shoes of the Depths',
+    armorRating: '1221', weaponPower: '0', armorType: '1', weaponType: '0',
+    type: '2', equipType: '10', trait: '18',
+    traitDesc: 'Increases Mundus Stone effects by 9.1%.',
+    enchantDesc: 'Adds 351 Maximum Magicka.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '646', setName: 'Whorl of the Depths', setBonusCount: '4', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Gain Minor Slayer at all times, increasing your damage done to Dungeon, Trial, and Arena Monsters by 5%.',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) When you deal damage with a Light Attack, you apply Whorl of the Depths...',
+};
+
+/** Neck — Order's Wrath (jewel, no enchant) */
+const ORDERS_WRATH_NECK: UespItemApiData = {
+    itemId: '184807', name: "Amulet of the Order's Wrath",
+    armorRating: '0', weaponPower: '0', armorType: '0', weaponType: '0',
+    type: '2', equipType: '2',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '640', setName: "Order's Wrath", setBonusCount: '5', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 657 Critical Chance',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 657 Critical Chance',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) Adds 943 Critical Chance',
+    setBonusCount5: '5', setBonusDesc5: '(5 items) Increases your Critical Damage and Critical Healing by |cffffff8|r%.',
+};
+
+/** Ring1 — Ring of the Pale Order (unique, 1pc: restore 20% dmg as Health) */
+const RING_OF_PALE_ORDER: UespItemApiData = {
+    itemId: '171436', name: 'Ring of the Pale Order',
+    armorRating: '0', weaponPower: '0', armorType: '0', weaponType: '0',
+    type: '2', equipType: '11', trait: '31', isUnique: '1', isUniqueEquipped: '1',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '598', setName: 'Ring of the Pale Order', setBonusCount: '1', setMaxEquipCount: '1',
+    setBonusCount1: '1', setBonusDesc1: '(1 item) Restore 20% of damage you deal as Health. This value is halved in PvP.',
+};
+
+/** Ring2 — Order's Wrath (jewel, no enchant) */
+const ORDERS_WRATH_RING: UespItemApiData = {
+    itemId: '184806', name: "Ring of the Order's Wrath",
+    armorRating: '0', weaponPower: '0', armorType: '0', weaponType: '0',
+    type: '2', equipType: '12',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '640', setName: "Order's Wrath", setBonusCount: '5', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 657 Critical Chance',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 657 Critical Chance',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) Adds 943 Critical Chance',
+    setBonusCount5: '5', setBonusDesc5: '(5 items) Increases your Critical Damage and Critical Healing by |cffffff8|r%.',
+};
+
+/** MainHand1 — Order's Wrath Inferno Staff (Precise trait = +7.2% SpellCrit) */
+const ORDERS_WRATH_INFERNO_STAFF: UespItemApiData = {
+    itemId: '184904', name: "Inferno Staff of the Order's Wrath",
+    armorRating: '0', weaponPower: '1335', armorType: '0', weaponType: '12',
+    type: '1', equipType: '6', trait: '3',
+    traitDesc: 'Increases Weapon and Spell Critical by |cffffff7.2|r%.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '640', setName: "Order's Wrath", setBonusCount: '5', setMaxEquipCount: '5',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 657 Critical Chance',
+    setBonusCount2: '3', setBonusDesc2: '(3 items) Adds 129 Weapon and Spell Damage',
+    setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 657 Critical Chance',
+    setBonusCount4: '5', setBonusDesc4: '(5 items) Adds 943 Critical Chance',
+    setBonusCount5: '5', setBonusDesc5: '(5 items) Increases your Critical Damage and Critical Healing by |cffffff8|r%.',
+};
+
+/** MainHand2 — Crushing Wall Lightning Staff (Charged trait, Absorb Magicka enchant) */
+const CRUSHING_WALL_LIGHTNING_STAFF: UespItemApiData = {
+    itemId: '71166', name: "The Maelstrom's Lightning Staff",
+    armorRating: '0', weaponPower: '1335', armorType: '0', weaponType: '15',
+    type: '1', equipType: '6', trait: '4',
+    traitDesc: 'Increases weapon enchantment effect by |cffffff30|r% and reduces enchantment cooldown by |cFFFFFF50|r%.',
+    enchantDesc: 'Deals |cffffff2470|r Magic Damage and restores |cffffff461|r Magicka.',
+    internalLevel: '50', internalSubtype: '364',
+    setId: '373', setName: 'Crushing Wall', setBonusCount: '1', setMaxEquipCount: '2',
+    setBonusCount1: '2', setBonusDesc1: '(2 items) Increases the damage Wall of Elements deals by |cffffff1250|r.',
+};
+
+/** All 12 slots for the full build */
+const FULL_BUILD_ITEMS = {
+    Head:      SLIMECRAW_MASK,
+    Shoulders: ORDERS_WRATH_SHOULDERS,
+    Chest:     WHORL_ROBE,
+    Hands:     WHORL_GLOVES,
+    Legs:      WHORL_BREECHES,
+    Waist:     WHORL_SASH,
+    Feet:      WHORL_SHOES,
+    Neck:      ORDERS_WRATH_NECK,
+    Ring1:     RING_OF_PALE_ORDER,
+    Ring2:     ORDERS_WRATH_RING,
+    MainHand1: ORDERS_WRATH_INFERNO_STAFF,
+    MainHand2: CRUSHING_WALL_LIGHTNING_STAFF,
+};
+
+/** High Elf Sorcerer CP160 — matches the real UESP session */
+const HIGH_ELF_SORC_CP160 = {
+    race: 'High Elf',
+    class: 'Sorcerer',
+    level: 50,
+    attributes: {health: 0, magicka: 64, stamina: 0},
+    mundusStone: 'The Thief',
+    championPoints: 160,
+} as const;
+
+describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () => {
+
+    // ── Items only (no CP2 injected) ──────────────────────────────────────────────
+    describe('itens sem CP2 — enchants, armadura, arma e SpellCrit de trait', () => {
+        let base: ReturnType<typeof calculateBuild>;
+        let withItems: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            base      = calculateBuild({character: HIGH_ELF_SORC_CP160});
+            withItems = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
+        });
+
+        // Magicka enchants: Chest 868 + Hands 351 + Legs 868 + Waist 351 + Feet 351 = 2789
+        it('Magicka delta = +2789  [enchants de Magicka nos 5 slots de armadura]', () => {
+            expect(withItems.Magicka - base.Magicka).toBe(2789);
+        });
+
+        // Head enchant is +868 Stamina (Slimecraw) → goes to Stamina, not Magicka
+        it('Stamina delta = +868  [enchant de Stamina no capacete Slimecraw]', () => {
+            expect(withItems.Stamina - base.Stamina).toBe(868);
+        });
+
+        // Armor ratings: 1823 (head) + 1823 (shoulders) + 1396 (chest) + 698 (hands) +
+        //                1221 (legs) + 523 (waist) + 1221 (feet) = 8705
+        it('PhysicalResist delta = +8705  [soma das armaduras dos 7 slots de equipamento]', () => {
+            expect(withItems.PhysicalResist - base.PhysicalResist).toBe(8705);
+        });
+
+        it('SpellResist delta = +8705  [armor concede ambas as resistências igualmente]', () => {
+            expect(withItems.SpellResist - base.SpellResist).toBe(8705);
+        });
+
+        // Inferno Staff: weaponPower=1335, SpellDamage = base(1000) + weapon(1335) = 2335
+        it('SpellDamage = 2335  [base 1000 + weapon power 1335 do Inferno Staff]', () => {
+            expect(withItems.SpellDamage).toBe(2335);
+        });
+
+        // Precise trait on Inferno Staff: +0.072 (direct, bypasses rating formula)
+        // 7 Divines pieces (9.1% each) amplify The Thief mundus by 63.7%:
+        //   extra = 1333 × 0.637 / 21912 ≈ +0.03875
+        // Total delta ≈ 0.072 + 0.03875 = 0.11075
+        it('SpellCrit delta ≈ +0.1108  [Precise trait (+0.072) + 7 Divines amplificando The Thief (+0.039)]', () => {
+            expect(withItems.SpellCrit - base.SpellCrit).toBeCloseTo(0.11075, 4);
+        });
+
+        // No Magicka/Stamina regen enchants → regen unchanged
+        it('MagickaRegen inalterado  [nenhum enchant de regen no build]', () => {
+            expect(withItems.MagickaRegen).toBe(base.MagickaRegen);
+        });
+
+        // EffectivePower increases with items (weapon power + SpellCrit from trait)
+        it('EffectivePower > base  [arma e trait aumentam poder efetivo]', () => {
+            expect(withItems.EffectivePower).toBeGreaterThan(base.EffectivePower);
+        });
+    });
+
+    // ── CP2 node injection — delta tests ─────────────────────────────────────────
+    describe('CP2 node injection — delta por nó', () => {
+        let withItems: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            withItems = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
+        });
+
+        // Node 141744 = Magicka flat bonus
+        it('node 141744 (Magicka +1000): Magicka delta = +1000', () => {
+            const withCP = calculateBuild({
+                character:           HIGH_ELF_SORC_CP160,
+                items:               FULL_BUILD_ITEMS,
+                championPointNodes:  {141744: {currentBonus: 1000}},
+            });
+            expect(withCP.Magicka - withItems.Magicka).toBe(1000);
+        });
+
+        // Node 149305 = second Magicka slot
+        it('node 149305 (Magicka +500): Magicka delta = +500', () => {
+            const withCP = calculateBuild({
+                character:           HIGH_ELF_SORC_CP160,
+                items:               FULL_BUILD_ITEMS,
+                championPointNodes:  {149305: {currentBonus: 500}},
+            });
+            expect(withCP.Magicka - withItems.Magicka).toBe(500);
+        });
+
+        // Node 141899 = CritDamage + CritHealing (%)
+        it('node 141899 (CritDamage 10%): SpellCritDamage delta ≈ +0.1', () => {
+            const withCP = calculateBuild({
+                character:           HIGH_ELF_SORC_CP160,
+                items:               FULL_BUILD_ITEMS,
+                championPointNodes:  {141899: {currentBonus: '10%'}},
+            });
+            expect(withCP.SpellCritDamage - withItems.SpellCritDamage).toBeCloseTo(0.1, 10);
+        });
+
+        // Node 142035 = SpellResist + PhysicalResist (flat)
+        it('node 142035 (SpellResist+PhysResist +1000): ambas as resistências sobem +1000', () => {
+            const withCP = calculateBuild({
+                character:           HIGH_ELF_SORC_CP160,
+                items:               FULL_BUILD_ITEMS,
+                championPointNodes:  {142035: {currentBonus: 1000}},
+            });
+            expect(withCP.SpellResist    - withItems.SpellResist).toBe(1000);
+            expect(withCP.PhysicalResist - withItems.PhysicalResist).toBe(1000);
+        });
+
+        // Node 141895 = SpellPenetration + PhysicalPenetration (flat)
+        it('node 141895 (Penetração +800): SpellPenetration delta = +800', () => {
+            const withCP = calculateBuild({
+                character:           HIGH_ELF_SORC_CP160,
+                items:               FULL_BUILD_ITEMS,
+                championPointNodes:  {141895: {currentBonus: 800}},
+            });
+            expect(withCP.SpellPenetration - withItems.SpellPenetration).toBe(800);
+        });
+
+        // Two nodes injected simultaneously
+        it('dois nós simultâneos (141744 +1000 e 149305 +500): Magicka delta = +1500', () => {
+            const withCP = calculateBuild({
+                character:           HIGH_ELF_SORC_CP160,
+                items:               FULL_BUILD_ITEMS,
+                championPointNodes:  {141744: {currentBonus: 1000}, 149305: {currentBonus: 500}},
+            });
+            expect(withCP.Magicka - withItems.Magicka).toBe(1500);
+        });
+
+        // CP2 injection resets between calls — no bleed-through
+        it('CP2 reseta entre chamadas  [sem bleed-through para chamada sem CP2]', () => {
+            calculateBuild({
+                character:           HIGH_ELF_SORC_CP160,
+                items:               FULL_BUILD_ITEMS,
+                championPointNodes:  {141744: {currentBonus: 5000}},
+            });
+            const clean = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
+            expect(clean.Magicka).toBe(withItems.Magicka);
+        });
     });
 })

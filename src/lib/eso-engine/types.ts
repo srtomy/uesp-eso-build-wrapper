@@ -102,6 +102,27 @@ export interface BuildInput {
    * Mapeie o item desejado (do array .minedItem[]) ao slot correto.
    */
   items?: Partial<Record<EquipSlot, UespItemApiData>>;
+  /**
+   * Nodes do Champion Points 2 que estão desbloqueados.
+   * Chave: abilityId do node (mesmo ID usado internamente pela UESP).
+   * currentBonus: valor exibido pelo UESP como "Current bonus: X" ou "Current value: X%"
+   *   - Número inteiro (ex: 1500) → adicionado diretamente ao stat (ex: Magicka)
+   *   - String com "%" (ex: "20%") → convertido para fração (ex: 0.20)
+   * Requer que character.championPoints > 0.
+   */
+  championPointNodes?: Record<string | number, { currentBonus: number | string }>;
+  /**
+   * Nomes exatos dos buffs ativos (habilitados para o cálculo).
+   * Ex: ["Minor Slayer", "Major Prophecy", "Major Savagery"]
+   * Usa o mesmo nome que aparece em g_EsoBuildBuffData da UESP.
+   */
+  activeBuffs?: string[];
+  /**
+   * Nomes exatos das toggle skills habilitadas.
+   * Ex: ["Emperor", "Authority", "Domination", "Tactician"]
+   * Usa o mesmo nome que aparece em g_EsoBuildToggledSkillData da UESP.
+   */
+  toggleSkills?: string[];
 }
 
 // ---------------------------------------------------------------------------
