@@ -18,7 +18,7 @@
  *   4. Ler os resultados de g_EsoComputedStats[statId].value
  */
 
-import { setDomValue, resetDomValues } from './env-setup';
+import { setDomValue, setDomAttr, setDomTextContent, resetDomValues } from './env-setup';
 import type { BuildInput, ComputedStats, EquipSlot } from './types';
 
 const ALL_SLOTS: EquipSlot[] = [
@@ -66,7 +66,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // -------------------------------------------------------------------------
   resetDomValues();
 
-  const { character, items } = input;
+  const { character, items, championPointNodes, activeBuffs, toggleSkills } = input;
 
   setDomValue('esotbRace',  character.race);
   setDomValue('esotbClass', character.class);
@@ -89,10 +89,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   if (character.vampireStage  != null) setDomValue('esotbVampireStage',  String(character.vampireStage));
   if (character.werewolfStage != null) setDomValue('esotbWerewolfStage', String(character.werewolfStage));
 
-  // Champion Points
-  if (character.championPoints != null) {
-    setDomValue('esotbCPTotalPoints', String(character.championPoints));
-  }
+  // Champion Points (default 0 — garante que SpellCrit e WeaponCrit sejam numéricos)
+  setDomValue('esotbCPTotalPoints', String(character.championPoints ?? 0));
 
   // Versão das regras (padrão: Live)
   setDomValue('esotbRulesVersion', character.rulesVersion ?? 'Live');
@@ -103,7 +101,19 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   setDomValue('esotbBuildDescription', '');
   setDomValue('esotbUsePtsRules', 'false');
   setDomValue('esotbEnableRaceAutoPurchase', 'false');
-  setDomValue('esotbTargetResistance', '0');
+
+  // Configuração do alvo (target) — necessária para AttackSpellMitigation e EffectivePower.
+  // Target.EffectiveLevel = 0 causa divisão por zero na fórmula; padrão 50 é o nível máximo.
+  setDomValue('esotbTargetResistance',       '18200'); // UESP default: CP160 enemy base resistance
+  setDomValue('esotbTargetEffectiveLevel',   '66');    // UESP default: 66 = CP160 (endgame content)
+  setDomValue('esotbTargetCritResistFlat',   '0');
+  setDomValue('esotbTargetPenetrationFlat',  '0');
+  setDomValue('esotbTargetPenetrationFactor','0');
+  setDomValue('esotbTargetDefenseBonus',     '0');
+  setDomValue('esotbTargetAttackBonus',      '0');
+  setDomValue('esotbTargetCritDamage',       '0');
+  setDomValue('esotbTargetCritChance',       '0');
+  setDomValue('esotbTargetPercentHealth',    '100');
 
   // -------------------------------------------------------------------------
   // PASSO 2: Injeta dados de itens DIRETAMENTE em g_EsoBuildItemData[slot].
@@ -126,6 +136,86 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     for (const [slot, item] of Object.entries(items) as [EquipSlot, any][]) {
       if (item && item.itemId) {
         itemData[slot] = normalizeItemData(item);
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // PASSO 3a: Injeta nodes do Champion Points 2 via DOM mock.
+  //
+  // O motor lê cada node CP2 via:
+  //   $("#skill_<id>").attr("unlocked") > 0  → node ativo
+  //   $("#descskill_<id>").text()             → "Current bonus: X" ou "Current value: X%"
+  //
+  // Habilitamos CP via checkbox esotbEnableCP.
+  // -------------------------------------------------------------------------
+  if (championPointNodes && Object.keys(championPointNodes).length > 0) {
+    setDomValue('esotbEnableCP', 'true');
+    for (const [nodeId, nodeData] of Object.entries(championPointNodes)) {
+      const bonus = nodeData.currentBonus;
+      const bonusStr = typeof bonus === 'string' && bonus.endsWith('%')
+        ? `Current value: ${bonus}`
+        : `Current bonus: ${bonus}`;
+      setDomAttr(`skill_${nodeId}`, 'unlocked', '1');
+      setDomTextContent(`descskill_${nodeId}`, bonusStr);
+      setDomTextContent(`descskill_${nodeId}_prev`, `CP Node ${nodeId}`);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // PASSO 3b: Habilita buffs ativos.
+  //
+  // g_EsoBuildBuffData é um Proxy que auto-cria entradas.
+  // Setar .enabled = true é suficiente para IsEsoBuffEnabled() retornar true.
+  // Reseta todos os buffs antes para evitar bleed-through entre chamadas.
+  // -------------------------------------------------------------------------
+  const buffData: any = (global as any).g_EsoBuildBuffData;
+  if (buffData && typeof buffData === 'object') {
+    for (const key of Object.keys(buffData)) {
+      const b = buffData[key];
+      if (b && typeof b === 'object') {
+        b.enabled = false;
+        b.skillEnabled = false;
+        b.buffEnabled = false;
+        b.combatEnabled = false;
+      }
+    }
+  }
+  if (activeBuffs) {
+    for (const buffName of activeBuffs) {
+      if (buffData) {
+        buffData[buffName].enabled = true;
+        // CountEsoMajorMinorBuffs reads .name — set it here since
+        // CreateEsoBuildBuffHtml (browser-only) normally does this.
+        if (!buffData[buffName].name) {
+          buffData[buffName].name = buffName;
+        }
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // PASSO 3c: Habilita toggle skills.
+  //
+  // IsEsoBuildToggledSkillEnabled() verifica: skillData.valid && skillData.enabled
+  // Reseta todos os toggles antes para evitar bleed-through entre chamadas.
+  // -------------------------------------------------------------------------
+  const toggleSkillData: any = (global as any).g_EsoBuildToggledSkillData;
+  if (toggleSkillData && typeof toggleSkillData === 'object') {
+    for (const key of Object.keys(toggleSkillData)) {
+      const s = toggleSkillData[key];
+      if (s && typeof s === 'object') {
+        s.enabled = false;
+        s.combatEnabled = false;
+      }
+    }
+  }
+  if (toggleSkills) {
+    for (const skillName of toggleSkills) {
+      if (toggleSkillData) {
+        if (!toggleSkillData[skillName]) toggleSkillData[skillName] = {};
+        toggleSkillData[skillName].valid = true;
+        toggleSkillData[skillName].enabled = true;
       }
     }
   }

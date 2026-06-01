@@ -17,9 +17,26 @@
 /** Armazena os valores que o jQuery vai "ler" como se fossem campos HTML */
 export const domValueStore = new Map<string, string>();
 
+/** Armazena atributos HTML de elementos mock (ex: unlocked="50" nos nodes CP2) */
+export const domAttrStore = new Map<string, Map<string, string>>();
+
+/** Armazena o textContent de elementos mock (ex: "Current bonus: 1500" nos nodes CP2) */
+export const domTextStore = new Map<string, string>();
+
 /** Define o valor de um elemento mock (equivale a preencher um campo HTML) */
 export function setDomValue(id: string, value: string): void {
   domValueStore.set(id, value);
+}
+
+/** Define um atributo HTML de um elemento mock */
+export function setDomAttr(id: string, attr: string, value: string): void {
+  if (!domAttrStore.has(id)) domAttrStore.set(id, new Map());
+  domAttrStore.get(id)!.set(attr, value);
+}
+
+/** Define o textContent de um elemento mock */
+export function setDomTextContent(id: string, text: string): void {
+  domTextStore.set(id, text);
 }
 
 /** Lê o valor de um elemento mock */
@@ -30,6 +47,8 @@ export function getDomValue(id: string): string {
 /** Reseta todos os valores do DOM mock */
 export function resetDomValues(): void {
   domValueStore.clear();
+  domAttrStore.clear();
+  domTextStore.clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -72,17 +91,21 @@ function createChainMock(id?: string): any {
     },
     attr: (name: string, v?: any) => {
       if (v !== undefined) return chain;
-      return '';
+      return id ? (domAttrStore.get(id)?.get(name) ?? '') : '';
     },
     data: (key: string, v?: any) => {
       if (v !== undefined) return chain;
       return '';
     },
     html: (v?: string) => { return v !== undefined ? chain : ''; },
-    text: (v?: string) => { return v !== undefined ? chain : ''; },
+    text: (v?: string) => {
+      if (v !== undefined) return chain;
+      return id ? (domTextStore.get(id) ?? '') : '';
+    },
     find: (_sel: string) => createChainMock(),
     children: (_sel?: string) => createChainMock(),
     parent: () => createChainMock(),
+    prev: () => createChainMock(id ? id + '_prev' : undefined),
     closest: (_sel: string) => createChainMock(),
     filter: (_sel: string) => createChainMock(),
     each: (fn: Function) => chain,
