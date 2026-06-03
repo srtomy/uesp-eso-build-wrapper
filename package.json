@@ -31,10 +31,11 @@
   },
   "main": "dist/lib/eso-engine/index.js",
   "types": "dist/lib/eso-engine/index.d.ts",
+  "sideEffects": true,
   "exports": {
     ".": {
+      "import": "./dist/lib/eso-engine/index.js",
       "require": "./dist/lib/eso-engine/index.js",
-      "default": "./dist/lib/eso-engine/index.js",
       "types": "./dist/lib/eso-engine/index.d.ts"
     }
   },
@@ -48,12 +49,21 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build && node -e \"require('fs').existsSync('vendor/uesp-data/uesp-init-data.json')||process.exit(1)\"",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
+    "format": "prettier --write src tests",
+    "format:check": "prettier --check src tests",
+    "prepublishOnly": "npm run build && npm run lint && node -e \"require('fs').existsSync('vendor/uesp-data/uesp-init-data.json')||process.exit(1)\"",
     "test": "vitest run",
     "test:explore": "ts-node --project tsconfig.scripts.json scripts/test-engine.ts"
   },
   "devDependencies": {
     "@types/node": "^20.19.41",
+    "@typescript-eslint/eslint-plugin": "^8.60.1",
+    "@typescript-eslint/parser": "^8.60.1",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vitest": "^4.1.7"

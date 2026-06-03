@@ -39,13 +39,20 @@
  */
 
 import * as path from 'path';
-import { setupNodeEnvironment } from './env-setup';
-import { loadUespEngine } from './loader';
-import { calculateBuild } from './calculator';
+import {setupNodeEnvironment} from './env-setup';
+import {loadUespEngine} from './loader';
+import {calculateBuild} from './calculator';
 
-export type { BuildInput, ComputedStats, UespItemApiData, EquipSlot, UespInitData } from './types';
+export type {
+  BuildInput,
+  ComputedStats,
+  UespItemApiData,
+  EquipSlot,
+  UespInitData,
+  ChampionPointNode,
+  SkillSlot,
+} from './types';
 export { calculateBuild } from './calculator';
-export { setDomValue, getDomValue } from './env-setup';
 
 let initialized = false;
 
@@ -59,20 +66,16 @@ let initialized = false;
  * @param uespResourcesPath - Path to the UESP fork's resources/ folder.
  * @param initDataPath - Path to the uesp-init-data.json file with game formulas.
  */
-export function initEsoEngine(
-  uespResourcesPath?: string,
-  initDataPath?: string,
-): void {
+export function initEsoEngine(uespResourcesPath?: string, initDataPath?: string): void {
   if (initialized) return;
 
   // __dirname resolves to dist/lib/eso-engine/ in the built package.
   // Going up 3 levels reaches the package root (node_modules/uesp-eso-build-wrapper/).
   const pkgRoot = path.resolve(__dirname, '../../..');
 
-  const resourcesPath = uespResourcesPath ??
-    path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
-  const dataPath = initDataPath ??
-    path.join(pkgRoot, 'vendor/uesp-data/uesp-init-data.json');
+  const resourcesPath =
+      uespResourcesPath ?? path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
+  const dataPath = initDataPath ?? path.join(pkgRoot, 'vendor/uesp-data/uesp-init-data.json');
 
   setupNodeEnvironment();
   loadUespEngine(resourcesPath, dataPath);
@@ -80,7 +83,10 @@ export function initEsoEngine(
   initialized = true;
 }
 
-/** Resets initialization state (useful for testing) */
+/**
+ * Resets initialization state.
+ * @internal For testing only — not part of the public API.
+ */
 export function resetEngine(): void {
   initialized = false;
   const { resetEngineLoader } = require('./loader');

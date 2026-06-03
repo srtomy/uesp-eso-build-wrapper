@@ -15,7 +15,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vm from 'vm';
-import type { UespInitData } from './types';
+import type {UespInitData} from './types';
 
 let engineLoaded = false;
 
@@ -34,8 +34,8 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   if (!fs.existsSync(initDataPath)) {
     throw new Error(
       `[eso-engine] Arquivo de inicialização não encontrado: ${initDataPath}\n` +
-      `Execute o script de extração no browser e salve o resultado neste caminho.\n` +
-      `Consulte: vendor/uesp-data/browser-extract.js`
+        `Execute o script de extração no browser e salve o resultado neste caminho.\n` +
+        `Consulte: vendor/uesp-data/browser-extract.js`,
     );
   }
 
@@ -44,87 +44,136 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
 
   // 2. Injeta os dados de fórmulas como globais ANTES de carregar o script.
   //    O script da UESP referencia g_EsoComputedStats, g_EsoInputStats, etc. como globais.
-  (global as any).g_EsoComputedStats    = initData.computedStats  ?? {};
-  (global as any).g_EsoInputStats       = initData.inputStats     ?? {};
-  (global as any).g_EsoInitialBuffData  = initData.buffData       ?? {};
-  (global as any).g_EsoInitialCpData    = initData.cpData         ?? {};
-  (global as any).g_EsoBuildRules       = initData.buildRules     ?? {};
+  (global as any).g_EsoComputedStats = initData.computedStats ?? {};
+  (global as any).g_EsoInputStats = initData.inputStats ?? {};
+  (global as any).g_EsoInitialBuffData = initData.buffData ?? {};
+  (global as any).g_EsoInitialCpData = initData.cpData ?? {};
+  (global as any).g_EsoBuildRules = initData.buildRules ?? {};
   (global as any).g_EsoBuildRulesVersion = 'Live';
-  (global as any).g_EsoBuildLiveVersion  = 'Live';
-  (global as any).g_EsoBuildPtsVersion   = 'PTS';
+  (global as any).g_EsoBuildLiveVersion = 'Live';
+  (global as any).g_EsoBuildPtsVersion = 'PTS';
 
   // Metadados dos nodes CP2 — injetados como globais para que calculator.ts
   // possa resolver nomes e descrições dinamicamente sem hardcoding.
-  (global as any).g_EsoCpSkills    = initData.cpSkillsData    ?? {};
+  (global as any).g_EsoCpSkills = initData.cpSkillsData ?? {};
   (global as any).g_EsoCpSkillDesc = initData.cpSkillDescData ?? {};
 
   // Globals que vêm do PHP/DB — inicializados como objetos vazios para que
   // loops "for (var id in g_SkillsData)" não quebrem
-  (global as any).g_SkillsData          = initData.skillsData       ?? {};
-  (global as any).g_SetSkillsData       = initData.setSkillsData    ?? {};
+  (global as any).g_SkillsData = initData.skillsData ?? {};
+  (global as any).g_SetSkillsData = initData.setSkillsData ?? {};
   (global as any).g_LastSkillInputValues = {};
 
   // Globals de estado da build — injetados pelo PHP, precisam de defaults seguros
-  (global as any).g_EsoBuildActiveWeapon      = 1;   // 1=barra de armas principal
-  (global as any).g_EsoBuildActiveAbilityBar  = 1;
-  (global as any).g_EsoBuildAlternateVersion  = '';
-  (global as any).g_EsoBuildCp               = {};
-  (global as any).g_EsoBuildData             = {};
-  (global as any).g_EsoBuildLastSetIndex     = 0;
-  (global as any).g_EsoBuildSetNames         = {};
+  (global as any).g_EsoBuildActiveWeapon = 1; // 1=barra de armas principal
+  (global as any).g_EsoBuildActiveAbilityBar = 1;
+  (global as any).g_EsoBuildAlternateVersion = '';
+  (global as any).g_EsoBuildCp = {};
+  (global as any).g_EsoBuildData = {};
+  (global as any).g_EsoBuildLastSetIndex = 0;
+  (global as any).g_EsoBuildSetNames = {};
 
   // Barra de habilidades — array de 2 barras (principal + offbar), cada uma com 6 slots.
   // O script acessa g_EsoSkillBarData[0][5].origSkillId diretamente (linha 10239).
   const emptySkillSlot = () => ({ skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: 0 });
-  const emptySkillBar  = () => Array.from({ length: 6 }, emptySkillSlot);
-  (global as any).g_EsoSkillBarData     = [emptySkillBar(), emptySkillBar()];
-  (global as any).g_EsoSkillActiveData  = {};
+  const emptySkillBar = () => Array.from({length: 6}, emptySkillSlot);
+  (global as any).g_EsoSkillBarData = [emptySkillBar(), emptySkillBar()];
+  (global as any).g_EsoSkillActiveData = {};
   (global as any).g_EsoSkillPassiveData = {};
 
   // Objetos que precisam ser {} para que acessos do tipo obj[key] retornem undefined
   // ao invés de lançar TypeError ("Cannot read properties of undefined")
-  (global as any).g_EsoCpData           = {};
+  (global as any).g_EsoCpData = {};
   (global as any).g_EsoBuildEnchantData = {};
-  (global as any).g_EsoBuildItemData    = {};
-  (global as any).g_EsoBuildSetData     = {};
-  (global as any).g_EsoBuildAllSetData  = {};
+  (global as any).g_EsoBuildItemData = {};
+  (global as any).g_EsoBuildSetData = {};
+  (global as any).g_EsoBuildAllSetData = {};
   // g_EsoBuildRules já foi injetado acima a partir de initData.buildRules — não sobrescrever aqui.
-  (global as any).g_EsoInitialItemData  = {};
+  (global as any).g_EsoInitialItemData = {};
 
   // 3. Pré-declara todos os g_* globais como undefined no contexto Node.js.
   //    No browser, variáveis globais não declaradas retornam undefined quando lidas.
   //    No Node.js com vm.runInThisContext elas lançam ReferenceError.
   //    Pre-declarar garante comportamento compatível com o browser.
   const ALL_GLOBALS = [
-    'g_EsoBuildActiveAbilityBar','g_EsoBuildActiveWeapon','g_EsoBuildAllSetData',
-    'g_EsoBuildAlternateVersion','g_EsoBuildBuffData','g_EsoBuildBuffData_PTS',
-    'g_EsoBuildClickWallLinkElement','g_EsoBuildComputedStatParent',
-    'g_EsoBuildCp2NextRuleId','g_EsoBuildCp2RuleVersion','g_EsoBuildData',
-    'g_EsoBuildDumpSetData','g_EsoBuildEnableUpdates','g_EsoBuildEnchantData',
-    'g_EsoBuildItemData','g_EsoBuildLastInputHistory','g_EsoBuildLastInputValues',
-    'g_EsoBuildLastSetIndex','g_EsoBuildLastUpdateRequest','g_EsoBuildLiveVersion',
-    'g_EsoBuildPtsVersion','g_EsoBuildRebuildStatFlag','g_EsoBuildRules',
-    'g_EsoBuildRulesVersion','g_EsoBuildSetCachedRules','g_EsoBuildSetData',
-    'g_EsoBuildSetMaxData','g_EsoBuildSetNames','g_EsoBuildSubclassCurrentClass',
-    'g_EsoBuildSubclassCurrentElement','g_EsoBuildSubclassCurrentSkillIndex',
-    'g_EsoBuildSubclassCurrentSkillLine','g_EsoBuildSubclassData',
-    'g_EsoBuildTestSets','g_EsoBuildTestSkills','g_EsoBuildToggledCpData',
-    'g_EsoBuildToggledSetData','g_EsoBuildToggledSkillData',
-    'g_EsoBuildUpdatedOffBarEnchantFactor','g_EsoCharDataTimeUpdateId',
-    'g_EsoComputedStats','g_EsoCpData','g_EsoCraftedSkills',
-    'g_EsoCurrentTooltipSlot','g_EsoFormulaInputValues','g_EsoGearIcons',
-    'g_EsoGoodActiveMatches','g_EsoGoodActiveMatchesString',
-    'g_EsoGoodPassiveMatches','g_EsoGoodPassiveMatchesString','g_EsoGoodSetMatches',
-    'g_EsoInitialBuffData','g_EsoInitialEnchantData','g_EsoInitialItemData',
-    'g_EsoInitialSetMaxData','g_EsoInitialToggleCpData','g_EsoInitialToggleSetData',
-    'g_EsoInitialToggleSkillData','g_EsoInputStatDetails','g_EsoInputStats',
-    'g_EsoInputStatSources','g_EsoLoadedAllSetData','g_EsoProfileData',
-    'g_EsoSkillActiveData','g_EsoSkillBarData','g_EsoSkillDestructionData',
-    'g_EsoSkillDestructionElement','g_EsoSkillDestructionElementPrev',
-    'g_EsoSkillDestructionOffHandElement','g_EsoSkillIsMobile',
-    'g_EsoSkillPassiveData','g_EsoSkillPointsUsed','g_EsoToggleSkillUsedBuffer',
-    'g_LastSkillInputValues','g_SetSkillsData','g_SkillsData',
-    'g_EsoCpSkills','g_EsoCpSkillDesc',
+    'g_EsoBuildActiveAbilityBar',
+    'g_EsoBuildActiveWeapon',
+    'g_EsoBuildAllSetData',
+    'g_EsoBuildAlternateVersion',
+    'g_EsoBuildBuffData',
+    'g_EsoBuildBuffData_PTS',
+    'g_EsoBuildClickWallLinkElement',
+    'g_EsoBuildComputedStatParent',
+    'g_EsoBuildCp2NextRuleId',
+    'g_EsoBuildCp2RuleVersion',
+    'g_EsoBuildData',
+    'g_EsoBuildDumpSetData',
+    'g_EsoBuildEnableUpdates',
+    'g_EsoBuildEnchantData',
+    'g_EsoBuildItemData',
+    'g_EsoBuildLastInputHistory',
+    'g_EsoBuildLastInputValues',
+    'g_EsoBuildLastSetIndex',
+    'g_EsoBuildLastUpdateRequest',
+    'g_EsoBuildLiveVersion',
+    'g_EsoBuildPtsVersion',
+    'g_EsoBuildRebuildStatFlag',
+    'g_EsoBuildRules',
+    'g_EsoBuildRulesVersion',
+    'g_EsoBuildSetCachedRules',
+    'g_EsoBuildSetData',
+    'g_EsoBuildSetMaxData',
+    'g_EsoBuildSetNames',
+    'g_EsoBuildSubclassCurrentClass',
+    'g_EsoBuildSubclassCurrentElement',
+    'g_EsoBuildSubclassCurrentSkillIndex',
+    'g_EsoBuildSubclassCurrentSkillLine',
+    'g_EsoBuildSubclassData',
+    'g_EsoBuildTestSets',
+    'g_EsoBuildTestSkills',
+    'g_EsoBuildToggledCpData',
+    'g_EsoBuildToggledSetData',
+    'g_EsoBuildToggledSkillData',
+    'g_EsoBuildUpdatedOffBarEnchantFactor',
+    'g_EsoCharDataTimeUpdateId',
+    'g_EsoComputedStats',
+    'g_EsoCpData',
+    'g_EsoCraftedSkills',
+    'g_EsoCurrentTooltipSlot',
+    'g_EsoFormulaInputValues',
+    'g_EsoGearIcons',
+    'g_EsoGoodActiveMatches',
+    'g_EsoGoodActiveMatchesString',
+    'g_EsoGoodPassiveMatches',
+    'g_EsoGoodPassiveMatchesString',
+    'g_EsoGoodSetMatches',
+    'g_EsoInitialBuffData',
+    'g_EsoInitialEnchantData',
+    'g_EsoInitialItemData',
+    'g_EsoInitialSetMaxData',
+    'g_EsoInitialToggleCpData',
+    'g_EsoInitialToggleSetData',
+    'g_EsoInitialToggleSkillData',
+    'g_EsoInputStatDetails',
+    'g_EsoInputStats',
+    'g_EsoInputStatSources',
+    'g_EsoLoadedAllSetData',
+    'g_EsoProfileData',
+    'g_EsoSkillActiveData',
+    'g_EsoSkillBarData',
+    'g_EsoSkillDestructionData',
+    'g_EsoSkillDestructionElement',
+    'g_EsoSkillDestructionElementPrev',
+    'g_EsoSkillDestructionOffHandElement',
+    'g_EsoSkillIsMobile',
+    'g_EsoSkillPassiveData',
+    'g_EsoSkillPointsUsed',
+    'g_EsoToggleSkillUsedBuffer',
+    'g_LastSkillInputValues',
+    'g_SetSkillsData',
+    'g_SkillsData',
+    'g_EsoCpSkills',
+    'g_EsoCpSkillDesc',
   ];
   for (const name of ALL_GLOBALS) {
     if (!(name in global)) {
@@ -169,8 +218,11 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
       if (!(prop in target)) {
         target[prop] = {
           name: prop,
-          visible: false, enabled: false, skillEnabled: false,
-          rawOutput: {}, skillAbilities: [],
+          visible: false,
+          enabled: false,
+          skillEnabled: false,
+          rawOutput: {},
+          skillAbilities: [],
         };
       }
       return target[prop];

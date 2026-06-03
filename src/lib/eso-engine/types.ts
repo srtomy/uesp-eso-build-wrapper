@@ -25,17 +25,17 @@
 export interface UespItemApiData {
   itemId: string;
   name?: string;
-  armorRating?: string;   // Armor value (e.g. "1234")
-  weaponPower?: string;   // Weapon damage
-  armorType?: string;     // 0=none, 1=light, 2=medium, 3=heavy
-  weaponType?: string;    // 0=none, 1=axe1h, 4=sword2h, 8=bow, 12=flamestaf, etc.
+  armorRating?: string; // Armor value (e.g. "1234")
+  weaponPower?: string; // Weapon damage
+  armorType?: string; // 0=none, 1=light, 2=medium, 3=heavy
+  weaponType?: string; // 0=none, 1=axe1h, 4=sword2h, 8=bow, 12=flamestaf, etc.
   type?: string;
   equipType?: string;
   trait?: string;
-  traitDesc?: string;     // "Increases Critical Resistance by 47..."
+  traitDesc?: string; // "Increases Critical Resistance by 47..."
   enchantId?: string;
   enchantName?: string;
-  enchantDesc?: string;   // "Adds 70 Maximum Stamina."
+  enchantDesc?: string; // "Adds 70 Maximum Stamina."
   internalLevel?: string;
   internalSubtype?: string;
   setId?: string;
@@ -65,10 +65,37 @@ export interface UespItemApiData {
 //   { itemId: '23274', type: '4', abilityDesc: 'Increase Max Health by 3094 and Max Magicka by 2856. Magicka Recovery by 315.' }
 // Rules match "Max Health by N", "Max Magicka by N", "Magicka Recovery by N", etc.
 export type EquipSlot =
-  | 'Head' | 'Shoulders' | 'Chest' | 'Hands' | 'Legs' | 'Waist' | 'Feet'
-  | 'Neck' | 'Ring1' | 'Ring2'
-  | 'MainHand1' | 'OffHand1' | 'MainHand2' | 'OffHand2'
-  | 'Poison1' | 'Poison2' | 'Food' | 'Potion';
+    | 'Head'
+    | 'Shoulders'
+    | 'Chest'
+    | 'Hands'
+    | 'Legs'
+    | 'Waist'
+    | 'Feet'
+    | 'Neck'
+    | 'Ring1'
+    | 'Ring2'
+    | 'MainHand1'
+    | 'OffHand1'
+    | 'MainHand2'
+    | 'OffHand2'
+    | 'Poison1'
+    | 'Poison2'
+    | 'Food'
+    | 'Potion';
+
+// ---------------------------------------------------------------------------
+// Skill bar
+// ---------------------------------------------------------------------------
+export interface SkillSlot {
+  /** Ability ID do skill. Corresponde ao abilityId no banco da UESP. */
+  skillId: number;
+  /**
+   * Índice do morph: 0 = base, 1 = primeiro morph, 2 = segundo morph.
+   * @default 0
+   */
+  morphIndex?: 0 | 1 | 2;
+}
 
 // ---------------------------------------------------------------------------
 // Node de Champion Points
@@ -155,8 +182,49 @@ export interface BuildInput {
    * Nomes exatos das toggle skills habilitadas.
    * Ex: ["Emperor", "Authority", "Domination", "Tactician"]
    * Usa o mesmo nome que aparece em g_EsoBuildToggledSkillData da UESP.
+   *
+   * @note Os skills são injetados mas efeitos de stat requerem g_SkillsData
+   * (não incluído no uesp-init-data.json atual). O campo é aceito sem crash.
    */
   toggleSkills?: string[];
+  /**
+   * Skills slotados nas barras de habilidade do personagem (máx 6 por barra).
+   *
+   * A presença de skills na barra ativa passivos de skill line (ex: passivos de
+   * Destruction Staff só se aplicam se houver um skill dessa linha na barra).
+   * Também afeta set bonuses condicionais como "Adds N damage to your Class abilities".
+   *
+   * @note Requer g_SkillsData para aplicar efeitos de passivos de skill line.
+   * Sem g_SkillsData, os skill IDs são injetados em g_EsoSkillBarData mas os
+   * passivos correspondentes não geram stats. Será totalmente funcional em
+   * versão futura quando g_SkillsData for incluído no uesp-init-data.json.
+   *
+   * @example
+   * ```ts
+   * skillBars: {
+   *   bar1: [
+   *     { skillId: 28807, morphIndex: 2 }, // Crystal Fragments (morph 2)
+   *     { skillId: 24322 },                 // Mages' Fury (base)
+   *   ],
+   *   bar2: [
+   *     { skillId: 29073, morphIndex: 1 }, // Boundless Storm (morph 1)
+   *   ],
+   * }
+   * ```
+   */
+  skillBars?: {
+    bar1?: SkillSlot[];
+    bar2?: SkillSlot[];
+  };
+  /**
+   * Qual barra de armas está ativa para o cálculo.
+   * Afeta quais itens de MainHand/OffHand contam para set bonuses e enchants.
+   * - `1` = barra principal (MainHand1 / OffHand1) — padrão
+   * - `2` = barra secundária (MainHand2 / OffHand2)
+   *
+   * @default 1
+   */
+  activeWeaponBar?: 1 | 2;
 }
 
 // ---------------------------------------------------------------------------
