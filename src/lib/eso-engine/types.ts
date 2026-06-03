@@ -60,11 +60,39 @@ export interface UespItemApiData {
 // ---------------------------------------------------------------------------
 // Slots de equipamento válidos no motor da UESP
 // ---------------------------------------------------------------------------
+// Food slot: use `abilityDesc` to apply food/drink buffs.
+// The engine matches the text against buildRules.abilitydesc (17 rules) — see examples:
+//   { itemId: '23274', type: '4', abilityDesc: 'Increase Max Health by 3094 and Max Magicka by 2856. Magicka Recovery by 315.' }
+// Rules match "Max Health by N", "Max Magicka by N", "Magicka Recovery by N", etc.
 export type EquipSlot =
   | 'Head' | 'Shoulders' | 'Chest' | 'Hands' | 'Legs' | 'Waist' | 'Feet'
   | 'Neck' | 'Ring1' | 'Ring2'
   | 'MainHand1' | 'OffHand1' | 'MainHand2' | 'OffHand2'
   | 'Poison1' | 'Poison2' | 'Food' | 'Potion';
+
+// ---------------------------------------------------------------------------
+// Node de Champion Points
+// ---------------------------------------------------------------------------
+export interface ChampionPointNode {
+  /**
+   * Pontos investidos neste node.
+   * Usado para resolver automaticamente a descrição via g_EsoCpSkillDesc[nodeId][points].
+   * Obrigatório no caminho novo (quando buildRules.cp estiver carregado).
+   */
+  points?: number;
+  /**
+   * Override da descrição do node (opcional).
+   * Se não fornecido, a descrição é resolvida automaticamente via g_EsoCpSkillDesc.
+   * Ex: "Grants 1 Max Magicka per stage. Current bonus: 1000"
+   */
+  description?: string;
+  /**
+   * Valor numérico ou percentual do bônus atual.
+   * Formato legado para quando buildRules.cp não estiver disponível.
+   * Ex: 1000  ou  "10%"
+   */
+  currentBonus?: number | string;
+}
 
 // ---------------------------------------------------------------------------
 // Input para a função calculateBuild()
@@ -104,13 +132,19 @@ export interface BuildInput {
   items?: Partial<Record<EquipSlot, UespItemApiData>>;
   /**
    * Nodes do Champion Points 2 que estão desbloqueados.
-   * Chave: abilityId do node (mesmo ID usado internamente pela UESP).
-   * currentBonus: valor exibido pelo UESP como "Current bonus: X" ou "Current value: X%"
-   *   - Número inteiro (ex: 1500) → adicionado diretamente ao stat (ex: Magicka)
-   *   - String com "%" (ex: "20%") → convertido para fração (ex: 0.20)
+   * Chave: ID numérico do node (rule ID de ESO_CPEFFECT_MATCHES ou abilityId legado).
+   *
+   * Formato preferido (quando buildRules.cp está carregado):
+   *   description: texto completo do node que casa com a regex da regra CP.
+   *   Ex: { 38750: { description: "Grants 1 Max Magicka per stage. Current bonus: 1000" } }
+   *
+   * Formato legado (quando buildRules.cp não está disponível):
+   *   currentBonus: valor do "Current bonus: X" ou "Current value: X%"
+   *   Ex: { 141744: { currentBonus: 1000 } }
+   *
    * Requer que character.championPoints > 0.
    */
-  championPointNodes?: Record<string | number, { currentBonus: number | string }>;
+  championPointNodes?: Record<string | number, ChampionPointNode>;
   /**
    * Nomes exatos dos buffs ativos (habilitados para o cálculo).
    * Ex: ["Minor Slayer", "Major Prophecy", "Major Savagery"]
@@ -201,4 +235,8 @@ export interface UespInitData {
   skillsData?: Record<string, unknown>;
   /** Dados de skills de sets */
   setSkillsData?: Record<string, unknown>;
+  /** Metadados dos nodes CP2: nome, disciplina, cluster, posição no grafo */
+  cpSkillsData?: Record<string, unknown>;
+  /** Descrições dos nodes CP2 por nível de pontos: cpSkillDescData[nodeId][points] */
+  cpSkillDescData?: Record<string, Record<string, string>>;
 }

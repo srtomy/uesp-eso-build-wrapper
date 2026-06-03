@@ -53,6 +53,11 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   (global as any).g_EsoBuildLiveVersion  = 'Live';
   (global as any).g_EsoBuildPtsVersion   = 'PTS';
 
+  // Metadados dos nodes CP2 — injetados como globais para que calculator.ts
+  // possa resolver nomes e descrições dinamicamente sem hardcoding.
+  (global as any).g_EsoCpSkills    = initData.cpSkillsData    ?? {};
+  (global as any).g_EsoCpSkillDesc = initData.cpSkillDescData ?? {};
+
   // Globals que vêm do PHP/DB — inicializados como objetos vazios para que
   // loops "for (var id in g_SkillsData)" não quebrem
   (global as any).g_SkillsData          = initData.skillsData       ?? {};
@@ -119,9 +124,10 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     'g_EsoSkillDestructionOffHandElement','g_EsoSkillIsMobile',
     'g_EsoSkillPassiveData','g_EsoSkillPointsUsed','g_EsoToggleSkillUsedBuffer',
     'g_LastSkillInputValues','g_SetSkillsData','g_SkillsData',
+    'g_EsoCpSkills','g_EsoCpSkillDesc',
   ];
   for (const name of ALL_GLOBALS) {
-    if ((global as any)[name] === undefined) {
+    if (!(name in global)) {
       (global as any)[name] = undefined;
     }
   }
@@ -147,11 +153,22 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   //    O motor acessa g_EsoBuildBuffData['Battle Spirit'].visible, etc.
   //    Se os dados reais de buff não foram extraídos do browser, o objeto está vazio
   //    e o acesso quebraria. O Proxy auto-cria uma entrada segura para qualquer chave.
+  //
+  //    Também patchamos `.name` em entradas existentes que só têm `.nameId`:
+  //    EsoBuildCreateBuffDataFromRules() (linha 14337 do motor) popula g_EsoBuildBuffData
+  //    com 164+ entradas contendo .nameId mas sem .name. CountEsoMajorMinorBuffs (linha 3283)
+  //    chama .name.startsWith("Major ") em todas as entradas → TypeError sem esse patch.
   const rawBuffData = (global as any).g_EsoBuildBuffData ?? {};
+  for (const [key, entry] of Object.entries(rawBuffData) as [string, any][]) {
+    if (entry && typeof entry === 'object' && !entry.name) {
+      entry.name = entry.nameId ?? key;
+    }
+  }
   (global as any).g_EsoBuildBuffData = new Proxy(rawBuffData, {
     get(target, prop: string) {
       if (!(prop in target)) {
         target[prop] = {
+          name: prop,
           visible: false, enabled: false, skillEnabled: false,
           rawOutput: {}, skillAbilities: [],
         };

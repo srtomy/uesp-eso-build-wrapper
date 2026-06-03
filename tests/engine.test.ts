@@ -737,6 +737,13 @@ const CRUSHING_WALL_LIGHTNING_STAFF: UespItemApiData = {
     setBonusCount1: '2', setBonusDesc1: '(2 items) Increases the damage Wall of Elements deals by |cffffff1250|r.',
 };
 
+/** Food — Witchmother's Potent Brew (+2856 Magicka, +3094 Health, +315 MagickaRegen) */
+const WITCHMOTHERS_POTENT_BREW: UespItemApiData = {
+    itemId: '23274',
+    type: '4', // food type — triggers FoodBuff flag in the engine
+    abilityDesc: 'Increase Max Health by 3094 and Max Magicka by 2856 for 2 hours. Magicka Recovery by 315.',
+};
+
 /** All 12 slots for the full build */
 const FULL_BUILD_ITEMS = {
     Head:      SLIMECRAW_MASK,
@@ -795,17 +802,18 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
             expect(withItems.SpellResist - base.SpellResist).toBe(8705);
         });
 
-        // Inferno Staff: weaponPower=1335, SpellDamage = base(1000) + weapon(1335) = 2335
-        it('SpellDamage = 2335  [base 1000 + weapon power 1335 do Inferno Staff]', () => {
-            expect(withItems.SpellDamage).toBe(2335);
+        // Inferno Staff: weaponPower=1335. Set bonuses (Order's Wrath 3pc +129, Whorl 3pc, etc.)
+        // are now applied via buildRules.set. Total SpellDamage = 2722.
+        it('SpellDamage = 2722  [base 1000 + weapon 1335 + set bonuses]', () => {
+            expect(withItems.SpellDamage).toBe(2722);
         });
 
-        // Precise trait on Inferno Staff: +0.072 (direct, bypasses rating formula)
-        // 7 Divines pieces (9.1% each) amplify The Thief mundus by 63.7%:
-        //   extra = 1333 × 0.637 / 21912 ≈ +0.03875
-        // Total delta ≈ 0.072 + 0.03875 = 0.11075
-        it('SpellCrit delta ≈ +0.1108  [Precise trait (+0.072) + 7 Divines amplificando The Thief (+0.039)]', () => {
-            expect(withItems.SpellCrit - base.SpellCrit).toBeCloseTo(0.11075, 4);
+        // Precise trait on Inferno Staff: +0.072 (direct)
+        // 7 Divines pieces amplify The Thief mundus
+        // Set bonuses (Order's Wrath 2pc+4pc+5pc, Slimecraw 1pc) add Crit rating
+        // Total delta now includes set bonus crit ≈ +0.2437
+        it('SpellCrit delta ≈ +0.2437  [Precise trait + Divines/Thief + set bonuses]', () => {
+            expect(withItems.SpellCrit - base.SpellCrit).toBeCloseTo(0.2437, 3);
         });
 
         // No Magicka/Stamina regen enchants → regen unchanged
@@ -822,12 +830,11 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     // ── Stats finais absolutos com 12 itens ───────────────────────────────────────
     //
     // Valores calculados pelo motor da UESP com os 12 itens reais + The Thief CP160.
-    // Set bonuses e named buffs NÃO aplicam neste env (g_EsoBuildRules['set'/'buff'] = null),
-    // portanto os valores refletem apenas: atributos base + enchants + traits + mundus.
+    // Set bonuses e named buffs SÃO aplicados (buildRules.set/buff carregados via JSON).
     //
     // SpellCrit breakdown:
-    //   base 0.10 + The Thief (1333×1.637/21912 ≈ 0.0996) + Precise (+0.072) = 0.2716
-    //   (1.637 = 1 + 7×0.091, cada Divines amplifica o mundus em 9.1%)
+    //   base 0.10 + The Thief (1333×1.637/21912 ≈ 0.0996) + Precise (+0.072)
+    //   + set bonuses (Order's Wrath 2pc+4pc+5pc, Slimecraw 1pc, etc.)
     describe('stats finais — valores absolutos com 12 itens, sem CP2', () => {
         let stats: ReturnType<typeof calculateBuild>;
 
@@ -847,28 +854,28 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
             expect(stats.Health).toBe(16000);
         });
 
-        it('SpellDamage = 2335  [base 1000 + weapon power 1335 do Inferno Staff]', () => {
-            expect(stats.SpellDamage).toBe(2335);
+        it('SpellDamage = 2722  [base 1000 + weapon 1335 + set bonuses (Order\'s Wrath 3pc+5pc, Whorl)]', () => {
+            expect(stats.SpellDamage).toBe(2722);
         });
 
-        it('SpellCrit ≈ 0.2716  [base 0.10 + The Thief (7×Divines) + Precise do staff]', () => {
-            expect(stats.SpellCrit).toBeCloseTo(0.2716, 3);
+        it('SpellCrit ≈ 0.4046  [base 0.10 + The Thief (7×Divines) + Precise + set bonuses]', () => {
+            expect(stats.SpellCrit).toBeCloseTo(0.4046, 3);
         });
 
-        it('SpellCritDamage = 0.5  [base 50% — sem bônus de CP ou set bonus]', () => {
-            expect(stats.SpellCritDamage).toBe(0.5);
+        it('SpellCritDamage = 0.58  [base 0.5 + set bonus Order\'s Wrath 5pc (+8%)]', () => {
+            expect(stats.SpellCritDamage).toBe(0.58);
         });
 
         it('MagickaRegen = 514  [nenhum enchant de regen no build]', () => {
             expect(stats.MagickaRegen).toBe(514);
         });
 
-        it('EffectiveSpellPower = 3636  [fórmula UESP: (round(21893/10.5)+2335)×(1+0.2716×0.5)×(1−0.276)]', () => {
-            expect(stats.EffectiveSpellPower).toBe(3636);
+        it('EffectiveSpellPower = 4513  [fórmula UESP com set bonuses aplicados]', () => {
+            expect(stats.EffectiveSpellPower).toBe(4513);
         });
 
-        it('EffectivePower = 3636  [max(EffectiveSpellPower, EffectiveWeaponPower)]', () => {
-            expect(stats.EffectivePower).toBe(3636);
+        it('EffectivePower = 4513  [max(EffectiveSpellPower, EffectiveWeaponPower)]', () => {
+            expect(stats.EffectivePower).toBe(4513);
         });
     });
 
@@ -880,53 +887,53 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
             withItems = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
         });
 
-        // Node 141744 = Magicka flat bonus
-        it('node 141744 (Magicka +1000): Magicka delta = +1000', () => {
+        // Rule 38750 — Grants N Max Magicka per stage
+        it('node 141744 (Magicka +1000 via regra 38750): Magicka delta = +1000', () => {
             const withCP = calculateBuild({
-                character:           HIGH_ELF_SORC_CP160,
-                items:               FULL_BUILD_ITEMS,
-                championPointNodes:  {141744: {currentBonus: 1000}},
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {141744: {description: 'Grants 1 Max Magicka per stage. Current bonus: 1000'}},
             });
             expect(withCP.Magicka - withItems.Magicka).toBe(1000);
         });
 
-        // Node 149305 = second Magicka slot
-        it('node 149305 (Magicka +500): Magicka delta = +500', () => {
+        // Rule 39209 — Increases Max Magicka by N per stage
+        it('node 149305 (Magicka +500 via regra 39209): Magicka delta = +500', () => {
             const withCP = calculateBuild({
-                character:           HIGH_ELF_SORC_CP160,
-                items:               FULL_BUILD_ITEMS,
-                championPointNodes:  {149305: {currentBonus: 500}},
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {149305: {description: 'Increases Max Magicka by 1 per stage. Current bonus: 500'}},
             });
             expect(withCP.Magicka - withItems.Magicka).toBe(500);
         });
 
-        // Node 141899 = CritDamage + CritHealing (%)
-        it('node 141899 (CritDamage 10%): SpellCritDamage delta ≈ +0.1', () => {
+        // Rule 39152 — CritDamage + CritHealing (display:"%", valor /100)
+        it('node 141899 (CritDamage 10% via regra 39152): SpellCritDamage delta ≈ +0.1', () => {
             const withCP = calculateBuild({
-                character:           HIGH_ELF_SORC_CP160,
-                items:               FULL_BUILD_ITEMS,
-                championPointNodes:  {141899: {currentBonus: '10%'}},
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {141899: {description: 'Increases your Critical Damage and Critical Healing done by 1% per stage. Current bonus: 10'}},
             });
             expect(withCP.SpellCritDamage - withItems.SpellCritDamage).toBeCloseTo(0.1, 10);
         });
 
-        // Node 142035 = SpellResist + PhysicalResist (flat)
-        it('node 142035 (SpellResist+PhysResist +1000): ambas as resistências sobem +1000', () => {
+        // Rule 39165 — Grants N.N Armor per stage → SpellResist + PhysicalResist
+        it('node 142035 (SpellResist+PhysResist +1000 via regra 39165): ambas as resistências sobem +1000', () => {
             const withCP = calculateBuild({
-                character:           HIGH_ELF_SORC_CP160,
-                items:               FULL_BUILD_ITEMS,
-                championPointNodes:  {142035: {currentBonus: 1000}},
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {142035: {description: 'Grants 1.0 Armor per stage. Current bonus: 1000'}},
             });
             expect(withCP.SpellResist    - withItems.SpellResist).toBe(1000);
             expect(withCP.PhysicalResist - withItems.PhysicalResist).toBe(1000);
         });
 
-        // Node 141895 = SpellPenetration + PhysicalPenetration (flat)
-        it('node 141895 (Penetração +800): SpellPenetration delta = +800', () => {
+        // Rule 39171 — Grants N Offensive Penetration per stage
+        it('node 141895 (Penetração +800 via regra 39171): SpellPenetration delta = +800', () => {
             const withCP = calculateBuild({
-                character:           HIGH_ELF_SORC_CP160,
-                items:               FULL_BUILD_ITEMS,
-                championPointNodes:  {141895: {currentBonus: 800}},
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {141895: {description: 'Grants 1 Offensive Penetration per stage. Current bonus: 800'}},
             });
             expect(withCP.SpellPenetration - withItems.SpellPenetration).toBe(800);
         });
@@ -934,9 +941,12 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
         // Two nodes injected simultaneously
         it('dois nós simultâneos (141744 +1000 e 149305 +500): Magicka delta = +1500', () => {
             const withCP = calculateBuild({
-                character:           HIGH_ELF_SORC_CP160,
-                items:               FULL_BUILD_ITEMS,
-                championPointNodes:  {141744: {currentBonus: 1000}, 149305: {currentBonus: 500}},
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {
+                    141744: {description: 'Grants 1 Max Magicka per stage. Current bonus: 1000'},
+                    149305: {description: 'Increases Max Magicka by 1 per stage. Current bonus: 500'},
+                },
             });
             expect(withCP.Magicka - withItems.Magicka).toBe(1500);
         });
@@ -944,12 +954,328 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
         // CP2 injection resets between calls — no bleed-through
         it('CP2 reseta entre chamadas  [sem bleed-through para chamada sem CP2]', () => {
             calculateBuild({
-                character:           HIGH_ELF_SORC_CP160,
-                items:               FULL_BUILD_ITEMS,
-                championPointNodes:  {141744: {currentBonus: 5000}},
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {141744: {description: 'Grants 1 Max Magicka per stage. Current bonus: 5000'}},
             });
             const clean = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
             expect(clean.Magicka).toBe(withItems.Magicka);
         });
+    });
+
+    // ── CP nodes — regras do buildRules.cp (ESO_CPEFFECT_MATCHES) ────────────────
+    describe('CP nodes — regras do buildRules.cp (ESO_CPEFFECT_MATCHES)', () => {
+        let base: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            base = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
+        });
+
+        // Regra 38750: Grants N Max Magicka per stage → Magicka (Item)
+        it('regra 38750 (Magicka +1000): Magicka delta = +1000', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {38750: {description: 'Grants 1 Max Magicka per stage. Current bonus: 1000'}},
+            });
+            expect(withCP.Magicka - base.Magicka).toBe(1000);
+        });
+
+        // Regra 39163: Grants N Max Health per stage → Health (Item)
+        it('regra 39163 (Health +500): Health delta = +500', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {39163: {description: 'Grants 1 Max Health per stage. Current bonus: 500'}},
+            });
+            expect(withCP.Health - base.Health).toBe(500);
+        });
+
+        // Regra 39150: Increases your Max Stamina by N per stage → Stamina (Item)
+        it('regra 39150 (Stamina +800): Stamina delta = +800', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {39150: {description: 'Increases your Max Stamina by 1 per stage. Current bonus: 800'}},
+            });
+            expect(withCP.Stamina - base.Stamina).toBe(800);
+        });
+
+        // Regra 39173: Grants N Critical Chance per stage → SpellCrit + WeaponCrit (CP)
+        // A fórmula de SpellCrit: delta = bonus / (2 × EL × (100+EL)), EL=66 → divisor=21912
+        it('regra 39173 (CritChance +657): SpellCrit delta ≈ +657/21912', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {39173: {description: 'Grants 1 Critical Chance per stage. Current bonus: 657'}},
+            });
+            const expectedDelta = 657 / 21912;
+            expect(withCP.SpellCrit - base.SpellCrit).toBeCloseTo(expectedDelta, 5);
+            expect(withCP.WeaponCrit - base.WeaponCrit).toBeCloseTo(expectedDelta, 5);
+        });
+
+        // Regra 39193: Increases your Weapon and Spell Damage by N per stage → WeaponDamage + SpellDamage (CP)
+        it('regra 39193 (SpellDmg+WeapDmg +129): ambos sobem +129', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {39193: {description: 'Increases your Weapon and Spell Damage by 1 per stage. Current bonus: 129'}},
+            });
+            expect(withCP.SpellDamage - base.SpellDamage).toBe(129);
+            expect(withCP.WeaponDamage - base.WeaponDamage).toBe(129);
+        });
+
+        // Regra 39171: Grants N Offensive Penetration per stage → SpellPenetration + PhysicalPenetration (CP)
+        it('regra 39171 (Penetração +800): SpellPenetration e PhysicalPenetration sobem +800', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {39171: {description: 'Grants 1 Offensive Penetration per stage. Current bonus: 800'}},
+            });
+            expect(withCP.SpellPenetration - base.SpellPenetration).toBe(800);
+            expect(withCP.PhysicalPenetration - base.PhysicalPenetration).toBe(800);
+        });
+
+        // Regra 39165: Grants N.N Armor per stage → SpellResist + PhysicalResist (CP)
+        it('regra 39165 (Armor +1000): SpellResist e PhysicalResist sobem +1000', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {39165: {description: 'Grants 1.0 Armor per stage. Current bonus: 1000'}},
+            });
+            expect(withCP.SpellResist - base.SpellResist).toBe(1000);
+            expect(withCP.PhysicalResist - base.PhysicalResist).toBe(1000);
+        });
+
+        // Regra 39152: CritDamage + CritHealing done by N% → display:"%", valor /100
+        it('regra 39152 (CritDamage 10%): SpellCritDamage delta ≈ +0.1', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {39152: {description: 'Increases your Critical Damage and Critical Healing done by 1% per stage. Current bonus: 10'}},
+            });
+            expect(withCP.SpellCritDamage - base.SpellCritDamage).toBeCloseTo(0.1, 10);
+        });
+
+        // Dois nodes simultâneos de regras diferentes
+        it('regras 38750+39163 simultâneas: Magicka +1000 e Health +500 independentes', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {
+                    38750: {description: 'Grants 26 Max Magicka per stage. Current bonus: 1300'},
+                    39163: {description: 'Grants 1 Max Health per stage. Current bonus: 500'},
+                },
+            });
+            expect(withCP.Magicka - base.Magicka).toBe(1300);
+            expect(withCP.Health - base.Health).toBe(500);
+        });
+
+        // Dois nodes simultâneos de regras diferentes
+        it('regras: base 19972 + 1300 cp', () => {
+            const withCP = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: {Chest: WHORL_ROBE},
+                championPointNodes: {
+                    38750: {description: 'Grants 26 Max Magicka per stage. Current bonus: 1300'},
+                    39163: {description: 'Grants 28 Max Health per stage. Current bonus: 1400'},
+                },
+            });
+            expect(withCP.Magicka).toBe(21272);
+            expect(withCP.Health).toBe(17400);
+        });
+
+        // Sem bleed-through entre chamadas com CP e sem CP
+        it('CP nodes resetam entre chamadas  [sem bleed-through]', () => {
+            calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                championPointNodes: {38750: {description: 'Grants 1 Max Magicka per stage. Current bonus: 9999'}},
+            });
+            const clean = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
+            expect(clean.Magicka).toBe(base.Magicka);
+        });
+    });
+    // ── Set bonuses — integração ─────────────────────────────────────────────────
+    //
+    // buildRules.set (367 regras) + UpdateEsoItemSets() aplicam set bonuses automaticamente
+    // via g_EsoBuildSetData quando items com setName/setBonusDescN são injetados.
+    describe('set bonus — Order\'s Wrath 5 peças (2pc+3pc+4pc+5pc)', () => {
+        let base: ReturnType<typeof calculateBuild>;
+        let stats: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+            // 5 peças idênticas com todos os setBonusDesc preenchidos
+            const ow = (id: string, equipType: string): UespItemApiData => ({
+                itemId: id, armorRating: '1823', weaponPower: '0', armorType: '2', weaponType: '0',
+                type: '2', equipType, internalLevel: '50', internalSubtype: '364',
+                setId: '640', setName: "Order's Wrath", setBonusCount: '5', setMaxEquipCount: '5',
+                setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 657 Critical Chance',
+                setBonusCount2: '3', setBonusDesc2: '(3 items) Adds 129 Weapon and Spell Damage',
+                setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 657 Critical Chance',
+                setBonusCount4: '5', setBonusDesc4: '(5 items) Adds 943 Critical Chance',
+                setBonusCount5: '5', setBonusDesc5: '(5 items) Increases your Critical Damage and Critical Healing by 8%.',
+            });
+            stats = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: {
+                    Head:      ow('1', '1'),
+                    Shoulders: ow('2', '4'),
+                    Chest:     ow('3', '3'),
+                    Hands:     ow('4', '13'),
+                    Legs:      ow('5', '9'),
+                },
+            });
+        });
+
+        it('SpellCrit aumenta +0.103003 (2pc+4pc+5pc: 657+657+943 = 2257 Crit)', () => {
+            expect(stats.SpellCrit - base.SpellCrit).toBeCloseTo(0.103003, 5);
+        });
+
+        it('SpellDamage aumenta +129 (3pc: +129 Weapon and Spell Damage)', () => {
+            expect(stats.SpellDamage - base.SpellDamage).toBe(129);
+        });
+
+        it('SpellCritDamage aumenta +0.08 (5pc: +8% Critical Damage)', () => {
+            expect(stats.SpellCritDamage - base.SpellCritDamage).toBeCloseTo(0.08, 10);
+        });
+    });
+
+    describe('set bonus — Whorl of the Depths 4 peças (2pc+4pc)', () => {
+        let base: ReturnType<typeof calculateBuild>;
+        let stats: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+            const whorl = (id: string, equipType: string): UespItemApiData => ({
+                itemId: id, armorRating: '1396', weaponPower: '0', armorType: '1', weaponType: '0',
+                type: '2', equipType, internalLevel: '50', internalSubtype: '364',
+                setId: '646', setName: 'Whorl of the Depths', setBonusCount: '4', setMaxEquipCount: '5',
+                setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
+                setBonusCount2: '3', setBonusDesc2: '(3 items) Gain Minor Slayer at all times, increasing your damage done to Dungeon, Trial, and Arena Monsters by 5%.',
+                setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 129 Weapon and Spell Damage',
+                setBonusCount4: '5', setBonusDesc4: '(5 items) When you deal damage with a Light Attack, you apply Whorl of the Depths...',
+            });
+            stats = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: {
+                    Chest: whorl('1', '3'),
+                    Hands: whorl('2', '13'),
+                    Legs:  whorl('3', '9'),
+                    Waist: whorl('4', '8'),
+                },
+            });
+        });
+
+        it('SpellDamage aumenta +258 (2pc+4pc: 2×+129 Weapon and Spell Damage)', () => {
+            expect(stats.SpellDamage - base.SpellDamage).toBe(258);
+        });
+    });
+
+    describe('set bonus — Slimecraw 1 peça (1pc: +657 Crit + Divines boost ao The Thief)', () => {
+        it('SpellCrit aumenta +0.035506 (657 Crit + Divines 9.1% sobre The Thief)', () => {
+            const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+            const stats = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: { Head: SLIMECRAW_MASK },
+            });
+            // Delta inclui: 657 Critical Chance + boost do trait Divines (9.1%) sobre The Thief mundus
+            expect(stats.SpellCrit - base.SpellCrit).toBeCloseTo(0.035506, 5);
+        });
+    });
+
+    // ── Food buff — items.Food ───────────────────────────────────────────────────
+    //
+    // Comida funciona via slot items.Food: injeta abilityDesc no g_EsoBuildItemData['Food'].
+    // O motor usa buildRules.abilitydesc (17 regras) para extrair os valores:
+    //   "Max Health by N" → Health; "Max Magicka by N" → Magicka; "Magicka Recovery by N" → MagickaRegen
+    describe('food buff — items.Food (Witchmother\'s Potent Brew)', () => {
+        let base: ReturnType<typeof calculateBuild>;
+        let stats: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            base  = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+            stats = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: { Food: WITCHMOTHERS_POTENT_BREW },
+            });
+        });
+
+        it('Magicka aumenta +2856', () => {
+            expect(stats.Magicka - base.Magicka).toBe(2856);
+        });
+
+        it('Health aumenta +3094', () => {
+            expect(stats.Health - base.Health).toBe(3094);
+        });
+
+        it('MagickaRegen aumenta +315', () => {
+            expect(stats.MagickaRegen - base.MagickaRegen).toBe(315);
+        });
+
+        it('sem bleed-through — chamada sem Food não mantém bonus', () => {
+            const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+            expect(clean.Magicka).toBe(base.Magicka);
+        });
+    });
+
+    // ── Sessão real UESP — gap restante ─────────────────────────────────────────
+    //
+    // Fonte dos valores alvo: console-export-2026-5-31_19-36-30.log
+    //   Magicka=33916  SpellDamage=3701  SpellCrit=54.3%  SpellCritDamage=0.7
+    //   MagickaRegen=1465  PhysicalResist=10436  SpellResist=14066
+    //   ToggleSkills ativos: Emperor, Authority, Domination, Tactician
+    //   Food: Witchmother's Potent Brew (+2856 Magicka, +3094 Health, +315 MagickaRegen)
+    //
+    // ── O QUE JÁ FUNCIONA ────────────────────────────────────────────────────────
+    //   ✓ Set bonuses (buildRules.set, 367 regras, via UpdateEsoItemSets)
+    //   ✓ Food buff (items.Food com abilityDesc, via buildRules.abilitydesc)
+    //   ✓ CP nodes (championPointNodes com points/description)
+    //
+    // ── O QUE AINDA FALTA ────────────────────────────────────────────────────────
+    //   • TOGGLE SKILLS COM EFEITO: g_SkillsData está vazio — sem regras de skill,
+    //     enabled=true não adiciona stats (Emperor, Authority, Domination, Tactician)
+    //     Precisa extrair g_SkillsData do servidor da UESP via browser-extract.js
+    //
+    describe('sessão real UESP — itens + toggle skills', () => {
+        let stats: ReturnType<typeof calculateBuild>;
+
+        beforeAll(() => {
+            stats = calculateBuild({
+                character: HIGH_ELF_SORC_CP160,
+                items: FULL_BUILD_ITEMS,
+                toggleSkills: ['Emperor', 'Authority', 'Domination', 'Tactician'],
+            });
+        });
+
+        it('aceita toggleSkills como input sem crash', () => {
+            expect(stats).toBeDefined();
+            expect(Number.isFinite(stats.EffectivePower)).toBe(true);
+        });
+
+        it('toggle skills resetam entre chamadas  [sem bleed-through]', () => {
+            const clean = calculateBuild({character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS});
+            expect(clean.Magicka).toBe(stats.Magicka);
+        });
+
+        // ── TODO: toggle skills com efeito ──────────────────────────────────────
+        // Alvo: Magicka=33916  (gap restante: CP2 nodes + toggle skills)
+        it.todo('Magicka = 33916  [TODO: toggle skills Emperor/Authority/Domination/Tactician]');
+
+        // Alvo: SpellDamage=3701  (gap restante: CP2 nodes + toggle skills)
+        it.todo('SpellDamage = 3701  [TODO: toggle skills]');
+
+        // Alvo: SpellCrit=54.3%  (gap restante: CP2 nodes + toggle skills)
+        it.todo('SpellCrit = 54.3%  [TODO: toggle skills]');
+
+        // Alvo: SpellCritDamage=0.7  (gap restante: toggle skills)
+        it.todo('SpellCritDamage = 0.7  [TODO: toggle skills]');
+
+        // Alvo: MagickaRegen=1465  (gap restante: CP2 nodes + toggle skills)
+        it.todo('MagickaRegen = 1465  [TODO: toggle skills]');
+
+        // Alvo: EffectiveSpellPower=8093  (depende de tudo acima)
+        it.todo('EffectiveSpellPower = 8093  [TODO: toggle skills]');
     });
 })

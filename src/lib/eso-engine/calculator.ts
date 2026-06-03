@@ -131,6 +131,10 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     if (enchantData) enchantData[slot] = {};
   }
 
+  // Reseta g_EsoCpData para evitar bleed-through entre chamadas
+  (global as any).g_EsoCpData = {};
+  const cpDataGlobal: any = (global as any).g_EsoCpData;
+
   // Injeta os itens fornecidos (normalizados com defaults seguros)
   if (items) {
     for (const [slot, item] of Object.entries(items) as [EquipSlot, any][]) {
@@ -141,24 +145,67 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3a: Injeta nodes do Champion Points 2 via DOM mock.
+  // PASSO 3a: Injeta nodes do Champion Points 2.
   //
-  // O motor lê cada node CP2 via:
-  //   $("#skill_<id>").attr("unlocked") > 0  → node ativo
-  //   $("#descskill_<id>").text()             → "Current bonus: X" ou "Current value: X%"
+  // Dois caminhos dependendo se buildRules.cp está carregado:
   //
-  // Habilitamos CP via checkbox esotbEnableCP.
+  // Novo (preferido): quando g_EsoBuildRules['cp'] existe, o motor usa o caminho
+  //   GetEsoBuildCpRuleValues que lê cpData.description e faz match contra
+  //   ESO_CPEFFECT_MATCHES. Populamos g_EsoCpData[nodeId] com a description completa.
+  //
+  // Legado: sem cp rules, o motor usa ParseEsoCP2Value com injeção DOM via
+  //   $("#skill_<id>").attr("unlocked") e $("#descskill_<id>").text().
   // -------------------------------------------------------------------------
   if (championPointNodes && Object.keys(championPointNodes).length > 0) {
     setDomValue('esotbEnableCP', 'true');
+    const hasCpRules = !!(global as any).g_EsoBuildRules?.cp;
+    const cpSkills:    any = (global as any).g_EsoCpSkills    ?? {};
+    const cpSkillDesc: any = (global as any).g_EsoCpSkillDesc ?? {};
+
     for (const [nodeId, nodeData] of Object.entries(championPointNodes)) {
-      const bonus = nodeData.currentBonus;
-      const bonusStr = typeof bonus === 'string' && bonus.endsWith('%')
-        ? `Current value: ${bonus}`
-        : `Current bonus: ${bonus}`;
-      setDomAttr(`skill_${nodeId}`, 'unlocked', '1');
-      setDomTextContent(`descskill_${nodeId}`, bonusStr);
-      setDomTextContent(`descskill_${nodeId}_prev`, `CP Node ${nodeId}`);
+      if (hasCpRules) {
+        // Resolve o nome a partir dos metadados capturados do browser.
+        const name = cpSkills[nodeId]?.name ?? `CP_${nodeId}`;
+
+        // Resolve a descrição dinamicamente:
+        //   1. Override explícito do chamador
+        //   2. Lookup exato por nodeData.points em g_EsoCpSkillDesc[nodeId]
+        //   3. Floor lookup: maior chave disponível ≤ points
+        //   4. Fallback: chave 0 ou primeira disponível
+        let desc: string | undefined = nodeData.description;
+        if (!desc && cpSkillDesc[nodeId]) {
+          const nodeDescMap: Record<string, string> = cpSkillDesc[nodeId];
+          const points = nodeData.points;
+          if (points !== undefined) {
+            desc = nodeDescMap[points] ?? nodeDescMap[String(points)];
+            if (!desc) {
+              // floor lookup
+              const floorKey = Object.keys(nodeDescMap)
+                .map(Number).filter(p => p <= points).sort((a, b) => b - a)[0];
+              if (floorKey !== undefined) desc = nodeDescMap[floorKey] ?? nodeDescMap[String(floorKey)];
+            }
+          }
+          if (!desc) {
+            desc = nodeDescMap[0] ?? nodeDescMap['0'] ?? (Object.values(nodeDescMap)[0] as string);
+          }
+        }
+
+        if (desc) {
+          // Strip HTML tags so the engine's regex matching works on plain text
+          const plainDesc = desc.replace(/<[^>]+>/g, '');
+          cpDataGlobal[nodeId] = { type: 'skill', isUnlocked: true, description: plainDesc, name };
+        }
+        // sem descrição resolvível → node ignorado (sem efeito no motor)
+      } else {
+        // caminho legado: injeção DOM para ParseEsoCP2Value
+        const bonus = nodeData.currentBonus;
+        const bonusStr = typeof bonus === 'string' && bonus.endsWith('%')
+          ? `Current value: ${bonus}`
+          : `Current bonus: ${bonus}`;
+        setDomAttr(`skill_${nodeId}`, 'unlocked', '1');
+        setDomTextContent(`descskill_${nodeId}`, bonusStr);
+        setDomTextContent(`descskill_${nodeId}_prev`, `CP Node ${nodeId}`);
+      }
     }
   }
 
