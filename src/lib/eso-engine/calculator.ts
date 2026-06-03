@@ -18,14 +18,28 @@
  *   4. Ler os resultados de g_EsoComputedStats[statId].value
  */
 
-import { setDomValue, setDomAttr, setDomTextContent, resetDomValues } from './env-setup';
-import type { BuildInput, ComputedStats, EquipSlot } from './types';
+import {resetDomValues, setDomAttr, setDomTextContent, setDomValue} from './env-setup';
+import type {BuildInput, ComputedStats, EquipSlot} from './types';
 
 const ALL_SLOTS: EquipSlot[] = [
-  'Head', 'Shoulders', 'Chest', 'Hands', 'Legs', 'Waist', 'Feet',
-  'Neck', 'Ring1', 'Ring2',
-  'MainHand1', 'OffHand1', 'MainHand2', 'OffHand2',
-  'Poison1', 'Poison2', 'Food', 'Potion',
+  'Head',
+  'Shoulders',
+  'Chest',
+  'Hands',
+  'Legs',
+  'Waist',
+  'Feet',
+  'Neck',
+  'Ring1',
+  'Ring2',
+  'MainHand1',
+  'OffHand1',
+  'MainHand2',
+  'OffHand2',
+  'Poison1',
+  'Poison2',
+  'Food',
+  'Potion',
 ];
 
 /**
@@ -37,7 +51,7 @@ function normalizeItemData(item: any): any {
   const defaults: Record<string, string> = {};
   for (let i = 1; i <= 12; i++) {
     defaults[`setBonusCount${i}`] = item[`setBonusCount${i}`] ?? '-1';
-    defaults[`setBonusDesc${i}`]  = item[`setBonusDesc${i}`]  ?? '';
+    defaults[`setBonusDesc${i}`] = item[`setBonusDesc${i}`] ?? '';
   }
   return { ...defaults, ...item };
 }
@@ -66,12 +80,20 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // -------------------------------------------------------------------------
   resetDomValues();
 
-  const { character, items, championPointNodes, activeBuffs, toggleSkills } = input;
+  const {
+    character,
+    items,
+    championPointNodes,
+    activeBuffs,
+    toggleSkills,
+    skillBars,
+    activeWeaponBar,
+  } = input;
 
-  setDomValue('esotbRace',  character.race);
+  setDomValue('esotbRace', character.race);
   setDomValue('esotbClass', character.class);
   setDomValue('esotbLevel', String(Math.min(character.level, 50)));
-  setDomValue('esotbAttrHea', String(character.attributes.health  ?? 0));
+  setDomValue('esotbAttrHea', String(character.attributes.health ?? 0));
   setDomValue('esotbAttrMag', String(character.attributes.magicka ?? 0));
   setDomValue('esotbAttrSta', String(character.attributes.stamina ?? 0));
 
@@ -86,8 +108,10 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // Vampiro / Lobisomem
-  if (character.vampireStage  != null) setDomValue('esotbVampireStage',  String(character.vampireStage));
-  if (character.werewolfStage != null) setDomValue('esotbWerewolfStage', String(character.werewolfStage));
+  if (character.vampireStage != null)
+    setDomValue('esotbVampireStage', String(character.vampireStage));
+  if (character.werewolfStage != null)
+    setDomValue('esotbWerewolfStage', String(character.werewolfStage));
 
   // Champion Points (default 0 — garante que SpellCrit e WeaponCrit sejam numéricos)
   setDomValue('esotbCPTotalPoints', String(character.championPoints ?? 0));
@@ -97,23 +121,23 @@ export function calculateBuild(input: BuildInput): ComputedStats {
 
   // Campos obrigatórios com defaults seguros
   setDomValue('esotbMountSpeedBonus', '0');
-  setDomValue('esotbBaseWalkSpeed',   '3.0');
+  setDomValue('esotbBaseWalkSpeed', '3.0');
   setDomValue('esotbBuildDescription', '');
   setDomValue('esotbUsePtsRules', 'false');
   setDomValue('esotbEnableRaceAutoPurchase', 'false');
 
   // Configuração do alvo (target) — necessária para AttackSpellMitigation e EffectivePower.
   // Target.EffectiveLevel = 0 causa divisão por zero na fórmula; padrão 50 é o nível máximo.
-  setDomValue('esotbTargetResistance',       '18200'); // UESP default: CP160 enemy base resistance
-  setDomValue('esotbTargetEffectiveLevel',   '66');    // UESP default: 66 = CP160 (endgame content)
-  setDomValue('esotbTargetCritResistFlat',   '0');
-  setDomValue('esotbTargetPenetrationFlat',  '0');
-  setDomValue('esotbTargetPenetrationFactor','0');
-  setDomValue('esotbTargetDefenseBonus',     '0');
-  setDomValue('esotbTargetAttackBonus',      '0');
-  setDomValue('esotbTargetCritDamage',       '0');
-  setDomValue('esotbTargetCritChance',       '0');
-  setDomValue('esotbTargetPercentHealth',    '100');
+  setDomValue('esotbTargetResistance', '18200'); // UESP default: CP160 enemy base resistance
+  setDomValue('esotbTargetEffectiveLevel', '66'); // UESP default: 66 = CP160 (endgame content)
+  setDomValue('esotbTargetCritResistFlat', '0');
+  setDomValue('esotbTargetPenetrationFlat', '0');
+  setDomValue('esotbTargetPenetrationFactor', '0');
+  setDomValue('esotbTargetDefenseBonus', '0');
+  setDomValue('esotbTargetAttackBonus', '0');
+  setDomValue('esotbTargetCritDamage', '0');
+  setDomValue('esotbTargetCritChance', '0');
+  setDomValue('esotbTargetPercentHealth', '100');
 
   // -------------------------------------------------------------------------
   // PASSO 2: Injeta dados de itens DIRETAMENTE em g_EsoBuildItemData[slot].
@@ -127,7 +151,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
 
   // Reseta todos os slots (evita dados de chamada anterior)
   for (const slot of ALL_SLOTS) {
-    itemData[slot]   = {};
+    itemData[slot] = {};
     if (enchantData) enchantData[slot] = {};
   }
 
@@ -159,7 +183,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   if (championPointNodes && Object.keys(championPointNodes).length > 0) {
     setDomValue('esotbEnableCP', 'true');
     const hasCpRules = !!(global as any).g_EsoBuildRules?.cp;
-    const cpSkills:    any = (global as any).g_EsoCpSkills    ?? {};
+    const cpSkills: any = (global as any).g_EsoCpSkills ?? {};
     const cpSkillDesc: any = (global as any).g_EsoCpSkillDesc ?? {};
 
     for (const [nodeId, nodeData] of Object.entries(championPointNodes)) {
@@ -181,8 +205,11 @@ export function calculateBuild(input: BuildInput): ComputedStats {
             if (!desc) {
               // floor lookup
               const floorKey = Object.keys(nodeDescMap)
-                .map(Number).filter(p => p <= points).sort((a, b) => b - a)[0];
-              if (floorKey !== undefined) desc = nodeDescMap[floorKey] ?? nodeDescMap[String(floorKey)];
+                  .map(Number)
+                  .filter((p) => p <= points)
+                  .sort((a, b) => b - a)[0];
+              if (floorKey !== undefined)
+                desc = nodeDescMap[floorKey] ?? nodeDescMap[String(floorKey)];
             }
           }
           if (!desc) {
@@ -199,9 +226,10 @@ export function calculateBuild(input: BuildInput): ComputedStats {
       } else {
         // caminho legado: injeção DOM para ParseEsoCP2Value
         const bonus = nodeData.currentBonus;
-        const bonusStr = typeof bonus === 'string' && bonus.endsWith('%')
-          ? `Current value: ${bonus}`
-          : `Current bonus: ${bonus}`;
+        const bonusStr =
+            typeof bonus === 'string' && bonus.endsWith('%')
+                ? `Current value: ${bonus}`
+                : `Current bonus: ${bonus}`;
         setDomAttr(`skill_${nodeId}`, 'unlocked', '1');
         setDomTextContent(`descskill_${nodeId}`, bonusStr);
         setDomTextContent(`descskill_${nodeId}_prev`, `CP Node ${nodeId}`);
@@ -268,6 +296,48 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
+  // PASSO 3d: Injeta skill bars em g_EsoSkillBarData.
+  //
+  // O motor usa g_EsoSkillBarData para detectar skill lines ativas e aplicar
+  // passivos condicionais (ex: passivos de Destruction Staff, set bonuses que
+  // afetam "Class abilities", etc.).
+  //
+  // LIMITAÇÃO ATUAL: sem g_SkillsData no uesp-init-data.json, os skill IDs são
+  // injetados mas os passivos de skill line não geram stats. Será funcional
+  // quando g_SkillsData for adicionado ao JSON de extração.
+  // -------------------------------------------------------------------------
+  const emptySkillSlot = () => ({skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: 0});
+  const emptyBar = () =>
+      Array.from({length: 6}, (_, i) => ({...emptySkillSlot(), slotIndex: i}));
+  (global as any).g_EsoSkillBarData = [emptyBar(), emptyBar()];
+
+  if (skillBars) {
+    const barMap: [typeof skillBars.bar1, 0 | 1][] = [
+      [skillBars.bar1, 0],
+      [skillBars.bar2, 1],
+    ];
+    for (const [slots, barIndex] of barMap) {
+      if (!slots) continue;
+      slots.slice(0, 6).forEach((slot, slotIndex) => {
+        (global as any).g_EsoSkillBarData[barIndex][slotIndex] = {
+          skillId: slot.skillId,
+          origSkillId: slot.skillId,
+          morphIndex: slot.morphIndex ?? 0,
+          slotIndex,
+        };
+      });
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // PASSO 3e: Define qual barra de armas está ativa.
+  //
+  // g_EsoBuildActiveWeapon determina quais slots MainHand/OffHand contam para
+  // set bonuses, enchants e efeitos condicionais de arma.
+  // -------------------------------------------------------------------------
+  (global as any).g_EsoBuildActiveWeapon = activeWeaponBar ?? 1;
+
+  // -------------------------------------------------------------------------
   // PASSO 3: Executa o cálculo.
   //
   // UpdateEsoComputedStatsList_Real(keepSaveResults, noUpdate)
@@ -279,7 +349,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   if (typeof updateFn !== 'function') {
     throw new Error(
       '[eso-engine] UpdateEsoComputedStatsList_Real não está disponível. ' +
-      'Certifique-se de chamar initEsoEngine() antes de calculateBuild().'
+        'Certifique-se de chamar initEsoEngine() antes de calculateBuild().',
     );
   }
 
@@ -300,51 +370,51 @@ export function calculateBuild(input: BuildInput): ComputedStats {
 
   return {
     // Atributos máximos
-    Health:  raw['Health']  ?? 0,
+    Health: raw['Health'] ?? 0,
     Magicka: raw['Magicka'] ?? 0,
     Stamina: raw['Stamina'] ?? 0,
 
     // Regeneração
-    HealthRegen:  raw['HealthRegen']  ?? 0,
+    HealthRegen: raw['HealthRegen'] ?? 0,
     MagickaRegen: raw['MagickaRegen'] ?? 0,
     StaminaRegen: raw['StaminaRegen'] ?? 0,
 
     // Dano
     WeaponDamage: raw['WeaponDamage'] ?? 0,
-    SpellDamage:  raw['SpellDamage']  ?? 0,
+    SpellDamage: raw['SpellDamage'] ?? 0,
 
     // Crítico
-    WeaponCrit:       raw['WeaponCrit']       ?? 0,
-    SpellCrit:        raw['SpellCrit']        ?? 0,
-    SpellCritDamage:  raw['SpellCritDamage']  ?? 0,
+    WeaponCrit: raw['WeaponCrit'] ?? 0,
+    SpellCrit: raw['SpellCrit'] ?? 0,
+    SpellCritDamage: raw['SpellCritDamage'] ?? 0,
     WeaponCritDamage: raw['WeaponCritDamage'] ?? 0,
 
     // Resistências
     PhysicalResist: raw['PhysicalResist'] ?? 0,
-    SpellResist:    raw['SpellResist']    ?? 0,
-    CritResist:     raw['CritResist']     ?? 0,
+    SpellResist: raw['SpellResist'] ?? 0,
+    CritResist: raw['CritResist'] ?? 0,
 
     // Penetração
     PhysicalPenetration: raw['PhysicalPenetration'] ?? 0,
-    SpellPenetration:    raw['SpellPenetration']    ?? 0,
+    SpellPenetration: raw['SpellPenetration'] ?? 0,
 
     // Poder efetivo
-    EffectiveSpellPower:  raw['EffectiveSpellPower']  ?? 0,
+    EffectiveSpellPower: raw['EffectiveSpellPower'] ?? 0,
     EffectiveWeaponPower: raw['EffectiveWeaponPower'] ?? 0,
-    EffectivePower:       raw['EffectivePower']       ?? 0,
+    EffectivePower: raw['EffectivePower'] ?? 0,
 
     // Cura
-    HealingDone:  raw['HealingDone']  ?? 0,
+    HealingDone: raw['HealingDone'] ?? 0,
     HealingTaken: raw['HealingTaken'] ?? 0,
 
     // Velocidade
-    RunSpeed:    raw['RunSpeed']    ?? 0,
+    RunSpeed: raw['RunSpeed'] ?? 0,
     SprintSpeed: raw['SprintSpeed'] ?? 0,
 
     // Mitigação
-    AttackSpellMitigation:    raw['AttackSpellMitigation']    ?? 0,
+    AttackSpellMitigation: raw['AttackSpellMitigation'] ?? 0,
     AttackPhysicalMitigation: raw['AttackPhysicalMitigation'] ?? 0,
-    DefenseSpellMitigation:   raw['DefenseSpellMitigation']   ?? 0,
+    DefenseSpellMitigation: raw['DefenseSpellMitigation'] ?? 0,
     DefensePhysicalMitigation: raw['DefensePhysicalMitigation'] ?? 0,
 
     raw,

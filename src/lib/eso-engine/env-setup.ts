@@ -97,7 +97,9 @@ function createChainMock(id?: string): any {
       if (v !== undefined) return chain;
       return '';
     },
-    html: (v?: string) => { return v !== undefined ? chain : ''; },
+    html: (v?: string) => {
+      return v !== undefined ? chain : '';
+    },
     text: (v?: string) => {
       if (v !== undefined) return chain;
       return id ? (domTextStore.get(id) ?? '') : '';
@@ -108,7 +110,7 @@ function createChainMock(id?: string): any {
     prev: () => createChainMock(id ? id + '_prev' : undefined),
     closest: (_sel: string) => createChainMock(),
     filter: (_sel: string) => createChainMock(),
-    each: (fn: Function) => chain,
+    each: (_fn: Function) => chain,
     on: (_evt: string, _fn: Function) => chain,
     off: (_evt: string) => chain,
     trigger: (_evt: string) => chain,
@@ -142,7 +144,13 @@ function createChainMock(id?: string): any {
     // Acesso por índice (computeElements[i])
     0: null,
     // $(document).ready(fn) — executa fn imediatamente em Node.js
-    ready: (fn: Function) => { try { fn(); } catch (_) {} return chain; },
+    ready: (fn: Function) => {
+      try {
+        fn();
+      } catch (_) {
+      }
+      return chain;
+    },
   };
   return new Proxy(chain, handler);
 }
@@ -161,7 +169,7 @@ function createJQueryMock() {
   $.isPlainObject = (v: any) => v !== null && typeof v === 'object' && !Array.isArray(v);
   $.each = (obj: any, fn: Function) => {
     if (Array.isArray(obj)) obj.forEach((v: any, i: number) => fn(i, v));
-    else if (obj) Object.keys(obj).forEach(k => fn(k, obj[k]));
+    else if (obj) Object.keys(obj).forEach((k) => fn(k, obj[k]));
   };
   $.extend = (...args: any[]) => Object.assign({}, ...args);
   $.noop = () => {};
@@ -171,7 +179,7 @@ function createJQueryMock() {
   $.ajax = () => ({ done: () => ({ fail: () => ({}) }) });
   $.getJSON = () => ({ done: () => ({ fail: () => ({}) }) });
   $.Deferred = () => ({ resolve: () => {}, reject: () => {}, promise: () => ({}) });
-  $.when = (...args: any[]) => ({ done: () => ({}) });
+  $.when = (..._args: any[]) => ({done: () => ({})});
   $.parseJSON = JSON.parse;
 
   return $;
@@ -220,7 +228,11 @@ export function setupNodeEnvironment(): void {
   });
 
   // location
-  (global as any).location = { href: 'http://localhost/', hostname: 'localhost', protocol: 'http:' };
+  (global as any).location = {
+    href: 'http://localhost/',
+    hostname: 'localhost',
+    protocol: 'http:',
+  };
 
   // jQuery mock — o motor acessa via window.$ e também via $ diretamente
   const jq = createJQueryMock();
@@ -231,14 +243,19 @@ export function setupNodeEnvironment(): void {
   (global as any).document = createDocumentMock();
 
   // console.time/timeEnd — usados pelo motor para profiling (no-ops aqui)
-  if (!console.time)   (console as any).time   = () => {};
-  if (!console.timeEnd)(console as any).timeEnd = () => {};
+  if (!console.time) (console as any).time = () => {
+  };
+  if (!console.timeEnd) (console as any).timeEnd = () => {
+  };
 
   // setTimeout síncrono — o motor usa setTimeout(..., 100) para atualização assíncrona.
   // Substituímos por execução síncrona imediata para uso em servidor.
-  (global as any).setTimeout = (fn: Function, _delay?: number) => { fn(); return 0; };
+  (global as any).setTimeout = (fn: Function, _delay?: number) => {
+    fn();
+    return 0;
+  };
   (global as any).clearTimeout = () => {};
-  (global as any).setInterval  = (_fn: Function, _d?: number) => 0;
+  (global as any).setInterval = (_fn: Function, _d?: number) => 0;
   (global as any).clearInterval = () => {};
 
   // window: usamos um Proxy que redireciona leituras/escritas para global.
