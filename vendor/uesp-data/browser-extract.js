@@ -27,6 +27,12 @@
   if (!window.g_EsoInputStats || Object.keys(window.g_EsoInputStats).length === 0) {
     missing.push('g_EsoInputStats');
   }
+  if (!window.g_EsoCpSkills || Object.keys(window.g_EsoCpSkills).length === 0) {
+    missing.push('g_EsoCpSkills (nomes dos nodes CP)');
+  }
+  if (!window.g_EsoCpSkillDesc || Object.keys(window.g_EsoCpSkillDesc).length === 0) {
+    missing.push('g_EsoCpSkillDesc (descrições dos nodes CP)');
+  }
 
   if (missing.length > 0) {
     console.error('[eso-extract] Variáveis não encontradas: ' + missing.join(', '));
@@ -35,13 +41,15 @@
   }
 
   var data = {
-    extractedAt: new Date().toISOString(),
-    pageUrl: window.location.href,
-    computedStats: window.g_EsoComputedStats,
-    inputStats:    window.g_EsoInputStats,
-    buffData:      window.g_EsoInitialBuffData  || {},
-    cpData:        window.g_EsoInitialCpData    || {},
-    buildRules:    window.g_EsoBuildRules        || {},
+    extractedAt:    new Date().toISOString(),
+    pageUrl:        window.location.href,
+    computedStats:  window.g_EsoComputedStats,
+    inputStats:     window.g_EsoInputStats,
+    buffData:       window.g_EsoInitialBuffData  || {},
+    cpData:         window.g_EsoInitialCpData    || {},
+    buildRules:     window.g_EsoBuildRules        || {},
+    cpSkillsData:   window.g_EsoCpSkills          || {},
+    cpSkillDescData: window.g_EsoCpSkillDesc      || {},
   };
 
   var statCount = Object.keys(data.computedStats).length;
