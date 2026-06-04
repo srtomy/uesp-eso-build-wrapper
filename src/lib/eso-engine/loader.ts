@@ -24,44 +24,47 @@ let engineLoaded = false;
  *
  * @param uespResourcesPath - Caminho para a pasta resources/ do fork da UESP.
  *   Ex: path.resolve(__dirname, '../../../vendor/uesp-esochardata/resources')
- * @param initDataPath - Caminho para o uesp-init-data.json extraído do browser.
+ * @param initData
  *   Ex: path.resolve(__dirname, '../../../vendor/uesp-data/uesp-init-data.json')
  */
-export function loadUespEngine(uespResourcesPath: string, initDataPath: string): void {
+export function loadUespEngine(uespResourcesPath: string, initData: string | UespInitData): void {
   if (engineLoaded) return; // singleton — carrega apenas uma vez por processo
 
-  // 1. Carrega o JSON de inicialização (fórmulas e regras extraídas do browser)
-  if (!fs.existsSync(initDataPath)) {
-    throw new Error(
-      `[eso-engine] Arquivo de inicialização não encontrado: ${initDataPath}\n` +
-        `Execute o script de extração no browser e salve o resultado neste caminho.\n` +
-        `Consulte: vendor/uesp-data/browser-extract.js`,
-    );
+  // 1. Resolve o JSON de inicialização — caminho de arquivo ou objeto já parseado.
+  let data: UespInitData;
+  if (typeof initData === 'string') {
+    if (!fs.existsSync(initData)) {
+      throw new Error(
+        `[eso-engine] Arquivo de inicialização não encontrado: ${initData}\n` +
+          `Execute o script de extração no browser e salve o resultado neste caminho.\n` +
+          `Consulte: vendor/uesp-data/browser-extract.js`,
+      );
+    }
+    data = JSON.parse(fs.readFileSync(initData, 'utf-8')) as UespInitData;
+  } else {
+    data = initData;
   }
-
-  const rawJson = fs.readFileSync(initDataPath, 'utf-8');
-  const initData: UespInitData = JSON.parse(rawJson);
 
   // 2. Injeta os dados de fórmulas como globais ANTES de carregar o script.
   //    O script da UESP referencia g_EsoComputedStats, g_EsoInputStats, etc. como globais.
-  (global as any).g_EsoComputedStats = initData.computedStats ?? {};
-  (global as any).g_EsoInputStats = initData.inputStats ?? {};
-  (global as any).g_EsoInitialBuffData = initData.buffData ?? {};
-  (global as any).g_EsoInitialCpData = initData.cpData ?? {};
-  (global as any).g_EsoBuildRules = initData.buildRules ?? {};
+  (global as any).g_EsoComputedStats = data.computedStats ?? {};
+  (global as any).g_EsoInputStats = data.inputStats ?? {};
+  (global as any).g_EsoInitialBuffData = data.buffData ?? {};
+  (global as any).g_EsoInitialCpData = data.cpData ?? {};
+  (global as any).g_EsoBuildRules = data.buildRules ?? {};
   (global as any).g_EsoBuildRulesVersion = 'Live';
   (global as any).g_EsoBuildLiveVersion = 'Live';
   (global as any).g_EsoBuildPtsVersion = 'PTS';
 
   // Metadados dos nodes CP2 — injetados como globais para que calculator.ts
   // possa resolver nomes e descrições dinamicamente sem hardcoding.
-  (global as any).g_EsoCpSkills = initData.cpSkillsData ?? {};
-  (global as any).g_EsoCpSkillDesc = initData.cpSkillDescData ?? {};
+  (global as any).g_EsoCpSkills = data.cpSkillsData ?? {};
+  (global as any).g_EsoCpSkillDesc = data.cpSkillDescData ?? {};
 
   // Globals que vêm do PHP/DB — inicializados como objetos vazios para que
   // loops "for (var id in g_SkillsData)" não quebrem
-  (global as any).g_SkillsData = initData.skillsData ?? {};
-  (global as any).g_SetSkillsData = initData.setSkillsData ?? {};
+  (global as any).g_SkillsData = data.skillsData ?? {};
+  (global as any).g_SetSkillsData = data.setSkillsData ?? {};
   (global as any).g_LastSkillInputValues = {};
 
   // Globals de estado da build — injetados pelo PHP, precisam de defaults seguros
@@ -88,7 +91,7 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   (global as any).g_EsoBuildItemData = {};
   (global as any).g_EsoBuildSetData = {};
   (global as any).g_EsoBuildAllSetData = {};
-  // g_EsoBuildRules já foi injetado acima a partir de initData.buildRules — não sobrescrever aqui.
+  // g_EsoBuildRules já foi injetado acima a partir de data.buildRules — não sobrescrever aqui.
   (global as any).g_EsoInitialItemData = {};
 
   // 3. Pré-declara todos os g_* globais como undefined no contexto Node.js.
@@ -198,7 +201,12 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   //
   //    esoskills.js está em vendor/uesp-esolog/resources/esoskills.js (submodule uesp/uesp-esolog).
   //    Se o arquivo não existir, o motor funciona sem cálculo de skill passivos/ativos.
-  const esoskillsPath = path.join(path.dirname(path.dirname(uespResourcesPath)), 'uesp-esolog', 'resources', 'esoskills.js');
+  const esoskillsPath = path.join(
+    path.dirname(path.dirname(uespResourcesPath)),
+    'uesp-esolog',
+    'resources',
+    'esoskills.js',
+  );
   if (fs.existsSync(esoskillsPath)) {
     // USE_V2_TOOLTIPS=true é setado no esoskills.js, mas GetEsoSkillDescription2 não existe no
     // nosso ambiente — a verificação tripla (USE_V2_TOOLTIPS && g_EsoSkillHasV2Tooltips && GetEsoSkillDescription2)
@@ -207,7 +215,9 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     vm.runInThisContext(fs.readFileSync(esoskillsPath, 'utf-8'), { filename: esoskillsPath });
   } else {
     console.warn('[eso-engine] esoskills.js não encontrado — skill passivos/ativos desabilitados.');
-    console.warn('[eso-engine] Execute: git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog');
+    console.warn(
+      '[eso-engine] Execute: git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog',
+    );
   }
 
   const dataScriptPath = path.join(uespResourcesPath, 'esobuilddata.js');
@@ -285,7 +295,7 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
       const toggleData: any = (global as any).g_EsoBuildToggledSkillData ?? {};
       const savedEnabled: Record<string, boolean> = {};
       for (const k of Object.keys(toggleData)) {
-        savedEnabled[k] = !!(toggleData[k]?.enabled);
+        savedEnabled[k] = !!toggleData[k]?.enabled;
       }
       _origUpdateToggledSkill.call(this, inputValues);
       for (const k of Object.keys(savedEnabled)) {
