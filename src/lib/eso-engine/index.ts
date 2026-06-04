@@ -48,6 +48,8 @@ export type {
   BuffInfo,
   BuffEffect,
   BuffGroup,
+  PassiveSkillInfo,
+  ToggleSkillInfo,
   ComputedStats,
   UespItemApiData,
   EquipSlot,
@@ -55,7 +57,7 @@ export type {
   ChampionPointNode,
   SkillSlot,
 } from './types';
-export { calculateBuild, listAvailableBuffs } from './calculator';
+export { calculateBuild, listAvailableBuffs, listRacialPassives, listClassPassives, listPassivesBySkillLine, listAvailableSkillLines, listAvailableToggleSkills } from './calculator';
 
 let initialized = false;
 

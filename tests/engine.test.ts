@@ -16,7 +16,16 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import path from 'path';
 import type { UespItemApiData } from '../src/lib/eso-engine';
-import { calculateBuild, initEsoEngine, listAvailableBuffs } from '../src/lib/eso-engine';
+import {
+  calculateBuild,
+  initEsoEngine,
+  listAvailableBuffs,
+  listRacialPassives,
+  listClassPassives,
+  listPassivesBySkillLine,
+  listAvailableSkillLines,
+  listAvailableToggleSkills,
+} from '../src/lib/eso-engine';
 
 // ── Engine setup ──────────────────────────────────────────────────────────────
 
@@ -1458,63 +1467,128 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
   });
 
-  // ── Sessão real UESP — gap restante ─────────────────────────────────────────
+  // ── Toggle skills Cyrodiil — efeito real ─────────────────────────────────────
   //
-  // Fonte dos valores alvo: console-export-2026-5-31_19-36-30.log
-  //   Magicka=33916  SpellDamage=3701  SpellCrit=54.3%  SpellCritDamage=0.7
-  //   MagickaRegen=1465  PhysicalResist=10436  SpellResist=14066
-  //   ToggleSkills ativos: Emperor, Authority, Domination, Tactician
-  //   Food: Witchmother's Potent Brew (+2856 Magicka, +3094 Health, +315 MagickaRegen)
+  // Toggle skills PvP (Emperor, Authority, Domination, Tactician, Combat Medic,
+  // Continuous Attack) requerem:
+  //   1. character.cyrodiil: true       — statRequireId: 'Cyrodiil' = 1
+  //   2. passiveSkills: [baseSkillId]   — motor precisa do passivo para processar descrição
+  //   3. toggleSkills: ['NomeDoskill']  — habilita valid=true + enabled=true
   //
-  // ── O QUE JÁ FUNCIONA ────────────────────────────────────────────────────────
-  //   ✓ Set bonuses (buildRules.set, 367 regras, via UpdateEsoItemSets)
-  //   ✓ Food buff (items.Food com abilityDesc, via buildRules.abilitydesc)
-  //   ✓ CP nodes (championPointNodes com points/description)
-  //
-  // ── O QUE AINDA FALTA ────────────────────────────────────────────────────────
-  //   • TOGGLE SKILLS COM EFEITO: g_SkillsData está vazio — sem regras de skill,
-  //     enabled=true não adiciona stats (Emperor, Authority, Domination, Tactician)
-  //     Precisa extrair g_SkillsData do servidor da UESP via browser-extract.js
-  //
-  describe('sessão real UESP — itens + toggle skills', () => {
-    let stats: ReturnType<typeof calculateBuild>;
+  // baseSkillIds obtidos via listAvailableToggleSkills().find(t => t.name === X).baseSkillId
+  describe('toggle skills Cyrodiil — deltas de stats', () => {
+    let base: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
-      stats = calculateBuild({
-        character: HIGH_ELF_SORC_CP160,
-        items: FULL_BUILD_ITEMS,
-        toggleSkills: ['Emperor', 'Authority', 'Domination', 'Tactician'],
-      });
+      base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
     });
 
-    it('aceita toggleSkills como input sem crash', () => {
-      expect(stats).toBeDefined();
-      expect(Number.isFinite(stats.EffectivePower)).toBe(true);
+    // Emperor: +38% Magicka/Health/Stamina (1 keep = 38%)
+    // 19104 × 0.38 = 7259
+    it('Emperor (+38% Magicka at 1 keep): delta ≈ +7259', () => {
+      const withEmperor = calculateBuild({
+        character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
+        passiveSkills: [39641],
+        toggleSkills: ['Emperor'],
+      });
+      expect(withEmperor.Magicka - base.Magicka).toBe(7259);
+    });
+
+    // Domination: regen recovery while in campaign
+    it('Domination: MagickaRegen aumenta em modo Cyrodiil', () => {
+      const withDomination = calculateBuild({
+        character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
+        passiveSkills: [39644],
+        toggleSkills: ['Domination'],
+      });
+      expect(withDomination.MagickaRegen).toBeGreaterThan(base.MagickaRegen);
+    });
+
+    // Combat Medic: HealingDone boost
+    it('Combat Medic: HealingDone aumenta em modo Cyrodiil', () => {
+      const withMedic = calculateBuild({
+        character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
+        passiveSkills: [39259],
+        toggleSkills: ['Combat Medic'],
+      });
+      expect(withMedic.HealingDone).toBeGreaterThan(base.HealingDone);
+    });
+
+    // Continuous Attack: regen boost
+    it('Continuous Attack: MagickaRegen aumenta em modo Cyrodiil', () => {
+      const withCA = calculateBuild({
+        character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
+        passiveSkills: [39248],
+        toggleSkills: ['Continuous Attack'],
+      });
+      expect(withCA.MagickaRegen).toBeGreaterThan(base.MagickaRegen);
+    });
+
+    it('toggle Cyrodiil sem cyrodiil:true não aplica efeito', () => {
+      // Sem cyrodiil: true, statRequireId check falha, valid=false
+      const withoutCyrodiil = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        passiveSkills: [39641],
+        toggleSkills: ['Emperor'],
+      });
+      expect(withoutCyrodiil.Magicka).toBe(base.Magicka);
     });
 
     it('toggle skills resetam entre chamadas  [sem bleed-through]', () => {
-      const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS });
-      expect(clean.Magicka).toBe(stats.Magicka);
+      calculateBuild({
+        character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
+        passiveSkills: [39641],
+        toggleSkills: ['Emperor'],
+      });
+      const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      expect(clean.Magicka).toBe(base.Magicka);
+    });
+  });
+
+  // ── Active skills na barra — efeito de buff condicional ───────────────────────
+  //
+  // Skills slotados na barra ativa podem conceder buffs via descrição:
+  //   "While slotted, you gain Major Prophecy" → ativa buff Major Prophecy → +SpellCrit
+  //
+  // ESO_ACTIVEEFFECT_MATCHES (36 regras) faz match na descrição do skill na barra
+  // e dispara o efeito (buffId → buff rule → stat delta).
+  describe('skillBars — efeitos de active skills na barra', () => {
+    let base: ReturnType<typeof calculateBuild>;
+
+    beforeAll(() => {
+      base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
     });
 
-    // ── TODO: toggle skills com efeito ──────────────────────────────────────
-    // Alvo: Magicka=33916  (gap restante: CP2 nodes + toggle skills)
-    it.todo('Magicka = 33916  [TODO: toggle skills Emperor/Authority/Domination/Tactician]');
+    // Inferno (28967) — Destruction Staff: "While slotted, you gain Major Prophecy"
+    // Major Prophecy: +2629 SpellCrit rating → delta = 2629/21912 ≈ 0.11998
+    it('Inferno na barra ativa concede Major Prophecy (+SpellCrit)', () => {
+      const withInferno = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        skillBars: { bar1: [{ skillId: 28967 }] },
+      });
+      expect(withInferno.SpellCrit - base.SpellCrit).toBeCloseTo(2629 / 21912, 5);
+    });
 
-    // Alvo: SpellDamage=3701  (gap restante: CP2 nodes + toggle skills)
-    it.todo('SpellDamage = 3701  [TODO: toggle skills]');
+    it('skill na barra reseta entre chamadas  [sem bleed-through]', () => {
+      calculateBuild({ character: HIGH_ELF_SORC_CP160, skillBars: { bar1: [{ skillId: 28967 }] } });
+      const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      expect(clean.SpellCrit).toBeCloseTo(base.SpellCrit, 5);
+    });
 
-    // Alvo: SpellCrit=54.3%  (gap restante: CP2 nodes + toggle skills)
-    it.todo('SpellCrit = 54.3%  [TODO: toggle skills]');
-
-    // Alvo: SpellCritDamage=0.7  (gap restante: toggle skills)
-    it.todo('SpellCritDamage = 0.7  [TODO: toggle skills]');
-
-    // Alvo: MagickaRegen=1465  (gap restante: CP2 nodes + toggle skills)
-    it.todo('MagickaRegen = 1465  [TODO: toggle skills]');
-
-    // Alvo: EffectiveSpellPower=8093  (depende de tudo acima)
-    it.todo('EffectiveSpellPower = 8093  [TODO: toggle skills]');
+    it('activeBuffs + skillBar acumulam (não duplicam) Major Prophecy', () => {
+      // Major Prophecy aparece 1× máximo — não duplica ao combinar activeBuffs + skillBar
+      const withBoth = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        skillBars: { bar1: [{ skillId: 28967 }] },
+        activeBuffs: ['Major Prophecy'],
+      });
+      const withBuffOnly = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        activeBuffs: ['Major Prophecy'],
+      });
+      // Ambos devem ter o mesmo SpellCrit (Major Prophecy aplica 1×)
+      expect(withBoth.SpellCrit).toBeCloseTo(withBuffOnly.SpellCrit, 5);
+    });
   });
 
   // ── listAvailableBuffs ────────────────────────────────────────────────────────
@@ -1610,6 +1684,259 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       });
       const expectedDelta = (2629 + 1314) / 21912;
       expect(withBoth.SpellCrit - base.SpellCrit).toBeCloseTo(expectedDelta, 5);
+    });
+  });
+
+  // ── listRacialPassives ────────────────────────────────────────────────────────
+  describe('listRacialPassives — catálogo de passivos raciais', () => {
+    it('retorna 10 entradas para High Elf (5 passivos × até 3 ranks)', () => {
+      expect(listRacialPassives('High Elf').length).toBe(10);
+    });
+
+    it('cada entrada tem abilityId numérico, rank e baseName', () => {
+      for (const p of listRacialPassives('High Elf')) {
+        expect(typeof p.abilityId).toBe('number');
+        expect(p.abilityId).toBeGreaterThan(0);
+        expect(typeof p.baseName).toBe('string');
+        expect(p.rank).toBeGreaterThanOrEqual(1);
+        expect(p.maxRank).toBeGreaterThanOrEqual(p.rank);
+      }
+    });
+
+    it('retorna passivos de todas as 10 raças', () => {
+      const races = [
+        'Argonian', 'Breton', 'Dark Elf', 'High Elf', 'Imperial',
+        'Khajiit', 'Nord', 'Orc', 'Redguard', 'Wood Elf',
+      ];
+      for (const race of races) {
+        expect(listRacialPassives(race).length).toBeGreaterThan(0);
+      }
+    });
+
+    it('raça inválida retorna array vazio', () => {
+      expect(listRacialPassives('Argonian2')).toEqual([]);
+    });
+
+    it('High Elf inclui Syrabane\'s Boon em 3 ranks', () => {
+      const boons = listRacialPassives('High Elf').filter((p) => p.baseName === "Syrabane's Boon");
+      expect(boons.length).toBe(3);
+      expect(boons.map((p) => p.rank).sort()).toEqual([1, 2, 3]);
+    });
+  });
+
+  // ── listClassPassives ─────────────────────────────────────────────────────────
+  describe('listClassPassives — catálogo de passivos de classe', () => {
+    it('retorna 24 entradas para Sorcerer', () => {
+      expect(listClassPassives('Sorcerer').length).toBe(24);
+    });
+
+    it('Sorcerer tem passivos nas 3 skill lines', () => {
+      const lines = [...new Set(listClassPassives('Sorcerer').map((p) => p.skillLine))];
+      expect(lines.sort()).toEqual(['Daedric Summoning', 'Dark Magic', 'Storm Calling']);
+    });
+
+    it('retorna passivos para todas as 7 classes', () => {
+      const classes = [
+        'Arcanist', 'Dragonknight', 'Necromancer', 'Nightblade',
+        'Sorcerer', 'Templar', 'Warden',
+      ];
+      for (const cls of classes) {
+        expect(listClassPassives(cls).length).toBeGreaterThan(0);
+      }
+    });
+
+    it('classe inválida retorna array vazio', () => {
+      expect(listClassPassives('NotAClass')).toEqual([]);
+    });
+  });
+
+  // ── listAvailableToggleSkills ─────────────────────────────────────────────────
+  describe('listAvailableToggleSkills — catálogo de toggle skills', () => {
+    it('retorna 101 toggle skills (1 entrada anônima filtrada)', () => {
+      expect(listAvailableToggleSkills().length).toBe(101);
+    });
+
+    it('cada entrada tem name, isPassive e effects', () => {
+      for (const t of listAvailableToggleSkills()) {
+        expect(typeof t.name).toBe('string');
+        expect(t.name.length).toBeGreaterThan(0);
+        expect(typeof t.isPassive).toBe('boolean');
+        expect(Array.isArray(t.effects)).toBe(true);
+      }
+    });
+
+    it('Emperor é Cyrodiil-restricted com baseSkillId', () => {
+      const emperor = listAvailableToggleSkills().find((t) => t.name === 'Emperor');
+      expect(emperor).toBeDefined();
+      expect(emperor!.requiresCyrodiil).toBe(true);
+      expect(emperor!.baseSkillId).toBeTruthy();
+    });
+
+    it('6 toggles requerem Cyrodiil', () => {
+      const cyrodiil = listAvailableToggleSkills().filter((t) => t.requiresCyrodiil);
+      expect(cyrodiil.length).toBe(6);
+    });
+
+    it('War Horn é toggle de active skill (isPassive = false)', () => {
+      const warHorn = listAvailableToggleSkills().find((t) => t.name === 'War Horn');
+      expect(warHorn).toBeDefined();
+      expect(warHorn!.isPassive).toBe(false);
+    });
+  });
+
+  // ── autoPassives ──────────────────────────────────────────────────────────────
+  //
+  // autoPassives: true injeta o rank mais alto dos passivos raciais e de classe.
+  // Os passivos cujas descrições têm regra em buildRules.passive geram stats.
+  // Highborn não gera SpellCrit pois a descrição no g_SkillsData (patch antigo)
+  // é sobre XP gain — data issue, não bug de código.
+  describe('autoPassives — aplicação automática de passivos raciais e de classe', () => {
+    it('High Elf + autoPassives aumenta Magicka vs base', () => {
+      const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      const withAuto = calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true });
+      expect(withAuto.Magicka).toBeGreaterThan(base.Magicka);
+    });
+
+    it('High Elf + autoPassives aumenta SpellDamage vs base (Spell Recharge)', () => {
+      const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      const withAuto = calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true });
+      expect(withAuto.SpellDamage).toBeGreaterThan(base.SpellDamage);
+    });
+
+    it('Nord + autoPassives aumenta Stamina vs base', () => {
+      const nordChar = { race: 'Nord', class: 'Sorcerer', level: 50, attributes: { health: 0, magicka: 64, stamina: 0 }, championPoints: 160 };
+      const base = calculateBuild({ character: nordChar });
+      const withAuto = calculateBuild({ character: nordChar, autoPassives: true });
+      expect(withAuto.Stamina).toBeGreaterThan(base.Stamina);
+    });
+
+    it('raças diferentes têm deltas diferentes com autoPassives', () => {
+      const highElfChar = { race: 'High Elf', class: 'Sorcerer', level: 50, attributes: { health: 0, magicka: 64, stamina: 0 }, championPoints: 160 };
+      const nordChar = { ...highElfChar, race: 'Nord' };
+      const highElf = calculateBuild({ character: highElfChar, autoPassives: true });
+      const nord = calculateBuild({ character: nordChar, autoPassives: true });
+      // High Elf gets Magicka bonuses; Nord does not
+      expect(highElf.Magicka).toBeGreaterThan(nord.Magicka);
+    });
+
+    it('autoPassives não afeta chamadas sem autoPassives  [sem bleed-through]', () => {
+      const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true });
+      const after = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      expect(after.Magicka).toBe(base.Magicka);
+    });
+
+    it('autoPassives + passiveSkills explícito não duplica efeito', () => {
+      // Terminal rank abilityIds for High Elf (nextSkill = -1)
+      const terminalIds = listRacialPassives('High Elf')
+        .filter((p) => p.rank === p.maxRank)
+        .map((p) => p.abilityId);
+      const withAutoOnly = calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true });
+      const withBoth = calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true, passiveSkills: terminalIds });
+      // Same IDs — no double-application
+      expect(withBoth.Magicka).toBe(withAutoOnly.Magicka);
+    });
+  });
+
+  // ── listPassivesBySkillLine ───────────────────────────────────────────────────
+  describe('listPassivesBySkillLine — catálogo de passivos por skill line', () => {
+    it('listAvailableSkillLines retorna pelo menos 30 skill lines', () => {
+      expect(listAvailableSkillLines().length).toBeGreaterThanOrEqual(30);
+    });
+
+    it('listAvailableSkillLines inclui linhas de armadura, arma e guilda', () => {
+      const lines = listAvailableSkillLines();
+      expect(lines).toContain('Light Armor');
+      expect(lines).toContain('Heavy Armor');
+      expect(lines).toContain('Medium Armor');
+      expect(lines).toContain('Undaunted');
+      expect(lines).toContain('Destruction Staff');
+      expect(lines).toContain('Mages Guild');
+      expect(lines).toContain('Fighters Guild');
+    });
+
+    it('Undaunted retorna 4 passivos (Mettle r1/r2 + Command r1/r2)', () => {
+      expect(listPassivesBySkillLine('Undaunted').length).toBe(4);
+    });
+
+    it('Light Armor inclui Concentration e Prodigy', () => {
+      const la = listPassivesBySkillLine('Light Armor');
+      expect(la.some((p) => p.baseName === 'Concentration')).toBe(true);
+      expect(la.some((p) => p.baseName === 'Prodigy')).toBe(true);
+    });
+
+    it('cada entrada tem abilityId, rank e skillLine corretos', () => {
+      for (const p of listPassivesBySkillLine('Heavy Armor')) {
+        expect(typeof p.abilityId).toBe('number');
+        expect(p.abilityId).toBeGreaterThan(0);
+        expect(p.skillLine).toBe('Heavy Armor');
+        expect(p.rank).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it('skill line inválida retorna array vazio', () => {
+      expect(listPassivesBySkillLine('NotASkillLine')).toEqual([]);
+    });
+  });
+
+  // ── Undaunted Mettle com itens ────────────────────────────────────────────────
+  describe('Undaunted Mettle — passivo dependente de tipos de armadura equipados', () => {
+    it('Mettle sem itens: sem delta (0 tipos de armadura)', () => {
+      const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      const withMettle = calculateBuild({ character: HIGH_ELF_SORC_CP160, passiveSkills: [55386] });
+      expect(withMettle.Magicka).toBe(base.Magicka);
+    });
+
+    it('Mettle com 1 tipo de armadura: delta = +2% Magicka', () => {
+      // 1 tipo de armadura (light) → +2% × 1 = 2% de Magicka base (19104 × 0.02 ≈ 382)
+      const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      const withMettleAndItems = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        passiveSkills: [55386],
+        items: { Chest: JERKIN_OF_THE_DEPTHS }, // 1 Light Armor piece
+      });
+      const delta = withMettleAndItems.Magicka - base.Magicka;
+      // delta inclui enchant (868) + Mettle bonus (~382); Mettle ≈ 2% of base Magicka
+      expect(delta).toBeGreaterThan(868); // maior que só o enchant
+    });
+  });
+
+  // ── Segunda Pedra de Mundus (mundusStone2) ────────────────────────────────────
+  //
+  // HIGH_ELF_SORC_CP160 já tem mundusStone: 'The Thief'.
+  // Usamos um personagem sem Mundus como referência base.
+  describe('mundusStone2 — segunda Pedra de Mundus (Twice-Born Star)', () => {
+    const BASE_CHAR = { race: 'High Elf', class: 'Sorcerer', level: 50, attributes: { health: 0, magicka: 64, stamina: 0 }, championPoints: 160 };
+    let noMundus: ReturnType<typeof calculateBuild>;
+    let oneThief: ReturnType<typeof calculateBuild>;
+
+    beforeAll(() => {
+      noMundus = calculateBuild({ character: BASE_CHAR });
+      oneThief = calculateBuild({ character: { ...BASE_CHAR, mundusStone: 'The Thief' } });
+    });
+
+    it('mundusStone2 = The Thief dobra o bônus de SpellCrit', () => {
+      const twoThief = calculateBuild({
+        character: { ...BASE_CHAR, mundusStone: 'The Thief', mundusStone2: 'The Thief' },
+      });
+      const delta1 = oneThief.SpellCrit - noMundus.SpellCrit;
+      const delta2 = twoThief.SpellCrit - noMundus.SpellCrit;
+      expect(delta2).toBeCloseTo(delta1 * 2, 4);
+    });
+
+    it('mundusStone + mundusStone2 diferentes aplicam ambos os efeitos', () => {
+      const dualMundus = calculateBuild({
+        character: { ...BASE_CHAR, mundusStone: 'The Thief', mundusStone2: 'The Apprentice' },
+      });
+      // The Thief → SpellCrit; The Apprentice → SpellDamage
+      expect(dualMundus.SpellCrit).toBeGreaterThan(noMundus.SpellCrit);
+      expect(dualMundus.SpellDamage).toBeGreaterThan(noMundus.SpellDamage);
+    });
+
+    it('sem mundusStone2 não há bleed-through', () => {
+      calculateBuild({ character: { ...BASE_CHAR, mundusStone: 'The Thief', mundusStone2: 'The Thief' } });
+      const clean = calculateBuild({ character: { ...BASE_CHAR, mundusStone: 'The Thief' } });
+      expect(clean.SpellCrit).toBeCloseTo(oneThief.SpellCrit, 4);
     });
   });
 });

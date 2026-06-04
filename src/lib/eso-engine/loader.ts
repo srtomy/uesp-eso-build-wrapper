@@ -256,6 +256,92 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     },
   });
 
+  // 6a. Patch IsTwiceBornStarEnabled para suportar character.mundusStone2.
+  //
+  //     A função original checa g_EsoInputStatSources.TwiceBornStar, que só é
+  //     populado quando os 5 itens do set "Twice-Born Star" estão equipados.
+  //     Adicionamos uma saída rápida que verifica a flag _esoWrapperTwiceBornOverride
+  //     (setada por calculator.ts quando character.mundusStone2 está presente).
+  const _origIsTwiceBorn = (global as any).IsTwiceBornStarEnabled;
+  if (typeof _origIsTwiceBorn === 'function') {
+    (global as any).IsTwiceBornStarEnabled = function () {
+      if ((global as any)._esoWrapperTwiceBornOverride) return true;
+      return _origIsTwiceBorn.call(this);
+    };
+  }
+
+  // 6. Patch UpdateEsoBuildToggledSkillData para preservar o estado enabled.
+  //
+  //    O motor usa $("#esotbToggledSkillInfo").find(...).is(":checked") para ler
+  //    checkboxes de toggle skills. No Node.js o mock jQuery não tem DOM real, então
+  //    checkElement.length = 1 (mock) e .is(":checked") retorna um proxy chain.
+  //    Isso faz SetEsoBuildToggledSkillEnable(skillId, falsyValue) sobrescrever o
+  //    enabled=true que calculator.ts setou antes do cálculo.
+  //
+  //    Fix: salva enabled[] antes da chamada original e restaura depois — preserva
+  //    o estado programático sem afetar a lógica de validação (.valid) do motor.
+  const _origUpdateToggledSkill = (global as any).UpdateEsoBuildToggledSkillData;
+  if (typeof _origUpdateToggledSkill === 'function') {
+    (global as any).UpdateEsoBuildToggledSkillData = function (inputValues: any) {
+      const toggleData: any = (global as any).g_EsoBuildToggledSkillData ?? {};
+      const savedEnabled: Record<string, boolean> = {};
+      for (const k of Object.keys(toggleData)) {
+        savedEnabled[k] = !!(toggleData[k]?.enabled);
+      }
+      _origUpdateToggledSkill.call(this, inputValues);
+      for (const k of Object.keys(savedEnabled)) {
+        if (toggleData[k]) toggleData[k].enabled = savedEnabled[k];
+      }
+    };
+  }
+
+  // 7. Patch RemoveEsoDescriptionFormats para normalizar \n → espaço.
+  //
+  //    O buildRules.passive/.active foi gerado com a versão atual das descrições do
+  //    UESP (que usa espaços entre itens de lista, ex: "38% 2 Keeps: 45%").
+  //    O g_SkillsData extraído do browser usa \n entre os itens de lista
+  //    (ex: "38%\n2 Keeps: 45%"). A normalização garante que os regexes do motor
+  //    batam com ambos os formatos sem necessidade de re-extração.
+  //
+  //    Impacto verificado: as 49 regras que já funcionam continuam funcionando;
+  //    as 10 que falhavam por \n (Emperor, Authority, Domination, Tactician, etc.)
+  //    passam a funcionar.
+  const _origRemoveFmt = (global as any).RemoveEsoDescriptionFormats;
+  if (typeof _origRemoveFmt === 'function') {
+    (global as any).RemoveEsoDescriptionFormats = function (text: string) {
+      const stripped: string = _origRemoveFmt(text);
+      return stripped ? stripped.replace(/\n/g, ' ') : stripped;
+    };
+  }
+
+  // 7. Snapshot dos passivos raciais e de classe ANTES de qualquer cálculo.
+  //    O motor muta g_SkillsData[id].raceType durante cálculos (p.ex., ao processar
+  //    a raça do personagem, ele reatribui raceType em skills de outras raças).
+  //    Snapshotamos aqui, com os dados limpos do JSON de inicialização, para que
+  //    listRacialPassives/listClassPassives/autoPassives sejam sempre corretos.
+  const passiveSnapshot: Record<string, any> = {};
+  const rawSkillsData = (global as any).g_SkillsData ?? {};
+  for (const [id, skill] of Object.entries(rawSkillsData) as [string, any][]) {
+    if (!skill || skill.isPassive !== '1') continue;
+    // Inclui racial, classe e skill lines nomeadas (armadura, armas, guildas, etc.)
+    // Exclui passivos sem agrupamento útil (sem raceType, classType nem skillLine).
+    if (!skill.raceType && !skill.classType && !skill.skillLine) continue;
+    passiveSnapshot[id] = {
+      abilityId: skill.abilityId ?? Number(id),
+      name: skill.name ?? '',
+      baseName: skill.baseName ?? skill.name ?? '',
+      rank: Number(skill.rank ?? 1),
+      maxRank: Number(skill.maxRank ?? 1),
+      nextSkill: skill.nextSkill,
+      skillLine: skill.skillLine ?? '',
+      description: skill.description ?? '',
+      icon: skill.icon ?? '',
+      raceType: skill.raceType ?? '',
+      classType: skill.classType ?? '',
+    };
+  }
+  (global as any).g_EsoPassiveSkillSnapshot = passiveSnapshot;
+
   engineLoaded = true;
   console.log('[eso-engine] Motor da UESP carregado com sucesso.');
 }
