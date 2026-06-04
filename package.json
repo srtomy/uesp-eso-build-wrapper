@@ -44,6 +44,8 @@
     "vendor/uesp-esochardata/resources/esoEditBuild.js",
     "vendor/uesp-esochardata/resources/esobuilddata.js",
     "vendor/uesp-esochardata/LICENSE",
+    "vendor/uesp-esolog/resources/esoskills.js",
+    "vendor/uesp-esolog/LICENSE",
     "vendor/uesp-data/uesp-init-data.json",
     "THIRD_PARTY_NOTICES"
   ],

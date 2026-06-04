@@ -174,6 +174,16 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     'g_SkillsData',
     'g_EsoCpSkills',
     'g_EsoCpSkillDesc',
+    // Globais lidos por esoskills.js mas definidos externamente (PHP/backend)
+    'g_EsoCraftedScripts',
+    'g_EsoSkillElfBaneSkills',
+    'g_EsoSkillFlameAOESkills',
+    'g_EsoSkillHasV2Tooltips',
+    'g_EsoSkillPoisonSkills',
+    'g_SkillSearchIds',
+    'g_SkillShowAll',
+    'g_SkillUseUpdate10Cost',
+    'g_SkillsVersion',
   ];
   for (const name of ALL_GLOBALS) {
     if (!(name in global)) {
@@ -182,8 +192,25 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   }
 
   // 4. Carrega os scripts da UESP via vm.runInThisContext.
-  //    Ordem: esobuilddata.js (dados estáticos) → esoEditBuild.js (motor de cálculo)
-  //    Isso é equivalente a <script src="..."> no browser.
+  //    Ordem: esoskills.js (descrições) → esobuilddata.js (dados estáticos) → esoEditBuild.js (motor)
+  //    esoEditBuild.js sobrescreve GetEsoSkillInputValues na inicialização, por isso esoskills.js
+  //    precisa ser carregado primeiro.
+  //
+  //    esoskills.js está em vendor/uesp-esolog/resources/esoskills.js (submodule uesp/uesp-esolog).
+  //    Se o arquivo não existir, o motor funciona sem cálculo de skill passivos/ativos.
+  const esoskillsPath = path.join(path.dirname(path.dirname(uespResourcesPath)), 'uesp-esolog', 'resources', 'esoskills.js');
+  if (fs.existsSync(esoskillsPath)) {
+    // USE_V2_TOOLTIPS=true é setado no esoskills.js, mas GetEsoSkillDescription2 não existe no
+    // nosso ambiente — a verificação tripla (USE_V2_TOOLTIPS && g_EsoSkillHasV2Tooltips && GetEsoSkillDescription2)
+    // falhará em g_EsoSkillHasV2Tooltips, caindo no caminho V1 automaticamente.
+    (global as any).g_EsoSkillHasV2Tooltips = false;
+    vm.runInThisContext(fs.readFileSync(esoskillsPath, 'utf-8'), { filename: esoskillsPath });
+    console.log('[eso-engine] esoskills.js carregado — cálculo de skill passivos/ativos habilitado.');
+  } else {
+    console.warn('[eso-engine] esoskills.js não encontrado — skill passivos/ativos desabilitados.');
+    console.warn('[eso-engine] Execute: git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog');
+  }
+
   const dataScriptPath = path.join(uespResourcesPath, 'esobuilddata.js');
   if (!fs.existsSync(dataScriptPath)) {
     throw new Error(`[eso-engine] Script de dados da UESP não encontrado: ${dataScriptPath}`);

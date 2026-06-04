@@ -82,5 +82,6 @@ Golden values in `engine.test.ts` are locked to the vendored UESP formulas. If a
 
 ### Known limitations
 
-- **Toggle skills with stat effects** (Emperor, Authority, etc.) — `g_SkillsData` is empty; skill passive/active rules are not loaded. The `toggleSkills` field is accepted without crashing but applies no stats.
-- **`g_SkillsData`** is not captured by `browser-extract.js` and is not in `uesp-init-data.json`. Capturing it would require extracting the UESP skill database, which is a separate backend concern.
+- **`g_SkillsData` precisa ser re-extraído** — o `browser-extract.js` agora captura `g_SkillsData` completo. Execute a extração com a página `esobuilds.uesp.net` totalmente carregada (aguarde dados AJAX de skills).
+- **`esoskills.js` requer submodule** — `GetEsoSkillDescription` vive em `vendor/uesp-esolog/resources/esoskills.js`. Sem ele, skill passivos/ativos não geram stats (mas o motor não crasha). Adicione com: `git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog`
+- **`passiveSkills` requer ability IDs explícitos** — o usuário deve fornecer os IDs dos passivos que o personagem possui. Futuramente poderá ser automatizado via mapeamento raça/classe.
