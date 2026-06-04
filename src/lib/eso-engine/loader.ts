@@ -15,7 +15,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vm from 'vm';
-import type {UespInitData} from './types';
+import type { UespInitData } from './types';
 
 let engineLoaded = false;
 
@@ -76,7 +76,7 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   // Barra de habilidades — array de 2 barras (principal + offbar), cada uma com 6 slots.
   // O script acessa g_EsoSkillBarData[0][5].origSkillId diretamente (linha 10239).
   const emptySkillSlot = () => ({ skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: 0 });
-  const emptySkillBar = () => Array.from({length: 6}, emptySkillSlot);
+  const emptySkillBar = () => Array.from({ length: 6 }, emptySkillSlot);
   (global as any).g_EsoSkillBarData = [emptySkillBar(), emptySkillBar()];
   (global as any).g_EsoSkillActiveData = {};
   (global as any).g_EsoSkillPassiveData = {};

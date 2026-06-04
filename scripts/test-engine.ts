@@ -28,9 +28,9 @@ initEsoEngine(
 const exampleLegItem: UespItemApiData = {
   itemId: '70',
   name: 'Cured Kwama Leggings',
-  armorRating: '1234',    // use o valor real do nível max (160CP quality 5)
+  armorRating: '1234', // use o valor real do nível max (160CP quality 5)
   weaponPower: '0',
-  armorType: '2',         // 2 = Medium
+  armorType: '2', // 2 = Medium
   weaponType: '0',
   traitDesc: 'Increases Critical Resistance by 47 and this item takes 50% less durability damage.',
   enchantName: 'Maximum Stamina Enchantment',
@@ -41,10 +41,14 @@ const exampleLegItem: UespItemApiData = {
   setName: 'Shadow of the Red Mountain',
   setBonusCount: '4',
   setMaxEquipCount: '5',
-  setBonusCount1: '2', setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
-  setBonusCount2: '3', setBonusDesc2: '(3 items) Adds 1096 Maximum Stamina',
-  setBonusCount3: '4', setBonusDesc3: '(4 items) Adds 657 Critical Chance',
-  setBonusCount4: '5', setBonusDesc4: '(5 items) When you deal damage with a weapon...',
+  setBonusCount1: '2',
+  setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
+  setBonusCount2: '3',
+  setBonusDesc2: '(3 items) Adds 1096 Maximum Stamina',
+  setBonusCount3: '4',
+  setBonusDesc3: '(4 items) Adds 657 Critical Chance',
+  setBonusCount4: '5',
+  setBonusDesc4: '(5 items) When you deal damage with a weapon...',
   link: '|H0:item:70:0:1:0:...|h|h',
 };
 
@@ -67,9 +71,9 @@ const result1 = calculateBuild({
 // Magicka = (220*50 + 1000 + 111*64) * 1 = 19104
 // Stamina = (220*50 + 1000) * 1 = 12000
 // MagickaRegen = round(9.30612*50 + 48.7) = 514
-console.log('Health:      ', result1.Health,   ' (esperado: 16000)');
-console.log('Magicka:     ', result1.Magicka,  ' (esperado: 19104)');
-console.log('Stamina:     ', result1.Stamina,  ' (esperado: 12000)');
+console.log('Health:      ', result1.Health, ' (esperado: 16000)');
+console.log('Magicka:     ', result1.Magicka, ' (esperado: 19104)');
+console.log('Stamina:     ', result1.Stamina, ' (esperado: 12000)');
 console.log('SpellDamage: ', result1.SpellDamage);
 console.log('SpellCrit:   ', result1.SpellCrit);
 console.log('MagickaRegen:', result1.MagickaRegen, ' (esperado: 514)');
@@ -105,7 +109,7 @@ const heavyChest: UespItemApiData = {
   itemId: '999',
   armorRating: '2460',
   weaponPower: '0',
-  armorType: '3',     // 3 = Heavy
+  armorType: '3', // 3 = Heavy
   weaponType: '0',
   traitDesc: '',
   enchantDesc: 'Adds 1487 Maximum Health.',
@@ -126,7 +130,7 @@ const result3 = calculateBuild({
 });
 
 // Health = (300*50 + 1000 + 122*64) * 1 = 16000 + 7808 = 23808
-console.log('Health:      ', result3.Health,  ' (esperado: 23808)');
+console.log('Health:      ', result3.Health, ' (esperado: 23808)');
 console.log('Magicka:     ', result3.Magicka);
 console.log('Stamina:     ', result3.Stamina);
 console.log('PhysicalResist:    ', result3.PhysicalResist);
