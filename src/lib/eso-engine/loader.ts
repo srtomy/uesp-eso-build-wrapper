@@ -205,7 +205,6 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     // falhará em g_EsoSkillHasV2Tooltips, caindo no caminho V1 automaticamente.
     (global as any).g_EsoSkillHasV2Tooltips = false;
     vm.runInThisContext(fs.readFileSync(esoskillsPath, 'utf-8'), { filename: esoskillsPath });
-    console.log('[eso-engine] esoskills.js carregado — cálculo de skill passivos/ativos habilitado.');
   } else {
     console.warn('[eso-engine] esoskills.js não encontrado — skill passivos/ativos desabilitados.');
     console.warn('[eso-engine] Execute: git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog');
@@ -256,7 +255,7 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     },
   });
 
-  // 6a. Patch IsTwiceBornStarEnabled para suportar character.mundusStone2.
+  // 6. Patch IsTwiceBornStarEnabled para suportar character.mundusStone2.
   //
   //     A função original checa g_EsoInputStatSources.TwiceBornStar, que só é
   //     populado quando os 5 itens do set "Twice-Born Star" estão equipados.
@@ -270,7 +269,7 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     };
   }
 
-  // 6. Patch UpdateEsoBuildToggledSkillData para preservar o estado enabled.
+  // 7. Patch UpdateEsoBuildToggledSkillData para preservar o estado enabled.
   //
   //    O motor usa $("#esotbToggledSkillInfo").find(...).is(":checked") para ler
   //    checkboxes de toggle skills. No Node.js o mock jQuery não tem DOM real, então
@@ -295,7 +294,7 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     };
   }
 
-  // 7. Patch RemoveEsoDescriptionFormats para normalizar \n → espaço.
+  // 8. Patch RemoveEsoDescriptionFormats para normalizar \n → espaço.
   //
   //    O buildRules.passive/.active foi gerado com a versão atual das descrições do
   //    UESP (que usa espaços entre itens de lista, ex: "38% 2 Keeps: 45%").
@@ -314,7 +313,7 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
     };
   }
 
-  // 7. Snapshot dos passivos raciais e de classe ANTES de qualquer cálculo.
+  // 9. Snapshot dos passivos raciais e de classe ANTES de qualquer cálculo.
   //    O motor muta g_SkillsData[id].raceType durante cálculos (p.ex., ao processar
   //    a raça do personagem, ele reatribui raceType em skills de outras raças).
   //    Snapshotamos aqui, com os dados limpos do JSON de inicialização, para que
@@ -343,7 +342,6 @@ export function loadUespEngine(uespResourcesPath: string, initDataPath: string):
   (global as any).g_EsoPassiveSkillSnapshot = passiveSnapshot;
 
   engineLoaded = true;
-  console.log('[eso-engine] Motor da UESP carregado com sucesso.');
 }
 
 /** Permite recarregar o motor (útil em testes) */
