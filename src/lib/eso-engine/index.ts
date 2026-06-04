@@ -40,7 +40,7 @@
 
 import * as path from 'path';
 import { setupNodeEnvironment } from './env-setup';
-import { loadUespEngine } from './loader';
+import { loadUespEngine, resetEngineLoader } from './loader';
 import { calculateBuild } from './calculator';
 
 export type {
@@ -94,7 +94,6 @@ export function initEsoEngine(uespResourcesPath?: string, initDataPath?: string)
  */
 export function resetEngine(): void {
   initialized = false;
-  const { resetEngineLoader } = require('./loader');
   resetEngineLoader();
 }
 

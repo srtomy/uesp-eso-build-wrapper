@@ -32,7 +32,7 @@ export type BuffGroup =
   | 'Poison'
   | 'Cyrodiil'
   | 'Other'
-  | string;
+  | (string & {});
 
 /** Efeito individual de um buff sobre um stat. */
 export interface BuffEffect {

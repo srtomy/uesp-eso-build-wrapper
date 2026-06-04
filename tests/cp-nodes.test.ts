@@ -20,8 +20,16 @@ import { calculateBuild, initEsoEngine } from '../src/lib/eso-engine';
 const RESOURCES = path.resolve(__dirname, '../vendor/uesp-esochardata/resources');
 const INIT_DATA = path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json');
 
+let originalCpSkills: unknown;
+let originalCpSkillDesc: unknown;
+
 beforeAll(() => {
   initEsoEngine(RESOURCES, INIT_DATA);
+  // Save real JSON-loaded globals so clearMockCpGlobals can restore them
+  // instead of replacing with empty objects (which would break other test files
+  // that rely on the real data when tests run in different orders).
+  originalCpSkills = (global as any).g_EsoCpSkills;
+  originalCpSkillDesc = (global as any).g_EsoCpSkillDesc;
 });
 
 // Dados mockados que simulam o que o browser extrai após re-execução do
@@ -57,10 +65,10 @@ function injectMockCpGlobals() {
   (global as any).g_EsoCpSkillDesc = MOCK_CP_SKILL_DESC;
 }
 
-/** Restaura os globals para objetos vazios (estado padrão sem re-extração). */
+/** Restaura os globals para os valores reais carregados do JSON. */
 function clearMockCpGlobals() {
-  (global as any).g_EsoCpSkills = {};
-  (global as any).g_EsoCpSkillDesc = {};
+  (global as any).g_EsoCpSkills = originalCpSkills;
+  (global as any).g_EsoCpSkillDesc = originalCpSkillDesc;
 }
 
 // ── Testes ────────────────────────────────────────────────────────────────────

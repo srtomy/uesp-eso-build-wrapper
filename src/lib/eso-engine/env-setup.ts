@@ -15,13 +15,13 @@
  */
 
 /** Armazena os valores que o jQuery vai "ler" como se fossem campos HTML */
-export const domValueStore = new Map<string, string>();
+const domValueStore = new Map<string, string>();
 
 /** Armazena atributos HTML de elementos mock (ex: unlocked="50" nos nodes CP2) */
-export const domAttrStore = new Map<string, Map<string, string>>();
+const domAttrStore = new Map<string, Map<string, string>>();
 
 /** Armazena o textContent de elementos mock (ex: "Current bonus: 1500" nos nodes CP2) */
-export const domTextStore = new Map<string, string>();
+const domTextStore = new Map<string, string>();
 
 /** Define o valor de um elemento mock (equivale a preencher um campo HTML) */
 export function setDomValue(id: string, value: string): void {
@@ -37,11 +37,6 @@ export function setDomAttr(id: string, attr: string, value: string): void {
 /** Define o textContent de um elemento mock */
 export function setDomTextContent(id: string, text: string): void {
   domTextStore.set(id, text);
-}
-
-/** Lê o valor de um elemento mock */
-export function getDomValue(id: string): string {
-  return domValueStore.get(id) ?? '';
 }
 
 /** Reseta todos os valores do DOM mock */
