@@ -88,6 +88,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     toggleSkills,
     skillBars,
     activeWeaponBar,
+    passiveSkills,
   } = input;
 
   setDomValue('esotbRace', character.race);
@@ -327,6 +328,45 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         };
       });
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // PASSO 3d-2: Popula g_EsoSkillPassiveData com os passivos do personagem.
+  //
+  // O engine itera g_EsoSkillPassiveData em GetEsoInputSkillPassives e aplica
+  // cada passivo via regex no texto da descrição (ESO_PASSIVEEFFECT_MATCHES).
+  // Requer g_SkillsData + GetEsoSkillDescription (de esoskills.js).
+  //
+  // Cada entrada: { abilityId } — o engine busca g_SkillsData[abilityId] para
+  // obter coeficientes e gerar a descrição do passivo.
+  // -------------------------------------------------------------------------
+  (global as any).g_EsoSkillPassiveData = {};
+  if (passiveSkills && passiveSkills.length > 0) {
+    const passiveData: Record<string, { abilityId: number }> = {};
+    for (const abilityId of passiveSkills) {
+      passiveData[String(abilityId)] = { abilityId };
+    }
+    (global as any).g_EsoSkillPassiveData = passiveData;
+  }
+
+  // -------------------------------------------------------------------------
+  // PASSO 3d-3: Popula g_EsoSkillActiveData a partir das skill bars.
+  //
+  // GetEsoInputSkillActiveBar lê g_EsoSkillBarData[barra][slot].origSkillId e
+  // busca g_EsoSkillActiveData[origSkillId].abilityId para obter a descrição.
+  // Populamos automaticamente para todos os slots não-vazios das barras.
+  // -------------------------------------------------------------------------
+  (global as any).g_EsoSkillActiveData = {};
+  if (skillBars) {
+    const activeData: Record<number, { abilityId: number }> = {};
+    const bars = [skillBars.bar1, skillBars.bar2];
+    for (const bar of bars) {
+      if (!bar) continue;
+      for (const slot of bar) {
+        if (slot.skillId) activeData[slot.skillId] = { abilityId: slot.skillId };
+      }
+    }
+    (global as any).g_EsoSkillActiveData = activeData;
   }
 
   // -------------------------------------------------------------------------

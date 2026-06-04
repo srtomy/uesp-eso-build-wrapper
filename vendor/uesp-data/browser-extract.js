@@ -40,16 +40,26 @@
     return;
   }
 
+  var skillsData = window.g_SkillsData || {};
+  var skillCount = Object.keys(skillsData).length;
+  if (skillCount === 0) {
+    console.warn('[eso-extract] g_SkillsData está vazio — skill passivos/ativos não serão calculados.');
+    console.warn('[eso-extract] Aguarde a página carregar completamente (incluindo dados AJAX de skills).');
+  } else {
+    console.log('[eso-extract] Capturando ' + skillCount + ' skills de g_SkillsData...');
+  }
+
   var data = {
-    extractedAt:    new Date().toISOString(),
-    pageUrl:        window.location.href,
-    computedStats:  window.g_EsoComputedStats,
-    inputStats:     window.g_EsoInputStats,
-    buffData:       window.g_EsoInitialBuffData  || {},
-    cpData:         window.g_EsoInitialCpData    || {},
-    buildRules:     window.g_EsoBuildRules        || {},
-    cpSkillsData:   window.g_EsoCpSkills          || {},
+    extractedAt:     new Date().toISOString(),
+    pageUrl:         window.location.href,
+    computedStats:   window.g_EsoComputedStats,
+    inputStats:      window.g_EsoInputStats,
+    buffData:        window.g_EsoInitialBuffData  || {},
+    cpData:          window.g_EsoInitialCpData    || {},
+    buildRules:      window.g_EsoBuildRules        || {},
+    cpSkillsData:    window.g_EsoCpSkills          || {},
     cpSkillDescData: window.g_EsoCpSkillDesc      || {},
+    skillsData:      skillsData,
   };
 
   var statCount = Object.keys(data.computedStats).length;

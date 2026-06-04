@@ -182,9 +182,6 @@ export interface BuildInput {
    * Nomes exatos das toggle skills habilitadas.
    * Ex: ["Emperor", "Authority", "Domination", "Tactician"]
    * Usa o mesmo nome que aparece em g_EsoBuildToggledSkillData da UESP.
-   *
-   * @note Os skills são injetados mas efeitos de stat requerem g_SkillsData
-   * (não incluído no uesp-init-data.json atual). O campo é aceito sem crash.
    */
   toggleSkills?: string[];
   /**
@@ -193,11 +190,6 @@ export interface BuildInput {
    * A presença de skills na barra ativa passivos de skill line (ex: passivos de
    * Destruction Staff só se aplicam se houver um skill dessa linha na barra).
    * Também afeta set bonuses condicionais como "Adds N damage to your Class abilities".
-   *
-   * @note Requer g_SkillsData para aplicar efeitos de passivos de skill line.
-   * Sem g_SkillsData, os skill IDs são injetados em g_EsoSkillBarData mas os
-   * passivos correspondentes não geram stats. Será totalmente funcional em
-   * versão futura quando g_SkillsData for incluído no uesp-init-data.json.
    *
    * @example
    * ```ts
@@ -225,6 +217,18 @@ export interface BuildInput {
    * @default 1
    */
   activeWeaponBar?: 1 | 2;
+  /**
+   * Ability IDs dos skills passivos que o personagem possui desbloqueados.
+   * O motor aplica automaticamente o efeito de cada passivo via regex no texto
+   * da descrição (ESO_PASSIVEEFFECT_MATCHES).
+   *
+   * Requer que g_SkillsData contenha os dados do skill (capturado via
+   * browser-extract.js após a página UESP carregar completamente).
+   *
+   * Os IDs correspondem à coluna `abilityId` no banco de dados da UESP.
+   * Exemplo: a passiva "Highborn" do High Elf tem abilityId 45284.
+   */
+  passiveSkills?: number[];
 }
 
 // ---------------------------------------------------------------------------
@@ -299,7 +303,11 @@ export interface UespInitData {
   cpData?: Record<string, unknown>;
   /** Regras gerais da build */
   buildRules?: Record<string, unknown>;
-  /** Dados de skills (vindos do banco da UESP) */
+  /**
+   * Banco completo de skills da UESP (race/class passivos, activos, set skills).
+   * Capturado de window.g_SkillsData após a página esobuilds.uesp.net carregar.
+   * Necessário para que GetEsoSkillDescription interpole coeficientes nos textos.
+   */
   skillsData?: Record<string, unknown>;
   /** Dados de skills de sets */
   setSkillsData?: Record<string, unknown>;
