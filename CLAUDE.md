@@ -60,7 +60,7 @@ Golden values in `engine.test.ts` are locked to the vendored UESP formulas. If a
 ### Updating formulas after an ESO patch
 
 1. In `vendor/uesp-esochardata/`, run: `git fetch upstream && git merge upstream/master`
-2. Open `https://esobuilds.uesp.net` in a browser
+2. Open `https://en.uesp.net/wiki/Special:EsoBuildEditor` in a browser
 3. Run `vendor/uesp-data/browser-extract.js` in the DevTools Console
 4. Save the downloaded JSON to `vendor/uesp-data/uesp-init-data.json`
 5. Run `npm test` — update any golden values that changed intentionally
