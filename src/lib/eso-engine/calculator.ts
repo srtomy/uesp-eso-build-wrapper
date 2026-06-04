@@ -19,7 +19,7 @@
  */
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup';
-import type { BuffInfo, BuildInput, ComputedStats, EquipSlot, PassiveSkillInfo, ToggleSkillInfo } from './types';
+import type { BuffInfo, BuildInput, ComputedStats, EquipSlot, PassiveSkillInfo, SkillSlot, ToggleSkillInfo, UespItemApiData } from './types';
 
 const ALL_SLOTS: EquipSlot[] = [
   'Head',
@@ -47,7 +47,7 @@ const ALL_SLOTS: EquipSlot[] = [
  * existam com defaults seguros. Sem isso, o motor lança TypeError ao tentar
  * chamar .includes() em campos de set bonus undefined (setBonusDesc5..12).
  */
-function normalizeItemData(item: any): any {
+function normalizeItemData(item: UespItemApiData): UespItemApiData {
   const defaults: Record<string, string> = {};
   for (let i = 1; i <= 12; i++) {
     defaults[`setBonusCount${i}`] = item[`setBonusCount${i}`] ?? '-1';
@@ -210,15 +210,14 @@ export function calculateBuild(input: BuildInput): ComputedStats {
           const nodeDescMap: Record<string, string> = cpSkillDesc[nodeId];
           const points = nodeData.points;
           if (points !== undefined) {
-            desc = nodeDescMap[points] ?? nodeDescMap[String(points)];
+            desc = nodeDescMap[String(points)];
             if (!desc) {
-              // floor lookup
+              // floor lookup: largest key ≤ points
               const floorKey = Object.keys(nodeDescMap)
                 .map(Number)
                 .filter((p) => p <= points)
                 .sort((a, b) => b - a)[0];
-              if (floorKey !== undefined)
-                desc = nodeDescMap[floorKey] ?? nodeDescMap[String(floorKey)];
+              if (floorKey !== undefined) desc = nodeDescMap[String(floorKey)];
             }
           }
           if (!desc) {
@@ -315,13 +314,12 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // injetados mas os passivos de skill line não geram stats. Será funcional
   // quando g_SkillsData for adicionado ao JSON de extração.
   // -------------------------------------------------------------------------
-  const emptySkillSlot = () => ({ skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: 0 });
   const emptyBar = () =>
-    Array.from({ length: 6 }, (_, i) => ({ ...emptySkillSlot(), slotIndex: i }));
+    Array.from({ length: 6 }, (_, i) => ({ skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: i }));
   (global as any).g_EsoSkillBarData = [emptyBar(), emptyBar()];
 
   if (skillBars) {
-    const barMap: [typeof skillBars.bar1, 0 | 1][] = [
+    const barMap: [SkillSlot[] | undefined, 0 | 1][] = [
       [skillBars.bar1, 0],
       [skillBars.bar2, 1],
     ];
@@ -402,7 +400,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   (global as any).g_EsoBuildActiveWeapon = activeWeaponBar ?? 1;
 
   // -------------------------------------------------------------------------
-  // PASSO 3: Executa o cálculo.
+  // PASSO 4: Executa o cálculo.
   //
   // UpdateEsoComputedStatsList_Real(keepSaveResults, noUpdate)
   //   - keepSaveResults = null  → reseta os resultados salvos (comportamento padrão)
@@ -420,7 +418,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   updateFn(null, true);
 
   // -------------------------------------------------------------------------
-  // PASSO 4: Lê os resultados de g_EsoComputedStats[statId].value
+  // PASSO 5: Lê os resultados de g_EsoComputedStats[statId].value
   // -------------------------------------------------------------------------
   const computedStats: any = (global as any).g_EsoComputedStats ?? {};
   const raw: Record<string, number> = {};
