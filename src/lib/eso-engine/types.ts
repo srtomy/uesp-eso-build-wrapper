@@ -64,6 +64,27 @@ export interface BuffInfo {
   isVisible: boolean;
 }
 
+export interface PassiveSkillInfo {
+  abilityId: number;
+  name: string;
+  baseName: string;
+  rank: number;
+  maxRank: number;
+  skillLine: string;
+  description: string;
+  icon: string;
+}
+
+export interface ToggleSkillInfo {
+  name: string;
+  displayName: string;
+  isPassive: boolean;
+  requiresCyrodiil: boolean;
+  baseSkillId: string;
+  maxTimes: number | null;
+  effects: BuffEffect[];
+}
+
 // ---------------------------------------------------------------------------
 // Dados de item retornados pela API pública da UESP
 // (esolog.uesp.net/exportJson.php?table=minedItem)
@@ -187,6 +208,12 @@ export interface BuildInput {
     };
     /** Pedra de Mundus ativa. Ex: "The Thief", "The Apprentice" */
     mundusStone?: string;
+    /**
+     * Segunda Pedra de Mundus ativa.
+     * Requer o set "Twice-Born Star" (5 peças equipadas).
+     * Ex: "The Apprentice"
+     */
+    mundusStone2?: string;
     /** Habilita Battle Spirit (modo PvP Cyrodiil) */
     cyrodiil?: boolean;
     /** Estágio de vampiro: 0–4 */
@@ -276,6 +303,16 @@ export interface BuildInput {
    * Exemplo: a passiva "Highborn" do High Elf tem abilityId 45284.
    */
   passiveSkills?: number[];
+  /**
+   * When true, automatically injects the highest-rank racial and class passives
+   * for character.race and character.class (in addition to any explicit passiveSkills).
+   *
+   * Equivalent to manually calling listRacialPassives(race) + listClassPassives(class),
+   * taking the highest rank of each passive, and adding those abilityIds to passiveSkills.
+   *
+   * @default false
+   */
+  autoPassives?: boolean;
 }
 
 // ---------------------------------------------------------------------------

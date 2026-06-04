@@ -77,11 +77,25 @@ Golden values in `engine.test.ts` are locked to the vendored UESP formulas. If a
 | **Food / drink buffs** | ✓ works              | `items.Food = { itemId, type: '4', abilityDesc: '...' }`                                  |
 | CP nodes               | ✓ works              | `championPointNodes` with `points` or `description`                                       |
 | Mundus Stone           | ✓ works              | `character.mundusStone`                                                                   |
-| Active buffs (toggle)  | ✓ works              | `activeBuffs: ['Minor Slayer', ...]`                                                      |
-| Toggle skills          | partially — no stats | `toggleSkills` accepted without crash; skill rules need `g_SkillsData`                    |
+| Active buffs (toggle)  | ✓ works              | `activeBuffs: ['Minor Slayer', ...]` + `listAvailableBuffs(group?)`                       |
+| Named buff catalog     | ✓ works              | `listAvailableBuffs('Major')` — 164 buffs em grupos Major/Minor/Set/Target/…              |
+| Racial passives        | ✓ works              | `autoPassives: true` ou `passiveSkills` + `listRacialPassives(race)`                      |
+| Class passives         | ✓ works              | `autoPassives: true` ou `passiveSkills` + `listClassPassives(class)`                      |
+| Toggle skills          | ✓ works (infra)      | `toggleSkills: ['War Horn', ...]` + `listAvailableToggleSkills()`                         |
+
+### Catalog functions
+
+| Function | Returns | Notes |
+|---|---|---|
+| `listAvailableBuffs(group?)` | `BuffInfo[]` | 164 buffs; group = "Major"\|"Minor"\|"Set"\|"Target"\|… |
+| `listRacialPassives(race)` | `PassiveSkillInfo[]` | todos os ranks por raça |
+| `listClassPassives(class)` | `PassiveSkillInfo[]` | todos os ranks por classe (3 skill lines) |
+| `listAvailableToggleSkills()` | `ToggleSkillInfo[]` | 101 toggles; `requiresCyrodiil` indica os PvP |
 
 ### Known limitations
 
-- **`g_SkillsData` precisa ser re-extraído** — o `browser-extract.js` agora captura `g_SkillsData` completo. Execute a extração com a página `esobuilds.uesp.net` totalmente carregada (aguarde dados AJAX de skills).
 - **`esoskills.js` requer submodule** — `GetEsoSkillDescription` vive em `vendor/uesp-esolog/resources/esoskills.js`. Sem ele, skill passivos/ativos não geram stats (mas o motor não crasha). Adicione com: `git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog`
-- **`passiveSkills` requer ability IDs explícitos** — o usuário deve fornecer os IDs dos passivos que o personagem possui. Futuramente poderá ser automatizado via mapeamento raça/classe.
+- **`g_SkillsData` pode estar desatualizado** — alguns passivos raciais (ex: Highborn do High Elf) têm descrição antiga (ganho de XP) no JSON atual; a regra de SpellCrit não bate. Re-extraia o JSON após o patch mais recente.
+- **Toggle skills Cyrodiil** (Emperor, Authority, Domination, Tactician, Combat Medic, Continuous Attack) — requerem `character.cyrodiil: true` + o passivo na lista `passiveSkills` (`listAvailableToggleSkills()` mostra `requiresCyrodiil: true`).
+- **`passiveSkills` com dependência de barra** — passivos como Pressure Points (NB) multiplicam por skills na barra; sem `skillBars`, o delta é 0.
+- **Dados de descrição de skill** — se `g_SkillsData[abilityId].description` não bater com nenhum regex em `buildRules.passive`, o passivo não gera stats. Use `GetEsoSkillDescription(id)` no Node para depurar.

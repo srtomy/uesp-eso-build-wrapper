@@ -19,7 +19,7 @@
  */
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup';
-import type { BuffInfo, BuildInput, ComputedStats, EquipSlot } from './types';
+import type { BuffInfo, BuildInput, ComputedStats, EquipSlot, PassiveSkillInfo, ToggleSkillInfo } from './types';
 
 const ALL_SLOTS: EquipSlot[] = [
   'Head',
@@ -89,6 +89,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     skillBars,
     activeWeaponBar,
     passiveSkills,
+    autoPassives,
   } = input;
 
   setDomValue('esotbRace', character.race);
@@ -101,6 +102,13 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // Mundus Stone (pedra de Mundus)
   if (character.mundusStone) {
     setDomValue('esotbMundus', character.mundusStone);
+  }
+  // Segunda Pedra de Mundus (requer set Twice-Born Star ou será ativada diretamente).
+  // IsTwiceBornStarEnabled() lê a flag _esoWrapperTwiceBornOverride (patch em loader.ts)
+  // quando o set não está equipado mas mundusStone2 é fornecido explicitamente.
+  (global as any)._esoWrapperTwiceBornOverride = !!character.mundusStone2;
+  if (character.mundusStone2) {
+    setDomValue('esotbMundus2', character.mundusStone2);
   }
 
   // PvP Cyrodiil (Battle Spirit)
@@ -341,9 +349,25 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // obter coeficientes e gerar a descrição do passivo.
   // -------------------------------------------------------------------------
   (global as any).g_EsoSkillPassiveData = {};
-  if (passiveSkills && passiveSkills.length > 0) {
+  const allPassiveIds = new Set<number>(passiveSkills ?? []);
+  if (autoPassives) {
+    // Use the loader snapshot (written before any calculations) to avoid raceType mutation.
+    const snapshot: any = (global as any).g_EsoPassiveSkillSnapshot;
+    if (snapshot) {
+      for (const v of Object.values(snapshot) as any[]) {
+        if (!v) continue;
+        if (
+          (v.raceType === character.race || v.classType === character.class) &&
+          (v.nextSkill === -1 || String(v.nextSkill) === '-1')
+        ) {
+          allPassiveIds.add(Number(v.abilityId));
+        }
+      }
+    }
+  }
+  if (allPassiveIds.size > 0) {
     const passiveData: Record<string, { abilityId: number }> = {};
-    for (const abilityId of passiveSkills) {
+    for (const abilityId of allPassiveIds) {
       passiveData[String(abilityId)] = { abilityId };
     }
     (global as any).g_EsoSkillPassiveData = passiveData;
@@ -502,4 +526,141 @@ export function listAvailableBuffs(group?: string): BuffInfo[] {
   }
 
   return result;
+}
+
+// Helper used by calculateBuild (autoPassives) and listRacialPassives/listClassPassives.
+// Uses g_EsoPassiveSkillSnapshot (written by loader.ts at engine init time) to avoid
+// the engine's mutation of g_SkillsData.raceType during calculations.
+function buildPassiveSkillInfos(
+  filter: (v: any) => boolean,
+  sortKey: (v: any) => string,
+): PassiveSkillInfo[] {
+  const snapshot: any = (global as any).g_EsoPassiveSkillSnapshot;
+  if (!snapshot || typeof snapshot !== 'object') return [];
+
+  return (Object.values(snapshot) as any[])
+    .filter((v) => v && filter(v))
+    .map((v) => ({
+      abilityId: Number(v.abilityId),
+      name: v.name,
+      baseName: v.baseName,
+      rank: v.rank,
+      maxRank: v.maxRank,
+      skillLine: v.skillLine,
+      description: v.description,
+      icon: v.icon,
+    }))
+    .sort((a, b) => sortKey(a).localeCompare(sortKey(b)) || a.rank - b.rank);
+}
+
+/**
+ * Returns all racial passive skills for the given race.
+ * Each passive may appear in multiple ranks (rank 1, 2, 3).
+ * Pass the abilityId of the desired rank to BuildInput.passiveSkills.
+ *
+ * Must be called after initEsoEngine().
+ *
+ * @param race - Race name as passed to BuildInput.character.race.
+ *   Ex: "High Elf", "Nord", "Khajiit"
+ */
+export function listRacialPassives(race: string): PassiveSkillInfo[] {
+  return buildPassiveSkillInfos(
+    (v) => v.raceType === race,
+    (v) => v.baseName,
+  );
+}
+
+/**
+ * Returns all class passive skills for the given class.
+ * Each passive may appear in multiple ranks (rank 1, 2, 3).
+ * Pass the abilityId of the desired rank to BuildInput.passiveSkills.
+ *
+ * Must be called after initEsoEngine().
+ *
+ * @param className - Class name as passed to BuildInput.character.class.
+ *   Ex: "Sorcerer", "Nightblade", "Dragonknight"
+ */
+export function listClassPassives(className: string): PassiveSkillInfo[] {
+  return buildPassiveSkillInfos(
+    (v) => v.classType === className,
+    (v) => (v.skillLine ?? '') + v.baseName,
+  );
+}
+
+/**
+ * Returns all passive skills for the given skill line.
+ * Each passive may appear in multiple ranks (rank 1, 2, 3).
+ * Pass the abilityId of the desired rank to BuildInput.passiveSkills.
+ *
+ * Must be called after initEsoEngine().
+ *
+ * @param skillLine - Skill line name as it appears in g_SkillsData.
+ *   Use listAvailableSkillLines() to discover valid names.
+ *   Examples: "Light Armor", "Heavy Armor", "Undaunted", "Destruction Staff",
+ *   "Fighters Guild", "Mages Guild", "Psijic Order", "Assault", "Support",
+ *   "Vampire", "Werewolf"
+ */
+export function listPassivesBySkillLine(skillLine: string): PassiveSkillInfo[] {
+  return buildPassiveSkillInfos(
+    (v) => v.skillLine === skillLine,
+    (v) => v.baseName,
+  );
+}
+
+/**
+ * Returns all skill line names that have passive skills available.
+ * Use the returned names with listPassivesBySkillLine().
+ *
+ * Must be called after initEsoEngine().
+ */
+export function listAvailableSkillLines(): string[] {
+  const snapshot: any = (global as any).g_EsoPassiveSkillSnapshot;
+  if (!snapshot || typeof snapshot !== 'object') return [];
+
+  const lines = new Set<string>();
+  for (const v of Object.values(snapshot) as any[]) {
+    if (v?.skillLine) lines.add(v.skillLine);
+  }
+  return Array.from(lines).sort();
+}
+
+/**
+ * Returns all available toggle skills from the loaded UESP engine.
+ * Pass entry.name to BuildInput.toggleSkills to enable it.
+ *
+ * Note: toggle skills with requiresCyrodiil=true also need character.cyrodiil=true.
+ * Toggle skills backed by a passive (isPassive=true) need the associated skill
+ * in passiveSkills/skillBars for the engine to process the description match.
+ *
+ * Must be called after initEsoEngine().
+ */
+export function listAvailableToggleSkills(): ToggleSkillInfo[] {
+  const toggleData: any = (global as any).g_EsoBuildToggledSkillData;
+  if (!toggleData || typeof toggleData !== 'object') return [];
+
+  const result: ToggleSkillInfo[] = [];
+
+  for (const [name, entry] of Object.entries(toggleData) as [string, any][]) {
+    if (!entry || typeof entry !== 'object') continue;
+    if (!name) continue; // skip anonymous entries (no nameId in the rule)
+
+    const matchData: any = entry.matchData ?? {};
+    const effects = (Array.isArray(matchData.effects) ? matchData.effects : []).map((fx: any) => ({
+      statId: fx.statId ?? '',
+      value: Number(fx.value ?? 0),
+      display: fx.display ?? '',
+    }));
+
+    result.push({
+      name,
+      displayName: matchData.displayName ?? name,
+      isPassive: entry.isPassive === true || entry.isPassive === 1,
+      requiresCyrodiil: matchData.statRequireId === 'Cyrodiil',
+      baseSkillId: String(matchData.baseSkillId ?? ''),
+      maxTimes: entry.maxTimes != null ? Number(entry.maxTimes) : null,
+      effects,
+    });
+  }
+
+  return result.sort((a, b) => a.name.localeCompare(b.name));
 }
