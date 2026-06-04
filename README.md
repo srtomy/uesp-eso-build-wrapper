@@ -37,10 +37,10 @@ const stats = calculateBuild({
   },
 });
 
-console.log(stats.Health);       // 16000
-console.log(stats.Magicka);      // 19104
+console.log(stats.Health); // 16000
+console.log(stats.Magicka); // 19104
 console.log(stats.MagickaRegen); // 514
-console.log(stats.SpellDamage);  // 1000
+console.log(stats.SpellDamage); // 1000
 ```
 
 ## With Equipped Items
@@ -50,7 +50,7 @@ Items are passed directly as returned by the [UESP public item API](https://esol
 ```ts
 // 1. Fetch item data from UESP API
 const res = await fetch(
-  'https://esolog.uesp.net/exportJson.php?table=minedItem&id=70&level=50&quality=5'
+  'https://esolog.uesp.net/exportJson.php?table=minedItem&id=70&level=50&quality=5',
 );
 const data = await res.json();
 const item = data.minedItem[0]; // pick the variant you want
@@ -79,10 +79,10 @@ Initializes the UESP math engine. **Must be called once** before `calculateBuild
 
 Safe to call multiple times — only executes on the first call.
 
-| Param | Type | Default | Description |
-|---|---|---|---|
-| `resourcesPath` | `string` | bundled vendor | Path to `esoEditBuild.js` and `esobuilddata.js` |
-| `initDataPath` | `string` | bundled vendor | Path to `uesp-init-data.json` with game formulas |
+| Param           | Type     | Default        | Description                                      |
+| --------------- | -------- | -------------- | ------------------------------------------------ |
+| `resourcesPath` | `string` | bundled vendor | Path to `esoEditBuild.js` and `esobuilddata.js`  |
+| `initDataPath`  | `string` | bundled vendor | Path to `uesp-init-data.json` with game formulas |
 
 ### `calculateBuild(input: BuildInput): ComputedStats`
 
@@ -93,20 +93,20 @@ Runs the UESP engine and returns the computed stats.
 ```ts
 interface BuildInput {
   character: {
-    race: string;             // "High Elf" | "Nord" | "Breton" | "Khajiit" | ...
-    class: string;            // "Sorcerer" | "Dragonknight" | "Nightblade" | ...
-    level: number;            // 1–50
+    race: string; // "High Elf" | "Nord" | "Breton" | "Khajiit" | ...
+    class: string; // "Sorcerer" | "Dragonknight" | "Nightblade" | ...
+    level: number; // 1–50
     attributes: {
-      health: number;         // attribute points (max 64 total)
+      health: number; // attribute points (max 64 total)
       magicka: number;
       stamina: number;
     };
-    mundusStone?: string;     // "The Thief" | "The Apprentice" | ...
-    cyrodiil?: boolean;       // Battle Spirit (PvP)
-    vampireStage?: number;    // 0–4
-    werewolfStage?: number;   // 0 or 1
-    championPoints?: number;  // 0–3600
-    rulesVersion?: string;    // "Live" (default) | "PTS"
+    mundusStone?: string; // "The Thief" | "The Apprentice" | ...
+    cyrodiil?: boolean; // Battle Spirit (PvP)
+    vampireStage?: number; // 0–4
+    werewolfStage?: number; // 0 or 1
+    championPoints?: number; // 0–3600
+    rulesVersion?: string; // "Live" (default) | "PTS"
   };
   items?: Partial<Record<EquipSlot, UespItemApiData>>;
 }
@@ -125,18 +125,18 @@ Poison1 | Poison2 | Food | Potion
 
 Key stats returned (see [`types.ts`](src/lib/eso-engine/types.ts) for full list):
 
-| Property | Description |
-|---|---|
-| `Health` / `Magicka` / `Stamina` | Maximum resource pools |
-| `HealthRegen` / `MagickaRegen` / `StaminaRegen` | Out-of-combat regeneration |
-| `WeaponDamage` / `SpellDamage` | Base damage |
-| `WeaponCrit` / `SpellCrit` | Critical chance |
-| `PhysicalResist` / `SpellResist` / `CritResist` | Resistances |
-| `PhysicalPenetration` / `SpellPenetration` | Armor penetration |
-| `DefensePhysicalMitigation` / `DefenseSpellMitigation` | Effective mitigation % |
-| `HealingDone` / `HealingTaken` | Healing modifiers |
-| `RunSpeed` / `SprintSpeed` | Movement speed |
-| `raw` | All 221 stats as `Record<string, number>` |
+| Property                                               | Description                               |
+| ------------------------------------------------------ | ----------------------------------------- |
+| `Health` / `Magicka` / `Stamina`                       | Maximum resource pools                    |
+| `HealthRegen` / `MagickaRegen` / `StaminaRegen`        | Out-of-combat regeneration                |
+| `WeaponDamage` / `SpellDamage`                         | Base damage                               |
+| `WeaponCrit` / `SpellCrit`                             | Critical chance                           |
+| `PhysicalResist` / `SpellResist` / `CritResist`        | Resistances                               |
+| `PhysicalPenetration` / `SpellPenetration`             | Armor penetration                         |
+| `DefensePhysicalMitigation` / `DefenseSpellMitigation` | Effective mitigation %                    |
+| `HealingDone` / `HealingTaken`                         | Healing modifiers                         |
+| `RunSpeed` / `SprintSpeed`                             | Movement speed                            |
+| `raw`                                                  | All 221 stats as `Record<string, number>` |
 
 > All stat IDs match `g_EsoComputedStats` from the UESP engine (version 49+).
 

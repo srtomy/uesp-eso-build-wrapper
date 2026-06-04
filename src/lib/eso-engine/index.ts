@@ -39,9 +39,9 @@
  */
 
 import * as path from 'path';
-import {setupNodeEnvironment} from './env-setup';
-import {loadUespEngine} from './loader';
-import {calculateBuild} from './calculator';
+import { setupNodeEnvironment } from './env-setup';
+import { loadUespEngine } from './loader';
+import { calculateBuild } from './calculator';
 
 export type {
   BuildInput,
@@ -74,7 +74,7 @@ export function initEsoEngine(uespResourcesPath?: string, initDataPath?: string)
   const pkgRoot = path.resolve(__dirname, '../../..');
 
   const resourcesPath =
-      uespResourcesPath ?? path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
+    uespResourcesPath ?? path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
   const dataPath = initDataPath ?? path.join(pkgRoot, 'vendor/uesp-data/uesp-init-data.json');
 
   setupNodeEnvironment();

@@ -11,11 +11,13 @@ npm run test:explore   # run scripts/test-engine.ts interactively via ts-node
 ```
 
 Run a single test file:
+
 ```bash
 npx vitest run tests/engine.test.ts
 ```
 
 Run tests matching a pattern:
+
 ```bash
 npx vitest run --reporter=verbose -t "baseline"
 ```
@@ -67,16 +69,16 @@ Golden values in `engine.test.ts` are locked to the vendored UESP formulas. If a
 
 `uesp-init-data.json` contains all the rule categories used at runtime:
 
-| Feature | Status | How to use |
-|---|---|---|
-| Armor enchants | ✓ works | `items[slot].enchantDesc` |
-| Weapon enchants | ✓ works | `items[slot].enchantDesc` |
-| **Set bonuses** | ✓ works | `items[slot].setName + setBonusDesc1..5` — engine calls `UpdateEsoItemSets` automatically |
-| **Food / drink buffs** | ✓ works | `items.Food = { itemId, type: '4', abilityDesc: '...' }` |
-| CP nodes | ✓ works | `championPointNodes` with `points` or `description` |
-| Mundus Stone | ✓ works | `character.mundusStone` |
-| Active buffs (toggle) | ✓ works | `activeBuffs: ['Minor Slayer', ...]` |
-| Toggle skills | partially — no stats | `toggleSkills` accepted without crash; skill rules need `g_SkillsData` |
+| Feature                | Status               | How to use                                                                                |
+| ---------------------- | -------------------- | ----------------------------------------------------------------------------------------- |
+| Armor enchants         | ✓ works              | `items[slot].enchantDesc`                                                                 |
+| Weapon enchants        | ✓ works              | `items[slot].enchantDesc`                                                                 |
+| **Set bonuses**        | ✓ works              | `items[slot].setName + setBonusDesc1..5` — engine calls `UpdateEsoItemSets` automatically |
+| **Food / drink buffs** | ✓ works              | `items.Food = { itemId, type: '4', abilityDesc: '...' }`                                  |
+| CP nodes               | ✓ works              | `championPointNodes` with `points` or `description`                                       |
+| Mundus Stone           | ✓ works              | `character.mundusStone`                                                                   |
+| Active buffs (toggle)  | ✓ works              | `activeBuffs: ['Minor Slayer', ...]`                                                      |
+| Toggle skills          | partially — no stats | `toggleSkills` accepted without crash; skill rules need `g_SkillsData`                    |
 
 ### Known limitations
 

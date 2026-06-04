@@ -27,11 +27,14 @@ export default [
 
       // The DOM mock in env-setup.ts has many callback params that must match
       // jQuery-like signatures but aren't always used internally.
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_',
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
 
       // env-setup.ts uses the `Function` type intentionally for jQuery-like stubs.
       '@typescript-eslint/no-unsafe-function-type': 'warn',

@@ -147,8 +147,7 @@ function createChainMock(id?: string): any {
     ready: (fn: Function) => {
       try {
         fn();
-      } catch (_) {
-      }
+      } catch (_) {}
       return chain;
     },
   };
@@ -179,7 +178,7 @@ function createJQueryMock() {
   $.ajax = () => ({ done: () => ({ fail: () => ({}) }) });
   $.getJSON = () => ({ done: () => ({ fail: () => ({}) }) });
   $.Deferred = () => ({ resolve: () => {}, reject: () => {}, promise: () => ({}) });
-  $.when = (..._args: any[]) => ({done: () => ({})});
+  $.when = (..._args: any[]) => ({ done: () => ({}) });
   $.parseJSON = JSON.parse;
 
   return $;
@@ -243,10 +242,8 @@ export function setupNodeEnvironment(): void {
   (global as any).document = createDocumentMock();
 
   // console.time/timeEnd — usados pelo motor para profiling (no-ops aqui)
-  if (!console.time) (console as any).time = () => {
-  };
-  if (!console.timeEnd) (console as any).timeEnd = () => {
-  };
+  if (!console.time) (console as any).time = () => {};
+  if (!console.timeEnd) (console as any).timeEnd = () => {};
 
   // setTimeout síncrono — o motor usa setTimeout(..., 100) para atualização assíncrona.
   // Substituímos por execução síncrona imediata para uso em servidor.

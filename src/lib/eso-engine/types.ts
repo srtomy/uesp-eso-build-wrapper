@@ -65,24 +65,24 @@ export interface UespItemApiData {
 //   { itemId: '23274', type: '4', abilityDesc: 'Increase Max Health by 3094 and Max Magicka by 2856. Magicka Recovery by 315.' }
 // Rules match "Max Health by N", "Max Magicka by N", "Magicka Recovery by N", etc.
 export type EquipSlot =
-    | 'Head'
-    | 'Shoulders'
-    | 'Chest'
-    | 'Hands'
-    | 'Legs'
-    | 'Waist'
-    | 'Feet'
-    | 'Neck'
-    | 'Ring1'
-    | 'Ring2'
-    | 'MainHand1'
-    | 'OffHand1'
-    | 'MainHand2'
-    | 'OffHand2'
-    | 'Poison1'
-    | 'Poison2'
-    | 'Food'
-    | 'Potion';
+  | 'Head'
+  | 'Shoulders'
+  | 'Chest'
+  | 'Hands'
+  | 'Legs'
+  | 'Waist'
+  | 'Feet'
+  | 'Neck'
+  | 'Ring1'
+  | 'Ring2'
+  | 'MainHand1'
+  | 'OffHand1'
+  | 'MainHand2'
+  | 'OffHand2'
+  | 'Poison1'
+  | 'Poison2'
+  | 'Food'
+  | 'Potion';
 
 // ---------------------------------------------------------------------------
 // Skill bar
