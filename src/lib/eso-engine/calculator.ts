@@ -18,8 +18,8 @@
  *   4. Ler os resultados de g_EsoComputedStats[statId].value
  */
 
-import {resetDomValues, setDomAttr, setDomTextContent, setDomValue} from './env-setup';
-import type {BuildInput, ComputedStats, EquipSlot} from './types';
+import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup';
+import type { BuildInput, ComputedStats, EquipSlot } from './types';
 
 const ALL_SLOTS: EquipSlot[] = [
   'Head',
@@ -205,9 +205,9 @@ export function calculateBuild(input: BuildInput): ComputedStats {
             if (!desc) {
               // floor lookup
               const floorKey = Object.keys(nodeDescMap)
-                  .map(Number)
-                  .filter((p) => p <= points)
-                  .sort((a, b) => b - a)[0];
+                .map(Number)
+                .filter((p) => p <= points)
+                .sort((a, b) => b - a)[0];
               if (floorKey !== undefined)
                 desc = nodeDescMap[floorKey] ?? nodeDescMap[String(floorKey)];
             }
@@ -227,9 +227,9 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         // caminho legado: injeção DOM para ParseEsoCP2Value
         const bonus = nodeData.currentBonus;
         const bonusStr =
-            typeof bonus === 'string' && bonus.endsWith('%')
-                ? `Current value: ${bonus}`
-                : `Current bonus: ${bonus}`;
+          typeof bonus === 'string' && bonus.endsWith('%')
+            ? `Current value: ${bonus}`
+            : `Current bonus: ${bonus}`;
         setDomAttr(`skill_${nodeId}`, 'unlocked', '1');
         setDomTextContent(`descskill_${nodeId}`, bonusStr);
         setDomTextContent(`descskill_${nodeId}_prev`, `CP Node ${nodeId}`);
@@ -306,9 +306,9 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // injetados mas os passivos de skill line não geram stats. Será funcional
   // quando g_SkillsData for adicionado ao JSON de extração.
   // -------------------------------------------------------------------------
-  const emptySkillSlot = () => ({skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: 0});
+  const emptySkillSlot = () => ({ skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: 0 });
   const emptyBar = () =>
-      Array.from({length: 6}, (_, i) => ({...emptySkillSlot(), slotIndex: i}));
+    Array.from({ length: 6 }, (_, i) => ({ ...emptySkillSlot(), slotIndex: i }));
   (global as any).g_EsoSkillBarData = [emptyBar(), emptyBar()];
 
   if (skillBars) {

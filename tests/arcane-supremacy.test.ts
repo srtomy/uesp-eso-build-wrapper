@@ -11,15 +11,15 @@
  *   4. Adds captured value to the stat
  */
 
-import {beforeAll, describe, expect, it} from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import path from 'path';
-import {calculateBuild, initEsoEngine} from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngine } from '../src/lib/eso-engine';
 
 const CHAR_BASE = {
   race: 'High Elf',
   class: 'Sorcerer',
   level: 50,
-  attributes: {health: 0, magicka: 64, stamina: 0},
+  attributes: { health: 0, magicka: 64, stamina: 0 },
 } as const;
 
 const CHAR_CP160 = { ...CHAR_BASE, championPoints: 160 };
@@ -31,8 +31,8 @@ const BASELINE_HEALTH = 16000;
 
 beforeAll(() => {
   initEsoEngine(
-      path.resolve(__dirname, '../vendor/uesp-esochardata/resources'),
-      path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json'),
+    path.resolve(__dirname, '../vendor/uesp-esochardata/resources'),
+    path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json'),
   );
 });
 
@@ -47,7 +47,7 @@ describe('Arcane Supremacy CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 50}},
+        championPointNodes: { [NODE_ID]: { points: 50 } },
       });
     });
 
@@ -80,7 +80,7 @@ describe('Arcane Supremacy CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 25}},
+        championPointNodes: { [NODE_ID]: { points: 25 } },
       });
     });
 
@@ -101,7 +101,7 @@ describe('Arcane Supremacy CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 0}},
+        championPointNodes: { [NODE_ID]: { points: 0 } },
       });
     });
 
@@ -122,7 +122,7 @@ describe('Endless Endurance CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 50}},
+        championPointNodes: { [NODE_ID]: { points: 50 } },
       });
     });
 
@@ -149,7 +149,7 @@ describe('Endless Endurance CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 0}},
+        championPointNodes: { [NODE_ID]: { points: 0 } },
       });
     });
 
@@ -170,7 +170,7 @@ describe('Boundless Vitality CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 50}},
+        championPointNodes: { [NODE_ID]: { points: 50 } },
       });
     });
 
@@ -197,7 +197,7 @@ describe('Boundless Vitality CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 0}},
+        championPointNodes: { [NODE_ID]: { points: 0 } },
       });
     });
 
@@ -218,7 +218,7 @@ describe('Fortified CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 50}},
+        championPointNodes: { [NODE_ID]: { points: 50 } },
       });
     });
 
@@ -249,7 +249,7 @@ describe('Fortified CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: {[NODE_ID]: {points: 0}},
+        championPointNodes: { [NODE_ID]: { points: 0 } },
       });
     });
 
