@@ -19,7 +19,7 @@
  */
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup';
-import type { BuildInput, ComputedStats, EquipSlot } from './types';
+import type { BuffInfo, BuildInput, ComputedStats, EquipSlot } from './types';
 
 const ALL_SLOTS: EquipSlot[] = [
   'Head',
@@ -459,4 +459,47 @@ export function calculateBuild(input: BuildInput): ComputedStats {
 
     raw,
   };
+}
+
+/**
+ * Returns the catalog of buffs available in the loaded UESP engine.
+ *
+ * Each entry maps to one row in the UESP buff tab. Pass `entry.name` to
+ * `BuildInput.activeBuffs` to enable that buff in a calculation.
+ *
+ * Must be called after `initEsoEngine()`.
+ *
+ * @param group - Optional filter. Ex: "Major", "Minor", "Set", "Target",
+ *   "Skill", "Potion", "Poison", "Cyrodiil", "Other".
+ *   Omit to return all 164 buffs.
+ */
+export function listAvailableBuffs(group?: string): BuffInfo[] {
+  const buffData: any = (global as any).g_EsoBuildBuffData;
+  if (!buffData || typeof buffData !== 'object') return [];
+
+  const result: BuffInfo[] = [];
+
+  for (const [name, entry] of Object.entries(buffData) as [string, any][]) {
+    if (!entry || typeof entry !== 'object') continue;
+
+    const entryGroup: string = entry.group ?? entry.groupName ?? '';
+    if (group !== undefined && entryGroup !== group) continue;
+
+    const effects = (Array.isArray(entry.effects) ? entry.effects : []).map((fx: any) => ({
+      statId: fx.statId ?? '',
+      value: Number(fx.value ?? 0),
+      display: fx.display ?? '',
+    }));
+
+    result.push({
+      name,
+      group: entryGroup,
+      icon: entry.icon ?? '',
+      effects,
+      isToggle: entry.isToggle ?? false,
+      isVisible: entry.visible ?? entry.isVisible ?? true,
+    });
+  }
+
+  return result;
 }

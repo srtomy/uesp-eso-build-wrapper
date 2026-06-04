@@ -16,7 +16,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import path from 'path';
 import type { UespItemApiData } from '../src/lib/eso-engine';
-import { calculateBuild, initEsoEngine } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngine, listAvailableBuffs } from '../src/lib/eso-engine';
 
 // ── Engine setup ──────────────────────────────────────────────────────────────
 
@@ -1515,5 +1515,101 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
     // Alvo: EffectiveSpellPower=8093  (depende de tudo acima)
     it.todo('EffectiveSpellPower = 8093  [TODO: toggle skills]');
+  });
+
+  // ── listAvailableBuffs ────────────────────────────────────────────────────────
+  //
+  // Retorna o catálogo de buffs do motor (164 entradas de buildRules.buff).
+  // Sem chamada de rede — lê apenas g_EsoBuildBuffData já carregado.
+  describe('listAvailableBuffs — catálogo de buffs', () => {
+    it('retorna > 0 buffs sem filtro', () => {
+      expect(listAvailableBuffs().length).toBeGreaterThan(0);
+    });
+
+    it('filtra por grupo "Major" — retorna 25 buffs', () => {
+      const major = listAvailableBuffs('Major');
+      expect(major.length).toBe(25);
+      expect(major.every((b) => b.group === 'Major')).toBe(true);
+    });
+
+    it('filtra por grupo "Minor" — retorna 29 buffs', () => {
+      const minor = listAvailableBuffs('Minor');
+      expect(minor.length).toBe(29);
+    });
+
+    it('cada BuffInfo tem name, group, effects', () => {
+      const buffs = listAvailableBuffs('Major');
+      for (const b of buffs) {
+        expect(typeof b.name).toBe('string');
+        expect(b.name.length).toBeGreaterThan(0);
+        expect(typeof b.group).toBe('string');
+        expect(Array.isArray(b.effects)).toBe(true);
+      }
+    });
+
+    it('Major Prophecy tem efeito SpellCrit +2629', () => {
+      const prophecy = listAvailableBuffs('Major').find((b) => b.name === 'Major Prophecy');
+      expect(prophecy).toBeDefined();
+      expect(prophecy!.effects).toContainEqual(
+        expect.objectContaining({ statId: 'SpellCrit', value: 2629 }),
+      );
+    });
+  });
+
+  // ── activeBuffs — efeito no cálculo ──────────────────────────────────────────
+  describe('activeBuffs — efeito sobre stats calculados', () => {
+    let base: ReturnType<typeof calculateBuild>;
+
+    beforeAll(() => {
+      base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+    });
+
+    it('Major Prophecy aumenta SpellCrit em +2629/21912 ≈ +0.11998', () => {
+      const withBuff = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        activeBuffs: ['Major Prophecy'],
+      });
+      expect(withBuff.SpellCrit - base.SpellCrit).toBeCloseTo(2629 / 21912, 5);
+    });
+
+    it('Minor Force aumenta SpellCritDamage em +0.10', () => {
+      const withBuff = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        activeBuffs: ['Minor Force'],
+      });
+      expect(withBuff.SpellCritDamage - base.SpellCritDamage).toBeCloseTo(0.1, 5);
+    });
+
+    it('Major Force aumenta SpellCritDamage em +0.20', () => {
+      const withBuff = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        activeBuffs: ['Major Force'],
+      });
+      expect(withBuff.SpellCritDamage - base.SpellCritDamage).toBeCloseTo(0.2, 5);
+    });
+
+    it('Major Sorcery aumenta SpellDamage em +20%', () => {
+      const withBuff = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        activeBuffs: ['Major Sorcery'],
+      });
+      expect(withBuff.SpellDamage).toBeGreaterThan(base.SpellDamage);
+    });
+
+    it('buffs resetam entre chamadas — sem bleed-through', () => {
+      calculateBuild({ character: HIGH_ELF_SORC_CP160, activeBuffs: ['Major Prophecy', 'Major Force'] });
+      const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      expect(clean.SpellCrit).toBeCloseTo(base.SpellCrit, 5);
+      expect(clean.SpellCritDamage).toBeCloseTo(base.SpellCritDamage, 5);
+    });
+
+    it('múltiplos buffs acumulam corretamente', () => {
+      const withBoth = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        activeBuffs: ['Major Prophecy', 'Minor Prophecy'],
+      });
+      const expectedDelta = (2629 + 1314) / 21912;
+      expect(withBoth.SpellCrit - base.SpellCrit).toBeCloseTo(expectedDelta, 5);
+    });
   });
 });

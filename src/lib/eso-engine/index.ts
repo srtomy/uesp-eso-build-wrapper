@@ -45,6 +45,9 @@ import { calculateBuild } from './calculator';
 
 export type {
   BuildInput,
+  BuffInfo,
+  BuffEffect,
+  BuffGroup,
   ComputedStats,
   UespItemApiData,
   EquipSlot,
@@ -52,7 +55,7 @@ export type {
   ChampionPointNode,
   SkillSlot,
 } from './types';
-export { calculateBuild } from './calculator';
+export { calculateBuild, listAvailableBuffs } from './calculator';
 
 let initialized = false;
 

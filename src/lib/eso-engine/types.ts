@@ -18,6 +18,53 @@
  */
 
 // ---------------------------------------------------------------------------
+// Buff catalog — retornado por listAvailableBuffs()
+// ---------------------------------------------------------------------------
+
+/** Grupo do buff, corresponde às abas da UI da UESP. */
+export type BuffGroup =
+  | 'Major'
+  | 'Minor'
+  | 'Set'
+  | 'Target'
+  | 'Skill'
+  | 'Potion'
+  | 'Poison'
+  | 'Cyrodiil'
+  | 'Other'
+  | string;
+
+/** Efeito individual de um buff sobre um stat. */
+export interface BuffEffect {
+  /** ID do stat afetado. Ex: "SpellCrit", "WeaponDamage", "CritDamage" */
+  statId: string;
+  /** Valor numérico do efeito (já na unidade do stat). */
+  value: number;
+  /**
+   * Tipo de display da UESP.
+   * "%" → valor está em pontos de porcentagem (ex: 20 = 20%, ou seja 0.2 no stat final).
+   * "" → valor absoluto no mesmo sistema de unidades do stat.
+   */
+  display: string;
+}
+
+/** Informações de um buff disponível no catálogo do motor. */
+export interface BuffInfo {
+  /** Nome exato a passar em `activeBuffs`. Ex: "Major Prophecy" */
+  name: string;
+  /** Grupo do buff — corresponde às abas da interface da UESP. */
+  group: BuffGroup;
+  /** URL relativa do ícone na UESP. Ex: "/esoui/art/icons/ability_debuff_major_cowardice.png" */
+  icon: string;
+  /** Efeitos sobre os stats quando ativado. */
+  effects: BuffEffect[];
+  /** True se este buff é um toggle (pode ser ligado/desligado na aba). */
+  isToggle: boolean;
+  /** True se este buff está visível na aba de buffs da UESP. */
+  isVisible: boolean;
+}
+
+// ---------------------------------------------------------------------------
 // Dados de item retornados pela API pública da UESP
 // (esolog.uesp.net/exportJson.php?table=minedItem)
 // Todos os campos são strings conforme a API retorna.
