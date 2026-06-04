@@ -32,7 +32,7 @@
  *
  * UPDATING FORMULAS after a new ESO patch:
  *   1. In vendor/uesp-esochardata/, run: git fetch upstream && git merge upstream/master
- *   2. Open https://esobuilds.uesp.net in a browser.
+ *   2. Open https://en.uesp.net/wiki/Special:EsoBuildEditor in a browser.
  *   3. Run vendor/uesp-data/browser-extract.js in the DevTools Console.
  *   4. Save the downloaded JSON to vendor/uesp-data/uesp-init-data.json.
  *   5. Run tests: npm test
@@ -42,6 +42,8 @@ import * as path from 'path';
 import { setupNodeEnvironment } from './env-setup';
 import { loadUespEngine, resetEngineLoader } from './loader';
 import { calculateBuild } from './calculator';
+
+import type { UespInitData } from './types';
 
 export type {
   BuildInput,
@@ -69,9 +71,12 @@ let initialized = false;
  * to the bundled vendor files inside node_modules/uesp-eso-build-wrapper/.
  *
  * @param uespResourcesPath - Path to the UESP fork's resources/ folder.
- * @param initDataPath - Path to the uesp-init-data.json file with game formulas.
+ * @param initData - Game formula data. Accepts either:
+ *   - A file path string pointing to a uesp-init-data.json file on disk.
+ *   - A pre-parsed `UespInitData` object (e.g. loaded from a database or fetched from an API).
+ *   Omit to use the bundled vendor data.
  */
-export function initEsoEngine(uespResourcesPath?: string, initDataPath?: string): void {
+export function initEsoEngine(uespResourcesPath?: string, initData?: string | UespInitData): void {
   if (initialized) return;
 
   // __dirname resolves to dist/lib/eso-engine/ in the built package.
@@ -80,10 +85,11 @@ export function initEsoEngine(uespResourcesPath?: string, initDataPath?: string)
 
   const resourcesPath =
     uespResourcesPath ?? path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
-  const dataPath = initDataPath ?? path.join(pkgRoot, 'vendor/uesp-data/uesp-init-data.json');
+  const data: string | UespInitData =
+    initData ?? path.join(pkgRoot, 'vendor/uesp-data/uesp-init-data.json');
 
   setupNodeEnvironment();
-  loadUespEngine(resourcesPath, dataPath);
+  loadUespEngine(resourcesPath, data);
 
   initialized = true;
 }

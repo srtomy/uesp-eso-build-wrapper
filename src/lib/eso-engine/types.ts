@@ -11,7 +11,7 @@
  * UPDATING AFTER A NEW PATCH (when ZeniMax releases a new DLC):
  *   1. In vendor/uesp-esochardata/, run:
  *      git fetch upstream && git merge upstream/master
- *   2. Open https://esobuilds.uesp.net in a browser.
+ *   2. Open https://en.uesp.net/wiki/Special:EsoBuildEditor in a browser.
  *   3. Run vendor/uesp-data/browser-extract.js in the DevTools Console.
  *   4. Save the downloaded JSON to vendor/uesp-data/uesp-init-data.json.
  *   5. Run tests: npm test
@@ -389,7 +389,7 @@ export interface UespInitData {
   buildRules?: Record<string, unknown>;
   /**
    * Banco completo de skills da UESP (race/class passivos, activos, set skills).
-   * Capturado de window.g_SkillsData após a página esobuilds.uesp.net carregar.
+   * Capturado de window.g_SkillsData após a página en.uesp.net/wiki/Special:EsoBuildEditor carregar.
    * Necessário para que GetEsoSkillDescription interpole coeficientes nos textos.
    */
   skillsData?: Record<string, unknown>;
