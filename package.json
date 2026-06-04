@@ -1,6 +1,6 @@
 {
   "name": "uesp-eso-build-wrapper",
-  "version": "0.1.0",
+  "version": "0.1.0-beta-1",
   "description": "Node.js wrapper around the UESP ESO Build Editor math engine. Calculate Elder Scrolls Online character stats (Health, Magicka, Stamina, mitigation, crit, etc.) without rewriting any game formulas.",
   "keywords": [
     "elder-scrolls-online",
@@ -21,7 +21,7 @@
   "homepage": "https://github.com/srtomy/uesp-eso-build-wrapper#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/srtomy/uesp-eso-build-wrapper.git"
+    "url": "git+https://github.com/srtomy/uesp-eso-build-wrapper.git"
   },
   "bugs": {
     "url": "https://github.com/srtomy/uesp-eso-build-wrapper/issues"

@@ -1,5 +1,7 @@
 # uesp-eso-build-wrapper
 
+[![CI](https://github.com/srtomy/uesp-eso-build-wrapper/actions/workflows/ci.yml/badge.svg)](https://github.com/srtomy/uesp-eso-build-wrapper/actions/workflows/ci.yml)
+
 A Node.js/TypeScript wrapper around the [UESP ESO Build Editor](https://github.com/uesp/uesp-esochardata) math engine.
 
 Calculate Elder Scrolls Online **Computed Character Statistics** — Health, Magicka, Stamina, mitigation, crit chance, regeneration, and 200+ more — using UESP's own formulas. No formula reimplementation. No database.
