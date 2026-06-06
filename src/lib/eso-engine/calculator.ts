@@ -19,7 +19,7 @@
  */
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup';
-import type { BuffInfo, BuildInput, ComputedStats, EquipSlot, PassiveSkillInfo, SkillSlot, ToggleSkillInfo, UespItemApiData } from './types';
+import type { BuffInfo, BuildInput, ChampionPointNode, ComputedStats, EquipSlot, PassiveSkillInfo, SkillSlot, ToggleSkillInfo, UespItemApiData } from './types';
 
 const ALL_SLOTS: EquipSlot[] = [
   'Head',
@@ -90,6 +90,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     activeWeaponBar,
     passiveSkills,
     autoPassives,
+    enchantOverrides,
   } = input;
 
   setDomValue('esotbRace', character.race);
@@ -161,7 +162,14 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // Reseta todos os slots (evita dados de chamada anterior)
   for (const slot of ALL_SLOTS) {
     itemData[slot] = {};
-    if (enchantData) enchantData[slot] = {};
+    if (enchantData) {
+      // Se há override customizado, popula g_EsoBuildEnchantData[slot] com os dados do glyph.
+      // Isso faz GetEsoEnchantData() usar o caminho customizado (isDefaultEnchant=false),
+      // e o engine aplica o fator de escala 0.4044 para slots pequenos (Hands/Waist/Feet/Shoulders).
+      // Clone raso para evitar mutação entre chamadas.
+      const override = enchantOverrides?.[slot];
+      enchantData[slot] = override ? { ...override } : {};
+    }
   }
 
   // Reseta g_EsoCpData para evitar bleed-through entre chamadas
@@ -195,7 +203,26 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     const cpSkills: any = (global as any).g_EsoCpSkills ?? {};
     const cpSkillDesc: any = (global as any).g_EsoCpSkillDesc ?? {};
 
+    // Build reverse map: name → numeric nodeId (for named-string keys in the input)
+    const cpNameToId: Record<string, string> = {};
+    for (const [id, meta] of Object.entries(cpSkills)) {
+      const n = (meta as any).name;
+      if (n) cpNameToId[n] = id;
+    }
+
+    // Deduplicate: if the same node appears as both numeric ID and name, keep one entry.
+    // We process using the resolved numeric ID so g_EsoCpData has consistent keys.
+    const resolvedNodes = new Map<string, ChampionPointNode>();
     for (const [nodeId, nodeData] of Object.entries(championPointNodes)) {
+      const isNumeric = /^\d+$/.test(nodeId);
+      const numericId = isNumeric ? nodeId : (cpNameToId[nodeId] ?? nodeId);
+      // Later entries (e.g. named key after numeric) overwrite — numeric is preferred
+      if (!resolvedNodes.has(numericId) || isNumeric) {
+        resolvedNodes.set(numericId, nodeData);
+      }
+    }
+
+    for (const [nodeId, nodeData] of resolvedNodes) {
       if (hasCpRules) {
         // Resolve o nome a partir dos metadados capturados do browser.
         const name = cpSkills[nodeId]?.name ?? `CP_${nodeId}`;
@@ -385,19 +412,27 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     for (const bar of bars) {
       if (!bar) continue;
       for (const slot of bar) {
-        if (slot.skillId) activeData[slot.skillId] = { abilityId: slot.skillId };
+        if (slot.skillId) {
+          // skillId = origSkillId (chave base usada por GetEsoInputSkillActiveBar)
+          // morphSkillId = ID do morph atual → abilityId para GetEsoSkillDescription
+          activeData[slot.skillId] = { abilityId: slot.morphSkillId ?? slot.skillId };
+        }
       }
     }
     (global as any).g_EsoSkillActiveData = activeData;
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3e: Define qual barra de armas está ativa.
+  // PASSO 3e: Define qual barra de armas/skills está ativa.
   //
-  // g_EsoBuildActiveWeapon determina quais slots MainHand/OffHand contam para
-  // set bonuses, enchants e efeitos condicionais de arma.
+  // g_EsoBuildActiveWeapon  — slots MainHand/OffHand ativos para set bonuses.
+  // g_EsoBuildActiveAbilityBar — índice 1-based lido por CountEsoBarSkillsWithSkillLine/Type
+  //   para passivos que escalam com skills na barra (Expert Mage, Magicka Controller, etc.).
+  // Ambos precisam ser sincronizados; usar valores distintos resulta em passivos errados.
   // -------------------------------------------------------------------------
-  (global as any).g_EsoBuildActiveWeapon = activeWeaponBar ?? 1;
+  const activeBar = activeWeaponBar ?? 1;
+  (global as any).g_EsoBuildActiveWeapon = activeBar;
+  (global as any).g_EsoBuildActiveAbilityBar = activeBar;
 
   // -------------------------------------------------------------------------
   // PASSO 4: Executa o cálculo.

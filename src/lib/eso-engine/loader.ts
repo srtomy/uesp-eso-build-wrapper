@@ -304,24 +304,15 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     };
   }
 
-  // 8. Patch RemoveEsoDescriptionFormats para normalizar \n → espaço.
+  // 8. (sem patch em RemoveEsoDescriptionFormats)
   //
-  //    O buildRules.passive/.active foi gerado com a versão atual das descrições do
-  //    UESP (que usa espaços entre itens de lista, ex: "38% 2 Keeps: 45%").
-  //    O g_SkillsData extraído do browser usa \n entre os itens de lista
-  //    (ex: "38%\n2 Keeps: 45%"). A normalização garante que os regexes do motor
-  //    batam com ambos os formatos sem necessidade de re-extração.
-  //
-  //    Impacto verificado: as 49 regras que já funcionam continuam funcionando;
-  //    as 10 que falhavam por \n (Emperor, Authority, Domination, Tactician, etc.)
-  //    passam a funcionar.
-  const _origRemoveFmt = (global as any).RemoveEsoDescriptionFormats;
-  if (typeof _origRemoveFmt === 'function') {
-    (global as any).RemoveEsoDescriptionFormats = function (text: string) {
-      const stripped: string = _origRemoveFmt(text);
-      return stripped ? stripped.replace(/\n/g, ' ') : stripped;
-    };
-  }
+  //    ComputeEsoInputSkillValue já faz replaceAll("\n", " ") internamente,
+  //    convertendo \n\n → "  " (dois espaços) antes do match das regexes.
+  //    Regras que usam [\r\n ]{2,} dependem desses dois espaços para distinguir
+  //    fins de item de lista (ex: "5%  Reduces" em Medium Armor Bonuses).
+  //    Um patch aqui que converte \n → " " (espaço simples) colapsa \n\n → "  " → " "
+  //    dentro de ComputeEsoInputSkillValue, quebrando essas regras.
+  //    Regras com [\s\S]* (ex: Emperor) já lidam com \n nativamente.
 
   // 9. Snapshot dos passivos raciais e de classe ANTES de qualquer cálculo.
   //    O motor muta g_SkillsData[id].raceType durante cálculos (p.ex., ao processar
