@@ -1,6 +1,6 @@
 [submodule "vendor/uesp-esochardata"]
 	path = vendor/uesp-esochardata
-	url = git@github.com:srtomy/uesp-esochardata.git
+	url = https://github.com/srtomy/uesp-esochardata.git
 [submodule "vendor/uesp-esolog"]
 	path = vendor/uesp-esolog
-	url = git@github.com:uesp/uesp-esolog.git
+	url = https://github.com/uesp/uesp-esolog.git
