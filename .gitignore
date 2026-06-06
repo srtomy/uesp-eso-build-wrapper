@@ -19,3 +19,9 @@ tsconfig.tsbuildinfo
 .ts-out/
 
 .idea
+
+# test coverage output
+coverage/
+
+# Claude Code local config (tool-specific, not project state)
+.claude/

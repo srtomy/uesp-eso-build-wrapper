@@ -104,6 +104,23 @@ const LIGHT: Record<string, UespItemApiData> = {
   } as UespItemApiData,
 };
 
+/** Medium armor — bare items (sem set, sem enchant) para isolar deltas de passivo */
+const MEDIUM_BASE: Partial<UespItemApiData> = {
+  ...BASE_ITEM,
+  armorType: '2',
+  enchantDesc: '',
+} as Partial<UespItemApiData>;
+
+const SEVEN_MEDIUM: Record<string, UespItemApiData> = {
+  Head:      { ...MEDIUM_BASE, itemId: '2001', equipType: '1',  armorRating: '1221' } as UespItemApiData,
+  Shoulders: { ...MEDIUM_BASE, itemId: '2002', equipType: '2',  armorRating: '1221' } as UespItemApiData,
+  Chest:     { ...MEDIUM_BASE, itemId: '2003', equipType: '3',  armorRating: '1396' } as UespItemApiData,
+  Hands:     { ...MEDIUM_BASE, itemId: '2004', equipType: '13', armorRating: '698'  } as UespItemApiData,
+  Legs:      { ...MEDIUM_BASE, itemId: '2005', equipType: '9',  armorRating: '1221' } as UespItemApiData,
+  Waist:     { ...MEDIUM_BASE, itemId: '2006', equipType: '8',  armorRating: '523'  } as UespItemApiData,
+  Feet:      { ...MEDIUM_BASE, itemId: '2007', equipType: '10', armorRating: '1221' } as UespItemApiData,
+};
+
 /**
  * Heavy armor — set Telvanni Efficiency, dados reais da API UESP.
  * Source: esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=50&quality=5
@@ -439,6 +456,103 @@ describe('múltiplos passivos simultâneos', () => {
     const rank3 = calculateBuild({ character: CHAR, items: SEVEN_HEAVY, passiveSkills: [45533] });
     expect(rank1.PhysicalResist - base.PhysicalResist).toBe(114 * 7);
     expect(rank3.PhysicalResist - base.PhysicalResist).toBe(343 * 7);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Medium Armor — Agility (SpellDamage + WeaponDamage % por peça)
+//
+// IDs dos passivos:
+//   29686 — Agility rank 1: +1% Spell/Weapon Damage por peça de Medium Armor
+//   45572 — Agility rank 2: +2% Spell/Weapon Damage por peça de Medium Armor
+//
+// Estes passivos usam regex [\r\n ]{2,} na regra; dependem do \n\n → "  "
+// (dois espaços) gerado por ComputeEsoInputSkillValue. Servem como regressão
+// para o monkey-patch que foi removido de loader.ts (2026-06-06).
+// ---------------------------------------------------------------------------
+describe('Medium Armor — Agility (Spell/WeaponDamage % por peça)', () => {
+  it('rank 1: 7 peças medium → SpellDamage +70 e WeaponDamage +70 (1% × 7)', () => {
+    const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
+    const withPassive = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, passiveSkills: [29686] });
+    expect(withPassive.SpellDamage - base.SpellDamage).toBe(70);
+    expect(withPassive.WeaponDamage - base.WeaponDamage).toBe(70);
+  });
+
+  it('rank 2: 7 peças medium → SpellDamage +140 e WeaponDamage +140 (2% × 7)', () => {
+    const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
+    const withPassive = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, passiveSkills: [45572] });
+    expect(withPassive.SpellDamage - base.SpellDamage).toBe(140);
+    expect(withPassive.WeaponDamage - base.WeaponDamage).toBe(140);
+  });
+
+  it('escala com número de peças: 3 medium → SpellDamage +60 (2% × 3)', () => {
+    const threeItems = { Chest: SEVEN_MEDIUM.Chest, Legs: SEVEN_MEDIUM.Legs, Hands: SEVEN_MEDIUM.Hands };
+    const base = calculateBuild({ character: CHAR, items: threeItems });
+    const withPassive = calculateBuild({ character: CHAR, items: threeItems, passiveSkills: [45572] });
+    expect(withPassive.SpellDamage - base.SpellDamage).toBe(60);
+  });
+
+  it('sem armor equipado → passivo não aplica (fator = 0)', () => {
+    const base = calculateBuild({ character: CHAR });
+    const withPassive = calculateBuild({ character: CHAR, passiveSkills: [45572] });
+    expect(withPassive.SpellDamage).toBe(base.SpellDamage);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Medium Armor Bonuses (150181) — redução de custo de movimento
+//
+// Skill 150181 ("Medium Armor Bonuses") contém múltiplos efeitos em descrição
+// multi-linha (separados por \n\n). As regras 38323 e 38720 usam [\r\n ]{2,}
+// para detectar fins de item de lista — dependem de \n\n → "  " (dois espaços)
+// gerado internamente por ComputeEsoInputSkillValue.
+//
+// Estes testes são regressão directa para o monkey-patch removido em 2026-06-06
+// (loader.ts: RemoveEsoDescriptionFormats colapsava \n\n → " " e quebrava {2,}).
+// ---------------------------------------------------------------------------
+describe('Medium Armor Bonuses — SneakCost e SprintCost (via raw)', () => {
+  it('7 peças medium → SneakCost reduz de 133 para 87 (−5% × 7 peças)', () => {
+    const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
+    const withPassive = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, passiveSkills: [150181] });
+    expect(withPassive.raw.SneakCost).toBe(87);
+    expect(withPassive.raw.SneakCost - base.raw.SneakCost).toBe(-46);
+  });
+
+  it('7 peças medium → SprintCost reduz de 500 para 460 (−1% × 7 peças)', () => {
+    const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
+    const withPassive = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, passiveSkills: [150181] });
+    expect(withPassive.raw.SprintCost).toBe(460);
+    expect(withPassive.raw.SprintCost - base.raw.SprintCost).toBe(-40);
+  });
+
+  it('sem armor equipado → nenhuma redução (fator ArmorMedium = 0)', () => {
+    const base = calculateBuild({ character: CHAR });
+    const withPassive = calculateBuild({ character: CHAR, passiveSkills: [150181] });
+    expect(withPassive.raw.SneakCost).toBe(base.raw.SneakCost);
+    expect(withPassive.raw.SprintCost).toBe(base.raw.SprintCost);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// passiveSkills — sem bleed-through entre chamadas
+// ---------------------------------------------------------------------------
+describe('passiveSkills — sem bleed-through entre chamadas', () => {
+  it('chamada sem passiveSkills após chamada com passivo não mantém efeito', () => {
+    const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
+    calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45559] }); // Spell Warding r2
+    const clean = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
+    expect(clean.SpellResist).toBe(base.SpellResist);
+  });
+
+  it('passivo diferente na chamada seguinte não acumula com o anterior', () => {
+    const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
+    calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45559] }); // Spell Warding r2
+    const onlyWarding = calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45559] });
+    const onlyEvocation = calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45557] }); // Evocation r2
+    // SpellResist do Evocation deve ser igual ao base (Evocation não afeta SpellResist)
+    expect(onlyEvocation.SpellResist).toBe(base.SpellResist);
+    // Warding ainda deve aplicar corretamente
+    expect(onlyWarding.SpellResist - base.SpellResist).toBe(726 * 7);
   });
 });
 

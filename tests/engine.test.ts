@@ -922,6 +922,42 @@ const WITCHMOTHERS_POTENT_BREW: UespItemApiData = {
     'Increase Max Health by 3094 and Max Magicka by 2856 for 2 hours. Magicka Recovery by 315.',
 };
 
+/** Drink — Dubious Camoran Throne (+3576 Stamina, +3576 Health, +313 StaminaRegen) */
+const DUBIOUS_CAMORAN_THRONE: UespItemApiData = {
+  itemId: '45058',
+  type: '5', // drink type
+  abilityDesc:
+    'Increase Max Stamina by 3576 and Max Health by 3576 for 2 hours. Stamina Recovery by 313.',
+};
+
+/**
+ * Bare items (sem enchant, sem set) para isolar deltas de Undaunted Mettle por tipo de armadura.
+ * equipType '3'=Chest, '1'=Head, '4'=Shoulders.
+ */
+const BARE_LIGHT_CHEST: UespItemApiData = {
+  itemId: '9001', type: '2', weaponType: '0', weaponPower: '0',
+  armorType: '1', equipType: '3', armorRating: '1000',
+  trait: '0', traitDesc: '', enchantDesc: '',
+  setBonusCount1: '-1', setBonusCount2: '-1', setBonusCount3: '-1', setBonusCount4: '-1', setBonusCount5: '-1',
+  setBonusDesc1: '', setBonusDesc2: '', setBonusDesc3: '', setBonusDesc4: '', setBonusDesc5: '',
+} as UespItemApiData;
+
+const BARE_MEDIUM_SHOULDERS: UespItemApiData = {
+  itemId: '9002', type: '2', weaponType: '0', weaponPower: '0',
+  armorType: '2', equipType: '4', armorRating: '1000',
+  trait: '0', traitDesc: '', enchantDesc: '',
+  setBonusCount1: '-1', setBonusCount2: '-1', setBonusCount3: '-1', setBonusCount4: '-1', setBonusCount5: '-1',
+  setBonusDesc1: '', setBonusDesc2: '', setBonusDesc3: '', setBonusDesc4: '', setBonusDesc5: '',
+} as UespItemApiData;
+
+const BARE_HEAVY_HEAD: UespItemApiData = {
+  itemId: '9003', type: '2', weaponType: '0', weaponPower: '0',
+  armorType: '3', equipType: '1', armorRating: '1000',
+  trait: '0', traitDesc: '', enchantDesc: '',
+  setBonusCount1: '-1', setBonusCount2: '-1', setBonusCount3: '-1', setBonusCount4: '-1', setBonusCount5: '-1',
+  setBonusDesc1: '', setBonusDesc2: '', setBonusDesc3: '', setBonusDesc4: '', setBonusDesc5: '',
+} as UespItemApiData;
+
 /** All 12 slots for the full build */
 const FULL_BUILD_ITEMS = {
   Head: SLIMECRAW_MASK,
@@ -1467,6 +1503,41 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
   });
 
+  // ── Drink buff (type '5') ─────────────────────────────────────────────────────
+  describe("drink buff — items.Food type '5' (Dubious Camoran Throne)", () => {
+    let base: ReturnType<typeof calculateBuild>;
+    let stats: ReturnType<typeof calculateBuild>;
+
+    beforeAll(() => {
+      base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      stats = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        items: { Food: DUBIOUS_CAMORAN_THRONE },
+      });
+    });
+
+    it('Stamina aumenta +3576', () => {
+      expect(stats.Stamina - base.Stamina).toBe(3576);
+    });
+
+    it('Health aumenta +3576', () => {
+      expect(stats.Health - base.Health).toBe(3576);
+    });
+
+    it('StaminaRegen aumenta +313', () => {
+      expect(stats.StaminaRegen - base.StaminaRegen).toBe(313);
+    });
+
+    it('Magicka não é afetada', () => {
+      expect(stats.Magicka).toBe(base.Magicka);
+    });
+
+    it('sem bleed-through — chamada sem drink não mantém bônus', () => {
+      const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      expect(clean.Stamina).toBe(base.Stamina);
+    });
+  });
+
   // ── Toggle skills Cyrodiil — efeito real ─────────────────────────────────────
   //
   // Toggle skills PvP (Emperor, Authority, Domination, Tactician, Combat Medic,
@@ -1542,6 +1613,51 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       });
       const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       expect(clean.Magicka).toBe(base.Magicka);
+    });
+  });
+
+  // ── Toggle skills não-Cyrodiil ────────────────────────────────────────────────
+  //
+  // Toggle skills isPassive=true sem restrição de Cyrodiil: precisam de
+  //   passiveSkills: [baseSkillId]  — para o motor processar a descrição
+  //   toggleSkills: ['NomeDaSkill'] — para marcar valid=true + enabled=true
+  //
+  // Aegis of the Unseen (Arcanist, skill 184918):
+  //   "While a beneficial Soldier of Apocrypha ability is active on you,
+  //    increase your Physical and Spell Resistance by 1636."
+  describe('toggle skills não-Cyrodiil — deltas de stats', () => {
+    let base: ReturnType<typeof calculateBuild>;
+
+    beforeAll(() => {
+      base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+    });
+
+    it('Aegis of the Unseen: PhysicalResist +1636 e SpellResist +1636', () => {
+      const withAegis = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        passiveSkills: [184918],
+        toggleSkills: ['Aegis of the Unseen'],
+      });
+      expect(withAegis.PhysicalResist - base.PhysicalResist).toBe(1636);
+      expect(withAegis.SpellResist - base.SpellResist).toBe(1636);
+    });
+
+    it('toggle não-Cyrodiil sem passiveSkills não aplica efeito', () => {
+      const withoutPassive = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        toggleSkills: ['Aegis of the Unseen'],
+      });
+      expect(withoutPassive.PhysicalResist).toBe(base.PhysicalResist);
+    });
+
+    it('toggle não-Cyrodiil reseta entre chamadas  [sem bleed-through]', () => {
+      calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        passiveSkills: [184918],
+        toggleSkills: ['Aegis of the Unseen'],
+      });
+      const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
+      expect(clean.PhysicalResist).toBe(base.PhysicalResist);
     });
   });
 
@@ -1880,6 +1996,9 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
   });
 
   // ── Undaunted Mettle com itens ────────────────────────────────────────────────
+  //
+  // Undaunted Mettle (55386) — +2% Max Magicka/Health/Stamina por tipo de armadura
+  // equipado (Light, Medium ou Heavy). Máximo 3 tipos = +6%.
   describe('Undaunted Mettle — passivo dependente de tipos de armadura equipados', () => {
     it('Mettle sem itens: sem delta (0 tipos de armadura)', () => {
       const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
@@ -1898,6 +2017,21 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       const delta = withMettleAndItems.Magicka - base.Magicka;
       // delta inclui enchant (868) + Mettle bonus (~382); Mettle ≈ 2% of base Magicka
       expect(delta).toBeGreaterThan(868); // maior que só o enchant
+    });
+
+    it('Mettle com 2 tipos de armadura: delta = +764 Magicka (4% de 19104)', () => {
+      // Bare items (sem enchant) para isolar exatamente o delta de Mettle
+      const items = { Chest: BARE_LIGHT_CHEST, Head: BARE_HEAVY_HEAD };
+      const without = calculateBuild({ character: HIGH_ELF_SORC_CP160, items });
+      const withMettle = calculateBuild({ character: HIGH_ELF_SORC_CP160, items, passiveSkills: [55386] });
+      expect(withMettle.Magicka - without.Magicka).toBe(764);
+    });
+
+    it('Mettle com 3 tipos de armadura: delta = +1146 Magicka (6% de 19104)', () => {
+      const items = { Chest: BARE_LIGHT_CHEST, Shoulders: BARE_MEDIUM_SHOULDERS, Head: BARE_HEAVY_HEAD };
+      const without = calculateBuild({ character: HIGH_ELF_SORC_CP160, items });
+      const withMettle = calculateBuild({ character: HIGH_ELF_SORC_CP160, items, passiveSkills: [55386] });
+      expect(withMettle.Magicka - without.Magicka).toBe(1146);
     });
   });
 
