@@ -2,10 +2,15 @@
  * EXTRAÇÃO DE DADOS DO MOTOR DA UESP
  * ====================================
  * Execute este script no DevTools Console do browser enquanto estiver na página:
- *   https://esobuilds.uesp.net/
+ *   https://en.uesp.net/wiki/Special:EsoBuildEditor
+ *
+ * IMPORTANTE: Use a MESMA URL que o browser-export-build.js para garantir que os dados
+ * de g_SkillsData e g_EsoBuildRules sejam da mesma versão do motor. URLs diferentes
+ * (ex: esobuilds.uesp.net vs Special:EsoBuildEditor) podem ter versões distintas dos
+ * dados, causando divergências nos cálculos (ex: BashDamage diferente do esperado).
  *
  * PASSO A PASSO:
- *   1. Abra https://esobuilds.uesp.net/ no Chrome/Firefox
+ *   1. Abra https://en.uesp.net/wiki/Special:EsoBuildEditor no Chrome/Firefox
  *   2. Aguarde a página carregar completamente
  *   3. Pressione F12 → aba "Console"
  *   4. Cole TODO o conteúdo deste arquivo e pressione Enter
