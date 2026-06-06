@@ -156,8 +156,17 @@ export type EquipSlot =
 // Skill bar
 // ---------------------------------------------------------------------------
 export interface SkillSlot {
-  /** Ability ID do skill. Corresponde ao abilityId no banco da UESP. */
+  /**
+   * Chave de lookup em g_EsoSkillActiveData — corresponde a origSkillId no DOM
+   * do Build Editor (ID do skill base/sem morph). Para skills sem morph, é igual a morphSkillId.
+   */
   skillId: number;
+  /**
+   * Ability ID do morph atual (rank específico). Usado como chave em g_SkillsData e em
+   * GetEsoSkillDescription para obter a descrição correta com os bônus do morph equipado.
+   * Se ausente, o engine usa skillId (para skills sem morph).
+   */
+  morphSkillId?: number;
   /**
    * Índice do morph: 0 = base, 1 = primeiro morph, 2 = segundo morph.
    * @default 0
@@ -313,6 +322,22 @@ export interface BuildInput {
    * @default false
    */
   autoPassives?: boolean;
+  /**
+   * Encantamentos customizados por slot — sobrepõem o enchantDesc padrão do item.
+   * Gerado automaticamente por browser-export-build.js quando o usuário troca o
+   * encantamento no UESP Build Editor. O calculator injeta esses dados em
+   * g_EsoBuildEnchantData[slot] (isDefaultEnchant=false), fazendo o engine aplicar
+   * o fator de escala correto para slots pequenos (Hands/Waist/Feet/Shoulders: ×0.4044).
+   *
+   * @example
+   * ```ts
+   * enchantOverrides: {
+   *   Head:  { enchantDesc: 'Adds up to 868 Maximum Magicka.', enchantName: 'Maximum Magicka Enchantment' },
+   *   Hands: { enchantDesc: 'Adds up to 868 Maximum Magicka.', enchantName: 'Maximum Magicka Enchantment' },
+   * }
+   * ```
+   */
+  enchantOverrides?: Partial<Record<string, { enchantDesc: string; enchantName?: string }>>;
 }
 
 // ---------------------------------------------------------------------------
