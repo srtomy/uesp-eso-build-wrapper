@@ -112,13 +112,18 @@ const MEDIUM_BASE: Partial<UespItemApiData> = {
 } as Partial<UespItemApiData>;
 
 const SEVEN_MEDIUM: Record<string, UespItemApiData> = {
-  Head:      { ...MEDIUM_BASE, itemId: '2001', equipType: '1',  armorRating: '1221' } as UespItemApiData,
-  Shoulders: { ...MEDIUM_BASE, itemId: '2002', equipType: '2',  armorRating: '1221' } as UespItemApiData,
-  Chest:     { ...MEDIUM_BASE, itemId: '2003', equipType: '3',  armorRating: '1396' } as UespItemApiData,
-  Hands:     { ...MEDIUM_BASE, itemId: '2004', equipType: '13', armorRating: '698'  } as UespItemApiData,
-  Legs:      { ...MEDIUM_BASE, itemId: '2005', equipType: '9',  armorRating: '1221' } as UespItemApiData,
-  Waist:     { ...MEDIUM_BASE, itemId: '2006', equipType: '8',  armorRating: '523'  } as UespItemApiData,
-  Feet:      { ...MEDIUM_BASE, itemId: '2007', equipType: '10', armorRating: '1221' } as UespItemApiData,
+  Head: { ...MEDIUM_BASE, itemId: '2001', equipType: '1', armorRating: '1221' } as UespItemApiData,
+  Shoulders: {
+    ...MEDIUM_BASE,
+    itemId: '2002',
+    equipType: '2',
+    armorRating: '1221',
+  } as UespItemApiData,
+  Chest: { ...MEDIUM_BASE, itemId: '2003', equipType: '3', armorRating: '1396' } as UespItemApiData,
+  Hands: { ...MEDIUM_BASE, itemId: '2004', equipType: '13', armorRating: '698' } as UespItemApiData,
+  Legs: { ...MEDIUM_BASE, itemId: '2005', equipType: '9', armorRating: '1221' } as UespItemApiData,
+  Waist: { ...MEDIUM_BASE, itemId: '2006', equipType: '8', armorRating: '523' } as UespItemApiData,
+  Feet: { ...MEDIUM_BASE, itemId: '2007', equipType: '10', armorRating: '1221' } as UespItemApiData,
 };
 
 /**
@@ -473,22 +478,38 @@ describe('múltiplos passivos simultâneos', () => {
 describe('Medium Armor — Agility (Spell/WeaponDamage % por peça)', () => {
   it('rank 1: 7 peças medium → SpellDamage +70 e WeaponDamage +70 (1% × 7)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
-    const withPassive = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, passiveSkills: [29686] });
+    const withPassive = calculateBuild({
+      character: CHAR,
+      items: SEVEN_MEDIUM,
+      passiveSkills: [29686],
+    });
     expect(withPassive.SpellDamage - base.SpellDamage).toBe(70);
     expect(withPassive.WeaponDamage - base.WeaponDamage).toBe(70);
   });
 
   it('rank 2: 7 peças medium → SpellDamage +140 e WeaponDamage +140 (2% × 7)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
-    const withPassive = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, passiveSkills: [45572] });
+    const withPassive = calculateBuild({
+      character: CHAR,
+      items: SEVEN_MEDIUM,
+      passiveSkills: [45572],
+    });
     expect(withPassive.SpellDamage - base.SpellDamage).toBe(140);
     expect(withPassive.WeaponDamage - base.WeaponDamage).toBe(140);
   });
 
   it('escala com número de peças: 3 medium → SpellDamage +60 (2% × 3)', () => {
-    const threeItems = { Chest: SEVEN_MEDIUM.Chest, Legs: SEVEN_MEDIUM.Legs, Hands: SEVEN_MEDIUM.Hands };
+    const threeItems = {
+      Chest: SEVEN_MEDIUM.Chest,
+      Legs: SEVEN_MEDIUM.Legs,
+      Hands: SEVEN_MEDIUM.Hands,
+    };
     const base = calculateBuild({ character: CHAR, items: threeItems });
-    const withPassive = calculateBuild({ character: CHAR, items: threeItems, passiveSkills: [45572] });
+    const withPassive = calculateBuild({
+      character: CHAR,
+      items: threeItems,
+      passiveSkills: [45572],
+    });
     expect(withPassive.SpellDamage - base.SpellDamage).toBe(60);
   });
 
@@ -513,14 +534,22 @@ describe('Medium Armor — Agility (Spell/WeaponDamage % por peça)', () => {
 describe('Medium Armor Bonuses — SneakCost e SprintCost (via raw)', () => {
   it('7 peças medium → SneakCost reduz de 133 para 87 (−5% × 7 peças)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
-    const withPassive = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, passiveSkills: [150181] });
+    const withPassive = calculateBuild({
+      character: CHAR,
+      items: SEVEN_MEDIUM,
+      passiveSkills: [150181],
+    });
     expect(withPassive.raw.SneakCost).toBe(87);
     expect(withPassive.raw.SneakCost - base.raw.SneakCost).toBe(-46);
   });
 
   it('7 peças medium → SprintCost reduz de 500 para 460 (−1% × 7 peças)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
-    const withPassive = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, passiveSkills: [150181] });
+    const withPassive = calculateBuild({
+      character: CHAR,
+      items: SEVEN_MEDIUM,
+      passiveSkills: [150181],
+    });
     expect(withPassive.raw.SprintCost).toBe(460);
     expect(withPassive.raw.SprintCost - base.raw.SprintCost).toBe(-40);
   });
@@ -547,8 +576,16 @@ describe('passiveSkills — sem bleed-through entre chamadas', () => {
   it('passivo diferente na chamada seguinte não acumula com o anterior', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45559] }); // Spell Warding r2
-    const onlyWarding = calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45559] });
-    const onlyEvocation = calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45557] }); // Evocation r2
+    const onlyWarding = calculateBuild({
+      character: CHAR,
+      items: SEVEN_LIGHT,
+      passiveSkills: [45559],
+    });
+    const onlyEvocation = calculateBuild({
+      character: CHAR,
+      items: SEVEN_LIGHT,
+      passiveSkills: [45557],
+    }); // Evocation r2
     // SpellResist do Evocation deve ser igual ao base (Evocation não afeta SpellResist)
     expect(onlyEvocation.SpellResist).toBe(base.SpellResist);
     // Warding ainda deve aplicar corretamente

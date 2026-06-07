@@ -19,7 +19,17 @@
  */
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup';
-import type { BuffInfo, BuildInput, ChampionPointNode, ComputedStats, EquipSlot, PassiveSkillInfo, SkillSlot, ToggleSkillInfo, UespItemApiData } from './types';
+import type {
+  BuffInfo,
+  BuildInput,
+  ChampionPointNode,
+  ComputedStats,
+  EquipSlot,
+  PassiveSkillInfo,
+  SkillSlot,
+  ToggleSkillInfo,
+  UespItemApiData,
+} from './types';
 
 const ALL_SLOTS: EquipSlot[] = [
   'Head',
@@ -342,7 +352,12 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // quando g_SkillsData for adicionado ao JSON de extração.
   // -------------------------------------------------------------------------
   const emptyBar = () =>
-    Array.from({ length: 6 }, (_, i) => ({ skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: i }));
+    Array.from({ length: 6 }, (_, i) => ({
+      skillId: 0,
+      origSkillId: 0,
+      morphIndex: 0,
+      slotIndex: i,
+    }));
   (global as any).g_EsoSkillBarData = [emptyBar(), emptyBar()];
 
   if (skillBars) {

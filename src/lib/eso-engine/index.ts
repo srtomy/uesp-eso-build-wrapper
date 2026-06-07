@@ -59,7 +59,15 @@ export type {
   ChampionPointNode,
   SkillSlot,
 } from './types';
-export { calculateBuild, listAvailableBuffs, listRacialPassives, listClassPassives, listPassivesBySkillLine, listAvailableSkillLines, listAvailableToggleSkills } from './calculator';
+export {
+  calculateBuild,
+  listAvailableBuffs,
+  listRacialPassives,
+  listClassPassives,
+  listPassivesBySkillLine,
+  listAvailableSkillLines,
+  listAvailableToggleSkills,
+} from './calculator';
 
 let initialized = false;
 
