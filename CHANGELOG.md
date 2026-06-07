@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-06-07
+
+### Fixed
+
+- **npm package contents** — `vendor/uesp-esochardata` and `vendor/uesp-esolog` submodules were not initialized at publish time, causing the v0.1.0 tarball to ship without `esoskills.js`, `esobuilddata.js`, and `esoEditBuild.js`. The package was also missing `vendor/uesp-data/uesp-init-data.json`. All required vendor assets are now correctly included.
+
 ## [0.1.0] - 2026-06-06
 
 ### Added
