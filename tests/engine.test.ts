@@ -935,27 +935,72 @@ const DUBIOUS_CAMORAN_THRONE: UespItemApiData = {
  * equipType '3'=Chest, '1'=Head, '4'=Shoulders.
  */
 const BARE_LIGHT_CHEST: UespItemApiData = {
-  itemId: '9001', type: '2', weaponType: '0', weaponPower: '0',
-  armorType: '1', equipType: '3', armorRating: '1000',
-  trait: '0', traitDesc: '', enchantDesc: '',
-  setBonusCount1: '-1', setBonusCount2: '-1', setBonusCount3: '-1', setBonusCount4: '-1', setBonusCount5: '-1',
-  setBonusDesc1: '', setBonusDesc2: '', setBonusDesc3: '', setBonusDesc4: '', setBonusDesc5: '',
+  itemId: '9001',
+  type: '2',
+  weaponType: '0',
+  weaponPower: '0',
+  armorType: '1',
+  equipType: '3',
+  armorRating: '1000',
+  trait: '0',
+  traitDesc: '',
+  enchantDesc: '',
+  setBonusCount1: '-1',
+  setBonusCount2: '-1',
+  setBonusCount3: '-1',
+  setBonusCount4: '-1',
+  setBonusCount5: '-1',
+  setBonusDesc1: '',
+  setBonusDesc2: '',
+  setBonusDesc3: '',
+  setBonusDesc4: '',
+  setBonusDesc5: '',
 } as UespItemApiData;
 
 const BARE_MEDIUM_SHOULDERS: UespItemApiData = {
-  itemId: '9002', type: '2', weaponType: '0', weaponPower: '0',
-  armorType: '2', equipType: '4', armorRating: '1000',
-  trait: '0', traitDesc: '', enchantDesc: '',
-  setBonusCount1: '-1', setBonusCount2: '-1', setBonusCount3: '-1', setBonusCount4: '-1', setBonusCount5: '-1',
-  setBonusDesc1: '', setBonusDesc2: '', setBonusDesc3: '', setBonusDesc4: '', setBonusDesc5: '',
+  itemId: '9002',
+  type: '2',
+  weaponType: '0',
+  weaponPower: '0',
+  armorType: '2',
+  equipType: '4',
+  armorRating: '1000',
+  trait: '0',
+  traitDesc: '',
+  enchantDesc: '',
+  setBonusCount1: '-1',
+  setBonusCount2: '-1',
+  setBonusCount3: '-1',
+  setBonusCount4: '-1',
+  setBonusCount5: '-1',
+  setBonusDesc1: '',
+  setBonusDesc2: '',
+  setBonusDesc3: '',
+  setBonusDesc4: '',
+  setBonusDesc5: '',
 } as UespItemApiData;
 
 const BARE_HEAVY_HEAD: UespItemApiData = {
-  itemId: '9003', type: '2', weaponType: '0', weaponPower: '0',
-  armorType: '3', equipType: '1', armorRating: '1000',
-  trait: '0', traitDesc: '', enchantDesc: '',
-  setBonusCount1: '-1', setBonusCount2: '-1', setBonusCount3: '-1', setBonusCount4: '-1', setBonusCount5: '-1',
-  setBonusDesc1: '', setBonusDesc2: '', setBonusDesc3: '', setBonusDesc4: '', setBonusDesc5: '',
+  itemId: '9003',
+  type: '2',
+  weaponType: '0',
+  weaponPower: '0',
+  armorType: '3',
+  equipType: '1',
+  armorRating: '1000',
+  trait: '0',
+  traitDesc: '',
+  enchantDesc: '',
+  setBonusCount1: '-1',
+  setBonusCount2: '-1',
+  setBonusCount3: '-1',
+  setBonusCount4: '-1',
+  setBonusCount5: '-1',
+  setBonusDesc1: '',
+  setBonusDesc2: '',
+  setBonusDesc3: '',
+  setBonusDesc4: '',
+  setBonusDesc5: '',
 } as UespItemApiData;
 
 /** All 12 slots for the full build */
@@ -1787,7 +1832,10 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     it('buffs resetam entre chamadas — sem bleed-through', () => {
-      calculateBuild({ character: HIGH_ELF_SORC_CP160, activeBuffs: ['Major Prophecy', 'Major Force'] });
+      calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        activeBuffs: ['Major Prophecy', 'Major Force'],
+      });
       const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       expect(clean.SpellCrit).toBeCloseTo(base.SpellCrit, 5);
       expect(clean.SpellCritDamage).toBeCloseTo(base.SpellCritDamage, 5);
@@ -1821,8 +1869,16 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
     it('retorna passivos de todas as 10 raças', () => {
       const races = [
-        'Argonian', 'Breton', 'Dark Elf', 'High Elf', 'Imperial',
-        'Khajiit', 'Nord', 'Orc', 'Redguard', 'Wood Elf',
+        'Argonian',
+        'Breton',
+        'Dark Elf',
+        'High Elf',
+        'Imperial',
+        'Khajiit',
+        'Nord',
+        'Orc',
+        'Redguard',
+        'Wood Elf',
       ];
       for (const race of races) {
         expect(listRacialPassives(race).length).toBeGreaterThan(0);
@@ -1833,7 +1889,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(listRacialPassives('Argonian2')).toEqual([]);
     });
 
-    it('High Elf inclui Syrabane\'s Boon em 3 ranks', () => {
+    it("High Elf inclui Syrabane's Boon em 3 ranks", () => {
       const boons = listRacialPassives('High Elf').filter((p) => p.baseName === "Syrabane's Boon");
       expect(boons.length).toBe(3);
       expect(boons.map((p) => p.rank).sort()).toEqual([1, 2, 3]);
@@ -1853,8 +1909,13 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
     it('retorna passivos para todas as 7 classes', () => {
       const classes = [
-        'Arcanist', 'Dragonknight', 'Necromancer', 'Nightblade',
-        'Sorcerer', 'Templar', 'Warden',
+        'Arcanist',
+        'Dragonknight',
+        'Necromancer',
+        'Nightblade',
+        'Sorcerer',
+        'Templar',
+        'Warden',
       ];
       for (const cls of classes) {
         expect(listClassPassives(cls).length).toBeGreaterThan(0);
@@ -1920,14 +1981,26 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     it('Nord + autoPassives aumenta Stamina vs base', () => {
-      const nordChar = { race: 'Nord', class: 'Sorcerer', level: 50, attributes: { health: 0, magicka: 64, stamina: 0 }, championPoints: 160 };
+      const nordChar = {
+        race: 'Nord',
+        class: 'Sorcerer',
+        level: 50,
+        attributes: { health: 0, magicka: 64, stamina: 0 },
+        championPoints: 160,
+      };
       const base = calculateBuild({ character: nordChar });
       const withAuto = calculateBuild({ character: nordChar, autoPassives: true });
       expect(withAuto.Stamina).toBeGreaterThan(base.Stamina);
     });
 
     it('raças diferentes têm deltas diferentes com autoPassives', () => {
-      const highElfChar = { race: 'High Elf', class: 'Sorcerer', level: 50, attributes: { health: 0, magicka: 64, stamina: 0 }, championPoints: 160 };
+      const highElfChar = {
+        race: 'High Elf',
+        class: 'Sorcerer',
+        level: 50,
+        attributes: { health: 0, magicka: 64, stamina: 0 },
+        championPoints: 160,
+      };
       const nordChar = { ...highElfChar, race: 'Nord' };
       const highElf = calculateBuild({ character: highElfChar, autoPassives: true });
       const nord = calculateBuild({ character: nordChar, autoPassives: true });
@@ -1948,7 +2021,11 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
         .filter((p) => p.rank === p.maxRank)
         .map((p) => p.abilityId);
       const withAutoOnly = calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true });
-      const withBoth = calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true, passiveSkills: terminalIds });
+      const withBoth = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        autoPassives: true,
+        passiveSkills: terminalIds,
+      });
       // Same IDs — no double-application
       expect(withBoth.Magicka).toBe(withAutoOnly.Magicka);
     });
@@ -2023,14 +2100,26 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       // Bare items (sem enchant) para isolar exatamente o delta de Mettle
       const items = { Chest: BARE_LIGHT_CHEST, Head: BARE_HEAVY_HEAD };
       const without = calculateBuild({ character: HIGH_ELF_SORC_CP160, items });
-      const withMettle = calculateBuild({ character: HIGH_ELF_SORC_CP160, items, passiveSkills: [55386] });
+      const withMettle = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        items,
+        passiveSkills: [55386],
+      });
       expect(withMettle.Magicka - without.Magicka).toBe(764);
     });
 
     it('Mettle com 3 tipos de armadura: delta = +1146 Magicka (6% de 19104)', () => {
-      const items = { Chest: BARE_LIGHT_CHEST, Shoulders: BARE_MEDIUM_SHOULDERS, Head: BARE_HEAVY_HEAD };
+      const items = {
+        Chest: BARE_LIGHT_CHEST,
+        Shoulders: BARE_MEDIUM_SHOULDERS,
+        Head: BARE_HEAVY_HEAD,
+      };
       const without = calculateBuild({ character: HIGH_ELF_SORC_CP160, items });
-      const withMettle = calculateBuild({ character: HIGH_ELF_SORC_CP160, items, passiveSkills: [55386] });
+      const withMettle = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        items,
+        passiveSkills: [55386],
+      });
       expect(withMettle.Magicka - without.Magicka).toBe(1146);
     });
   });
@@ -2040,7 +2129,13 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
   // HIGH_ELF_SORC_CP160 já tem mundusStone: 'The Thief'.
   // Usamos um personagem sem Mundus como referência base.
   describe('mundusStone2 — segunda Pedra de Mundus (Twice-Born Star)', () => {
-    const BASE_CHAR = { race: 'High Elf', class: 'Sorcerer', level: 50, attributes: { health: 0, magicka: 64, stamina: 0 }, championPoints: 160 };
+    const BASE_CHAR = {
+      race: 'High Elf',
+      class: 'Sorcerer',
+      level: 50,
+      attributes: { health: 0, magicka: 64, stamina: 0 },
+      championPoints: 160,
+    };
     let noMundus: ReturnType<typeof calculateBuild>;
     let oneThief: ReturnType<typeof calculateBuild>;
 
@@ -2068,7 +2163,9 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     it('sem mundusStone2 não há bleed-through', () => {
-      calculateBuild({ character: { ...BASE_CHAR, mundusStone: 'The Thief', mundusStone2: 'The Thief' } });
+      calculateBuild({
+        character: { ...BASE_CHAR, mundusStone: 'The Thief', mundusStone2: 'The Thief' },
+      });
       const clean = calculateBuild({ character: { ...BASE_CHAR, mundusStone: 'The Thief' } });
       expect(clean.SpellCrit).toBeCloseTo(oneThief.SpellCrit, 4);
     });
