@@ -12,8 +12,8 @@
  */
 
 import { beforeAll, describe, expect, it } from 'vitest';
-import path from 'path';
-import { calculateBuild, initEsoEngine } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngineWith } from '../src/lib/eso-engine';
+import { loadInitData } from './helpers/load-init-data';
 
 const CHAR_BASE = {
   race: 'High Elf',
@@ -30,10 +30,7 @@ const BASELINE_STAMINA = 12000;
 const BASELINE_HEALTH = 16000;
 
 beforeAll(() => {
-  initEsoEngine(
-    path.resolve(__dirname, '../vendor/uesp-esochardata/resources'),
-    path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json'),
-  );
+  initEsoEngineWith({ initData: loadInitData() });
 });
 
 // ── Arcane Supremacy (141744) — Max Magicka ──────────────────────────────────

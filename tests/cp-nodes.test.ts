@@ -12,19 +12,16 @@
  */
 
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import path from 'path';
-import { calculateBuild, initEsoEngine } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngineWith } from '../src/lib/eso-engine';
+import { loadInitData } from './helpers/load-init-data';
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
-
-const RESOURCES = path.resolve(__dirname, '../vendor/uesp-esochardata/resources');
-const INIT_DATA = path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json');
 
 let originalCpSkills: unknown;
 let originalCpSkillDesc: unknown;
 
 beforeAll(() => {
-  initEsoEngine(RESOURCES, INIT_DATA);
+  initEsoEngineWith({ initData: loadInitData() });
   // Save real JSON-loaded globals so clearMockCpGlobals can restore them
   // instead of replacing with empty objects (which would break other test files
   // that rely on the real data when tests run in different orders).

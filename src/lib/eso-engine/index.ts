@@ -71,6 +71,10 @@ export {
 
 let initialized = false;
 
+export interface EsoEngineOptions {
+  initData: UespInitData;
+}
+
 /**
  * Initializes the UESP math engine. Must be called ONCE before calculateBuild().
  * Safe to call multiple times — only executes on the first call.
@@ -86,19 +90,29 @@ let initialized = false;
  */
 export function initEsoEngine(uespResourcesPath?: string, initData?: string | UespInitData): void {
   if (initialized) return;
-
   // __dirname resolves to dist/lib/eso-engine/ in the built package.
   // Going up 3 levels reaches the package root (node_modules/uesp-eso-build-wrapper/).
   const pkgRoot = path.resolve(__dirname, '../../..');
-
   const resourcesPath =
     uespResourcesPath ?? path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
   const data: string | UespInitData =
     initData ?? path.join(pkgRoot, 'vendor/uesp-data/uesp-init-data.json');
-
   setupNodeEnvironment();
   loadUespEngine(resourcesPath, data);
+  initialized = true;
+}
 
+/**
+ * Initializes the UESP math engine using a named-options object.
+ * Use when you have a pre-parsed `UespInitData` object (e.g. loaded from a database).
+ * The vendor resources path is always resolved internally from the package.
+ */
+export function initEsoEngineWith({ initData }: EsoEngineOptions): void {
+  if (initialized) return;
+  const pkgRoot = path.resolve(__dirname, '../../..');
+  const resourcesPath = path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
+  setupNodeEnvironment();
+  loadUespEngine(resourcesPath, initData);
   initialized = true;
 }
 
