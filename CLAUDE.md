@@ -44,7 +44,9 @@ This is a **Node.js wrapper around the UESP ESO Build Editor math engine** — a
    - Calls `UpdateEsoComputedStatsList_Real(null, true)` — the UESP calculation entry point
    - Reads results from `g_EsoComputedStats[statId].value`
 
-4. **`index.ts` — Public API**: exports `initEsoEngine()` (singleton, must be called once) and `calculateBuild()`.
+4. **`index.ts` — Public API**: exports `initEsoEngine()` (singleton, must be called once), `calculateBuild()`, and `buildInputStats()`.
+
+5. **`input-stats.ts` — Static ESO config**: owns `STATS_UNIQUE_LIST`, `STATS_BASE_LIST`, `STATS_TYPE_LIST` (ported from PHP `editBuild.class.php`) and the `buildInputStats()` function that builds the `inputStats` object fed to the engine. **Rule**: this file is the single source of truth for these lists — consumers (e.g. eso-build-editor) import `buildInputStats` from this package and never duplicate the lists. Update here when upstream PHP changes these lists between ESO patches.
 
 ### Vendor data
 
@@ -63,7 +65,8 @@ Golden values in `engine.test.ts` are locked to the vendored UESP formulas. If a
 2. Open `https://en.uesp.net/wiki/Special:EsoBuildEditor` in a browser
 3. Run `vendor/uesp-data/browser-extract.js` in the DevTools Console
 4. Save the downloaded JSON to `vendor/uesp-data/uesp-init-data.json`
-5. Run `npm test` — update any golden values that changed intentionally
+5. If `STATS_UNIQUE_LIST`, `STATS_BASE_LIST`, or `STATS_TYPE_LIST` changed in `editBuild.class.php`, update `src/lib/eso-engine/input-stats.ts`
+6. Run `npm run build && npm test` — update any golden values that changed intentionally
 
 ### Supported features
 
