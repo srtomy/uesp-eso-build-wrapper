@@ -404,8 +404,6 @@ export interface ComputedStats {
 export interface UespInitData {
   /** Fórmulas de cálculo dos stats (a "inteligência" do motor) */
   computedStats: Record<string, unknown>;
-  /** Definições dos stats de entrada (estrutura de inputValues) */
-  inputStats: Record<string, unknown>;
   /** Dados de buffs iniciais */
   buffData?: Record<string, unknown>;
   /** Dados de Champion Points iniciais */
