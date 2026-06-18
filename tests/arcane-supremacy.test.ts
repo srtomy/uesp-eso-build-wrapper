@@ -12,7 +12,7 @@
  */
 
 import { beforeAll, describe, expect, it } from 'vitest';
-import { calculateBuild, initEsoEngineWith } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
 import { loadInitData } from './helpers/load-init-data';
 
 const CHAR_BASE = {
@@ -30,7 +30,7 @@ const BASELINE_STAMINA = 12000;
 const BASELINE_HEALTH = 16000;
 
 beforeAll(() => {
-  initEsoEngineWith({ initData: loadInitData() });
+  initEsoEngineFromData({ initData: loadInitData() });
 });
 
 // ── Arcane Supremacy (141744) — Max Magicka ──────────────────────────────────

@@ -18,7 +18,7 @@ import { DatabaseSync } from 'node:sqlite';
 import * as path from 'path';
 import * as fs from 'fs';
 import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-engine';
-import { calculateBuild, initEsoEngineWith, resetEngine } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngineFromData, resetEngine } from '../src/lib/eso-engine';
 import { loadInitDataFromDb } from '../tests/helpers/load-init-data';
 
 // ---------------------------------------------------------------------------
@@ -73,7 +73,7 @@ console.log(LINE);
 console.log('\nRodando com uesp-init-data.json...');
 const t0 = Date.now();
 const jsonInitData = JSON.parse(fs.readFileSync(INIT_JSON, 'utf-8')) as UespInitData;
-const rawJson = runBuild('JSON', () => initEsoEngineWith({ initData: jsonInitData }));
+const rawJson = runBuild('JSON', () => initEsoEngineFromData({ initData: jsonInitData }));
 console.log(`  tempo: ${Date.now() - t0}ms`);
 
 // Run #2 — DB
@@ -83,7 +83,7 @@ const t1 = Date.now();
 const dbInitData = loadInitDataFromDb(db, versionOverride);
 const tLoad = Date.now();
 console.log(`  carregamento do banco: ${tLoad - t1}ms`);
-const rawDb = runBuild('DB ', () => initEsoEngineWith({ initData: dbInitData }));
+const rawDb = runBuild('DB ', () => initEsoEngineFromData({ initData: dbInitData }));
 console.log(`  tempo total (carga + cálculo): ${Date.now() - t1}ms`);
 db.close();
 

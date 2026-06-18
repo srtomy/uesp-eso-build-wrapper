@@ -12,7 +12,7 @@
  */
 
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { calculateBuild, initEsoEngineWith } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
 import { loadInitData } from './helpers/load-init-data';
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ let originalCpSkills: unknown;
 let originalCpSkillDesc: unknown;
 
 beforeAll(() => {
-  initEsoEngineWith({ initData: loadInitData() });
+  initEsoEngineFromData({ initData: loadInitData() });
   // Save real JSON-loaded globals so clearMockCpGlobals can restore them
   // instead of replacing with empty objects (which would break other test files
   // that rely on the real data when tests run in different orders).

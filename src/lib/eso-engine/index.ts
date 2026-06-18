@@ -71,10 +71,6 @@ export {
 
 let initialized = false;
 
-export interface EsoEngineOptions {
-  initData: UespInitData;
-}
-
 /**
  * Initializes the UESP math engine. Must be called ONCE before calculateBuild().
  * Safe to call multiple times — only executes on the first call.
@@ -102,12 +98,16 @@ export function initEsoEngine(uespResourcesPath?: string, initData?: string | Ue
   initialized = true;
 }
 
+export interface EsoEngineFromDataOptions {
+  initData: UespInitData;
+}
+
 /**
- * Initializes the UESP math engine using a named-options object.
- * Use when you have a pre-parsed `UespInitData` object (e.g. loaded from a database).
- * The vendor resources path is always resolved internally from the package.
+ * Initializes the UESP math engine from a pre-parsed `UespInitData` object.
+ * Use when data comes from a database or external source instead of the bundled JSON file.
+ * The vendor resources path is resolved internally from the package.
  */
-export function initEsoEngineWith({ initData }: EsoEngineOptions): void {
+export function initEsoEngineFromData({ initData }: EsoEngineFromDataOptions): void {
   if (initialized) return;
   const pkgRoot = path.resolve(__dirname, '../../..');
   const resourcesPath = path.join(pkgRoot, 'vendor/uesp-esochardata/resources');

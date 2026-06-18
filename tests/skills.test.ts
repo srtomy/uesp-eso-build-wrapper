@@ -19,7 +19,7 @@
 
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { UespItemApiData } from '../src/lib/eso-engine/types';
-import { calculateBuild, initEsoEngineWith } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
 import { loadInitData } from './helpers/load-init-data';
 
 const CHAR = {
@@ -223,7 +223,7 @@ const SEVEN_HEAVY = {
 };
 
 beforeAll(() => {
-  initEsoEngineWith({ initData: loadInitData() });
+  initEsoEngineFromData({ initData: loadInitData() });
 });
 
 // ---------------------------------------------------------------------------
