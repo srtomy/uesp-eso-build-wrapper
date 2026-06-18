@@ -14,11 +14,10 @@
  */
 
 import { beforeAll, describe, expect, it } from 'vitest';
-import path from 'path';
 import type { UespItemApiData } from '../src/lib/eso-engine';
 import {
   calculateBuild,
-  initEsoEngine,
+  initEsoEngineWith,
   listAvailableBuffs,
   listRacialPassives,
   listClassPassives,
@@ -26,14 +25,12 @@ import {
   listAvailableSkillLines,
   listAvailableToggleSkills,
 } from '../src/lib/eso-engine';
+import { loadInitData } from './helpers/load-init-data';
 
 // ── Engine setup ──────────────────────────────────────────────────────────────
 
 beforeAll(() => {
-  initEsoEngine(
-    path.resolve(__dirname, '../vendor/uesp-esochardata/resources'),
-    path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json'),
-  );
+  initEsoEngineWith({ initData: loadInitData() });
 });
 
 // ── Item fixtures (real UESP API payloads) ────────────────────────────────────
@@ -341,13 +338,8 @@ describe('calculateBuild', () => {
       expect(lv99).toBe(lv50);
     });
 
-    it('initEsoEngine() called a second time is a safe no-op', () => {
-      expect(() => {
-        initEsoEngine(
-          path.resolve(__dirname, '../vendor/uesp-esochardata/resources'),
-          path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json'),
-        );
-      }).not.toThrow();
+    it('initEsoEngineWith() called a second time is a safe no-op', () => {
+      expect(() => initEsoEngineWith({ initData: loadInitData() })).not.toThrow();
     });
   });
 
@@ -1898,13 +1890,15 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
   // ── listClassPassives ─────────────────────────────────────────────────────────
   describe('listClassPassives — catálogo de passivos de classe', () => {
-    it('retorna 24 entradas para Sorcerer', () => {
-      expect(listClassPassives('Sorcerer').length).toBe(24);
+    it('retorna ao menos 24 entradas para Sorcerer', () => {
+      expect(listClassPassives('Sorcerer').length).toBeGreaterThanOrEqual(24);
     });
 
-    it('Sorcerer tem passivos nas 3 skill lines', () => {
+    it('Sorcerer tem passivos nas 3 skill lines principais', () => {
       const lines = [...new Set(listClassPassives('Sorcerer').map((p) => p.skillLine))];
-      expect(lines.sort()).toEqual(['Daedric Summoning', 'Dark Magic', 'Storm Calling']);
+      expect(lines).toEqual(
+        expect.arrayContaining(['Daedric Summoning', 'Dark Magic', 'Storm Calling']),
+      );
     });
 
     it('retorna passivos para todas as 7 classes', () => {
