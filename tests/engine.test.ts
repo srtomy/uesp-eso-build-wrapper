@@ -17,7 +17,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import type { UespItemApiData } from '../src/lib/eso-engine';
 import {
   calculateBuild,
-  initEsoEngineWith,
+  initEsoEngineFromData,
   listAvailableBuffs,
   listRacialPassives,
   listClassPassives,
@@ -30,7 +30,7 @@ import { loadInitData } from './helpers/load-init-data';
 // ── Engine setup ──────────────────────────────────────────────────────────────
 
 beforeAll(() => {
-  initEsoEngineWith({ initData: loadInitData() });
+  initEsoEngineFromData({ initData: loadInitData() });
 });
 
 // ── Item fixtures (real UESP API payloads) ────────────────────────────────────
@@ -338,8 +338,8 @@ describe('calculateBuild', () => {
       expect(lv99).toBe(lv50);
     });
 
-    it('initEsoEngineWith() called a second time is a safe no-op', () => {
-      expect(() => initEsoEngineWith({ initData: loadInitData() })).not.toThrow();
+    it('initEsoEngineFromData() called a second time is a safe no-op', () => {
+      expect(() => initEsoEngineFromData({ initData: loadInitData() })).not.toThrow();
     });
   });
 

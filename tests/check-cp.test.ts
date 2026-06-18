@@ -7,11 +7,11 @@
  */
 
 import { beforeAll, describe, expect, it } from 'vitest';
-import { initEsoEngineWith } from '../src/lib/eso-engine';
+import { initEsoEngineFromData } from '../src/lib/eso-engine';
 import { loadInitData } from './helpers/load-init-data';
 
 beforeAll(() => {
-  initEsoEngineWith({ initData: loadInitData() });
+  initEsoEngineFromData({ initData: loadInitData() });
 });
 
 describe('CP rules — estrutura carregada pelo motor', () => {
