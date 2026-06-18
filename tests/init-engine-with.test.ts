@@ -1,17 +1,17 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { initEsoEngineWith, resetEngine, calculateBuild } from '../src/lib/eso-engine';
+import { initEsoEngineFromData, resetEngine, calculateBuild } from '../src/lib/eso-engine';
 import { loadInitData } from './helpers/load-init-data';
 
 beforeAll(() => {
   resetEngine();
-  initEsoEngineWith({ initData: loadInitData() });
+  initEsoEngineFromData({ initData: loadInitData() });
 });
 
 afterAll(() => {
   resetEngine();
 });
 
-describe('initEsoEngineWith', () => {
+describe('initEsoEngineFromData', () => {
   it('produz os mesmos stats baseline que initEsoEngine', () => {
     const stats = calculateBuild({
       character: {
@@ -27,6 +27,6 @@ describe('initEsoEngineWith', () => {
   });
 
   it('é idempotente — segunda chamada não reinicializa', () => {
-    expect(() => initEsoEngineWith({ initData: loadInitData() })).not.toThrow();
+    expect(() => initEsoEngineFromData({ initData: loadInitData() })).not.toThrow();
   });
 });
