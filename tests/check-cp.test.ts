@@ -7,14 +7,11 @@
  */
 
 import { beforeAll, describe, expect, it } from 'vitest';
-import path from 'path';
-import { initEsoEngine } from '../src/lib/eso-engine';
+import { initEsoEngineWith } from '../src/lib/eso-engine';
+import { loadInitData } from './helpers/load-init-data';
 
 beforeAll(() => {
-  initEsoEngine(
-    path.resolve(__dirname, '../vendor/uesp-esochardata/resources'),
-    path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json'),
-  );
+  initEsoEngineWith({ initData: loadInitData() });
 });
 
 describe('CP rules — estrutura carregada pelo motor', () => {
