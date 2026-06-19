@@ -10,7 +10,13 @@
  *   6. Use-o com: npm run test:build caminho/para/uesp-build-export.json
  */
 (function exportUespBuild() {
+  var rulesVersion = $('#esotbRulesVersion').val() || 'Live';
+
   var build = {
+    _meta: {
+      rulesVersion: rulesVersion,
+      exportedAt: new Date().toISOString(),
+    },
     character: {
       race:  $('#esotbRace').val(),
       class: $('#esotbClass').val(),
@@ -131,6 +137,17 @@
     });
   }
 
+  // toggle set bonuses habilitados pelo usuário no editor
+  // (ex: Ansuul's Torment +7% DamageDone = 41316, Merciless Charge +20% = 41089)
+  if (typeof g_EsoBuildToggledSetData !== 'undefined') {
+    var toggledSetBonuses = [];
+    Object.keys(g_EsoBuildToggledSetData).forEach(function (id) {
+      var t = g_EsoBuildToggledSetData[id];
+      if (t && t.valid && t.enabled) toggledSetBonuses.push(id);
+    });
+    if (toggledSetBonuses.length > 0) build.toggledSetBonuses = toggledSetBonuses;
+  }
+
   // CP nodes com pontos alocados
   if (typeof g_EsoCpData !== 'undefined') {
     Object.keys(g_EsoCpData).forEach(function (nodeId) {
@@ -167,6 +184,7 @@
 
   var barCount = (build.skillBars ? ((build.skillBars.bar1 || []).length + (build.skillBars.bar2 || []).length) : 0);
   console.log('[UESP Export] Build exportado com sucesso!');
+  console.log('  Regras: ' + rulesVersion);
   console.log('  Raça/Classe: ' + build.character.race + ' ' + build.character.class);
   console.log('  Slots com item: ' + Object.keys(build.items).length);
   console.log('  Passivas: ' + (build.passiveSkills ? build.passiveSkills.length : 0));
