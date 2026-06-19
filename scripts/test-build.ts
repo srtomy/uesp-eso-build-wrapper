@@ -164,43 +164,7 @@ if (extras.length > 0) {
 
 console.log(`\n${LINE}\n`);
 
-// ---------------------------------------------------------------------------
-// Comparação com os valores reais do UESP (quando exportados junto ao build)
-// ---------------------------------------------------------------------------
-const expected = (build as any).expectedStats as Record<string, number> | undefined;
-if (expected && Object.keys(expected).length > 0) {
-  const RED   = '\x1b[31m';
-  const GREEN = '\x1b[32m';
-  const RESET = '\x1b[0m';
-  const BOLD  = '\x1b[1m';
-
-  const allIds = new Set([...Object.keys(expected), ...Object.keys(raw)]);
-  const rows: { id: string; uesp: number; calc: number; match: boolean }[] = [];
-
-  for (const id of allIds) {
-    const uesp = expected[id] ?? 0;
-    const calc = raw[id] ?? 0;
-    // tolerância de 1 para arredondamento (floor vs round)
-    const match = Math.abs(uesp - calc) <= 1;
-    rows.push({ id, uesp, calc, match });
-  }
-
-  const mismatches = rows.filter(r => !r.match);
-  const matches    = rows.filter(r => r.match);
-
-  console.log(`${LINE}`);
-  console.log(`  ${BOLD}COMPARAÇÃO COM UESP${RESET}  (${matches.length} ok, ${mismatches.length} divergências)`);
-  console.log(`  ${'STAT'.padEnd(40)} ${'UESP'.padStart(10)} ${'CALCULADO'.padStart(10)}  MATCH`);
-  console.log('  ' + '·'.repeat(68));
-
-  // mostra divergências primeiro, depois os corretos
-  for (const r of [...mismatches, ...matches]) {
-    const color  = r.match ? GREEN : RED;
-    const flag   = r.match ? 'true ' : 'false';
-    const diff   = r.match ? '' : ` (${r.calc > r.uesp ? '+' : ''}${(r.calc - r.uesp).toFixed(0)})`;
-    console.log(
-      `  ${color}${r.id.padEnd(40)} ${String(r.uesp).padStart(10)} ${String(r.calc).padStart(10)}${diff.padEnd(10)}  ${flag}${RESET}`,
-    );
-  }
+if ((build as any).expectedStats) {
+  console.log(`  Para validar contra o UESP: coloque o arquivo em tests/fixtures/ e rode npm test`);
   console.log(`\n${LINE}\n`);
 }
