@@ -1,24 +1,22 @@
 /**
- * Script de teste do motor ESO — rode sem precisar subir nenhum servidor.
+ * Script de exploração manual do motor ESO — rode sem precisar subir nenhum servidor.
  *
  * USO:
- *   npm test
- *
- * PRÉ-REQUISITO:
- *   vendor/uesp-data/uesp-init-data.json deve existir (já incluso no projeto).
+ *   npm run test:explore
  */
 
+import fs from 'fs';
 import path from 'path';
-import { initEsoEngine, calculateBuild } from '../src/lib/eso-engine';
-import type { BuildInput, UespItemApiData } from '../src/lib/eso-engine';
+import { initEsoEngineFromData, calculateBuild } from '../src/lib/eso-engine';
+import type { BuildInput, UespInitData, UespItemApiData } from '../src/lib/eso-engine';
 
 // ---------------------------------------------------------------------------
 // Inicializa o motor (uma vez por processo)
 // ---------------------------------------------------------------------------
-initEsoEngine(
-  path.resolve(__dirname, '../vendor/uesp-esochardata/resources'),
-  path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json'),
-);
+const gameData = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json'), 'utf-8'),
+) as UespInitData;
+initEsoEngineFromData({ initData: gameData });
 
 // ---------------------------------------------------------------------------
 // Exemplo: item real buscado da API da UESP

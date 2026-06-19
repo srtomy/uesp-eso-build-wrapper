@@ -8,10 +8,11 @@
  *
  * QUICK START:
  * ```ts
- * import { initEsoEngine, calculateBuild } from 'uesp-eso-build-wrapper';
+ * import { initEsoEngineFromData, calculateBuild } from 'uesp-eso-build-wrapper';
+ * import data from 'uesp-eso-build-wrapper/vendor/uesp-data/uesp-game-data.json';
  *
- * // Initialize once (singleton) — no args needed when installed via npm
- * initEsoEngine();
+ * // Initialize once (singleton) with the bundled game data
+ * initEsoEngineFromData({ initData: data });
  *
  * const stats = calculateBuild({
  *   character: {
@@ -32,9 +33,9 @@
  *
  * UPDATING FORMULAS after a new ESO patch:
  *   1. In vendor/uesp-esochardata/, run: git fetch upstream && git merge upstream/master
- *   2. Open https://en.uesp.net/wiki/Special:EsoBuildEditor in a browser.
- *   3. Run vendor/uesp-data/browser-extract.js in the DevTools Console.
- *   4. Save the downloaded JSON to vendor/uesp-data/uesp-init-data.json.
+ *   2. Download the latest UESP SQL dumps and seed local.db (see eso-build-editor/scripts/seed.ts)
+ *   3. Run: npm run generate-data -- --db /path/to/local.db --version <patch>
+ *   4. Commit vendor/uesp-data/uesp-game-data.json
  *   5. Run tests: npm test
  */
 
@@ -72,33 +73,49 @@ export {
 let initialized = false;
 
 /**
- * Initializes the UESP math engine. Must be called ONCE before calculateBuild().
- * Safe to call multiple times — only executes on the first call.
+ * @deprecated Use `initEsoEngineFromData({ initData })` instead.
+ * This function loads game data from a JSON file on disk (bundled at vendor/uesp-data/uesp-init-data.json).
+ * The new API accepts a pre-parsed `UespInitData` object directly, decoupling data loading from engine init.
  *
- * When installed via npm, both arguments are optional and resolve automatically
- * to the bundled vendor files inside node_modules/uesp-eso-build-wrapper/.
+ * Migration:
+ * ```ts
+ * // Before
+ * initEsoEngine();
  *
- * @param uespResourcesPath - Path to the UESP fork's resources/ folder.
- * @param initData - Game formula data. Accepts either:
- *   - A file path string pointing to a uesp-init-data.json file on disk.
- *   - A pre-parsed `UespInitData` object (e.g. loaded from a database or fetched from an API).
- *   Omit to use the bundled vendor data.
+ * // After
+ * import data from 'uesp-eso-build-wrapper/vendor/uesp-data/uesp-game-data.json';
+ * initEsoEngineFromData({ initData: data });
+ * ```
  */
 export function initEsoEngine(uespResourcesPath?: string, initData?: string | UespInitData): void {
   if (initialized) return;
-
   // __dirname resolves to dist/lib/eso-engine/ in the built package.
   // Going up 3 levels reaches the package root (node_modules/uesp-eso-build-wrapper/).
   const pkgRoot = path.resolve(__dirname, '../../..');
-
   const resourcesPath =
     uespResourcesPath ?? path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
   const data: string | UespInitData =
     initData ?? path.join(pkgRoot, 'vendor/uesp-data/uesp-init-data.json');
-
   setupNodeEnvironment();
   loadUespEngine(resourcesPath, data);
+  initialized = true;
+}
 
+export interface EsoEngineFromDataOptions {
+  initData: UespInitData;
+}
+
+/**
+ * Initializes the UESP math engine from a pre-parsed `UespInitData` object.
+ * Use when data comes from a database or external source instead of the bundled JSON file.
+ * The vendor resources path is resolved internally from the package.
+ */
+export function initEsoEngineFromData({ initData }: EsoEngineFromDataOptions): void {
+  if (initialized) return;
+  const pkgRoot = path.resolve(__dirname, '../../..');
+  const resourcesPath = path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
+  setupNodeEnvironment();
+  loadUespEngine(resourcesPath, initData);
   initialized = true;
 }
 

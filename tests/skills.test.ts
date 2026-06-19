@@ -18,9 +18,9 @@
  */
 
 import { beforeAll, describe, expect, it } from 'vitest';
-import path from 'path';
 import type { UespItemApiData } from '../src/lib/eso-engine/types';
-import { calculateBuild, initEsoEngine } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
+import { loadInitData } from './helpers/load-init-data';
 
 const CHAR = {
   race: 'High Elf' as const,
@@ -223,10 +223,7 @@ const SEVEN_HEAVY = {
 };
 
 beforeAll(() => {
-  initEsoEngine(
-    path.resolve(__dirname, '../vendor/uesp-esochardata/resources'),
-    path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json'),
-  );
+  initEsoEngineFromData({ initData: loadInitData() });
 });
 
 // ---------------------------------------------------------------------------

@@ -44,12 +44,14 @@ This is a **Node.js wrapper around the UESP ESO Build Editor math engine** — a
    - Calls `UpdateEsoComputedStatsList_Real(null, true)` — the UESP calculation entry point
    - Reads results from `g_EsoComputedStats[statId].value`
 
-4. **`index.ts` — Public API**: exports `initEsoEngine()` (singleton, must be called once) and `calculateBuild()`.
+4. **`index.ts` — Public API**: exports `initEsoEngine()` (singleton, must be called once), `calculateBuild()`, and `buildInputStats()`.
+
+5. **`input-stats.ts` — Static ESO config**: owns `STATS_UNIQUE_LIST`, `STATS_BASE_LIST`, `STATS_TYPE_LIST` (ported from PHP `editBuild.class.php`) and the `buildInputStats()` function that builds the `inputStats` object fed to the engine. **Rule**: this file is the single source of truth for these lists — consumers (e.g. eso-build-editor) import `buildInputStats` from this package and never duplicate the lists. Update here when upstream PHP changes these lists between ESO patches.
 
 ### Vendor data
 
 - `vendor/uesp-esochardata/` — git submodule of the UESP PHP/JS repo; only `resources/esoEditBuild.js` and `resources/esobuilddata.js` are used at runtime.
-- `vendor/uesp-data/uesp-init-data.json` — game formula data extracted from the live UESP website via `browser-extract.js`. Contains `computedStats`, `inputStats`, `buildRules`, `cpData`, `cpSkillsData`, `cpSkillDescData`, etc.
+- `vendor/uesp-data/uesp-game-data.json` — game formula data generated from UESP SQL dumps via `npm run generate-data`. Contains `computedStats`, `buildRules`, `cpSkillsData`, `cpSkillDescData`, `skillsData`, etc. The `_meta` field records when and from which patch it was generated.
 
 ### Tests
 
@@ -60,14 +62,15 @@ Golden values in `engine.test.ts` are locked to the vendored UESP formulas. If a
 ### Updating formulas after an ESO patch
 
 1. In `vendor/uesp-esochardata/`, run: `git fetch upstream && git merge upstream/master`
-2. Open `https://en.uesp.net/wiki/Special:EsoBuildEditor` in a browser
-3. Run `vendor/uesp-data/browser-extract.js` in the DevTools Console
-4. Save the downloaded JSON to `vendor/uesp-data/uesp-init-data.json`
-5. Run `npm test` — update any golden values that changed intentionally
+2. Download the latest UESP SQL dumps and seed `local.db` (see `eso-build-editor/scripts/seed.ts`)
+3. Run: `npm run generate-data -- --db /path/to/local.db --version <patch>`
+4. Commit `vendor/uesp-data/uesp-game-data.json`
+5. If `STATS_UNIQUE_LIST`, `STATS_BASE_LIST`, or `STATS_TYPE_LIST` changed in `editBuild.class.php`, update `src/lib/eso-engine/input-stats.ts`
+6. Run `npm run build && npm test` — update any golden values that changed intentionally
 
 ### Supported features
 
-`uesp-init-data.json` contains all the rule categories used at runtime:
+`uesp-game-data.json` contains all the rule categories used at runtime:
 
 | Feature                | Status               | How to use                                                                                |
 | ---------------------- | -------------------- | ----------------------------------------------------------------------------------------- |
@@ -95,8 +98,8 @@ Golden values in `engine.test.ts` are locked to the vendored UESP formulas. If a
 ### Known limitations
 
 - **`esoskills.js` requer submodule** — `GetEsoSkillDescription` vive em `vendor/uesp-esolog/resources/esoskills.js`. Sem ele, skill passivos/ativos não geram stats (mas o motor não crasha). Adicione com: `git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog`
-- **`g_SkillsData` pode estar desatualizado** — alguns passivos raciais (ex: Highborn do High Elf) têm descrição antiga (ganho de XP) no JSON atual; a regra de SpellCrit não bate. Re-extraia o JSON após o patch mais recente.
+- **`g_SkillsData` pode estar desatualizado** — alguns passivos raciais (ex: Highborn do High Elf) têm descrição antiga (ganho de XP) no JSON atual; a regra de SpellCrit não bate. Re-gere o JSON após baixar os dumps do patch mais recente.
 - **Toggle skills Cyrodiil** (Emperor, Authority, Domination, Tactician, Combat Medic, Continuous Attack) — requerem `character.cyrodiil: true` + o passivo na lista `passiveSkills` (`listAvailableToggleSkills()` mostra `requiresCyrodiil: true`).
 - **`passiveSkills` com dependência de barra** — passivos como Pressure Points (NB) multiplicam por skills na barra; sem `skillBars`, o delta é 0.
 - **Dados de descrição de skill** — se `g_SkillsData[abilityId].description` não bater com nenhum regex em `buildRules.passive`, o passivo não gera stats. Use `GetEsoSkillDescription(id)` no Node para depurar.
-- **BashDamage pode divergir ~9 pontos do UESP** — rule 38574 aplica -1% por peça de Light Armor (habilidade 152778). Se o UESP mostrar um valor diferente, o motivo é que `browser-extract.js` e `browser-export-build.js` devem ser rodados na **mesma URL** (`https://en.uesp.net/wiki/Special:EsoBuildEditor`). URLs distintas (ex: `esobuilds.uesp.net` vs wiki) carregam versões diferentes de `g_SkillsData`, causando a divergência. Re-extraia o `uesp-init-data.json` da URL correta.
+- **BashDamage pode divergir ~9 pontos do UESP** — rule 38574 aplica -1% por peça de Light Armor (habilidade 152778). Divergência causada por versões distintas de `g_SkillsData` entre `esobuilds.uesp.net` e a wiki; re-gere o JSON a partir dos dumps corretos.

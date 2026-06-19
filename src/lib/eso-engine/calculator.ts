@@ -263,8 +263,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         }
 
         if (desc) {
-          // Strip HTML tags so the engine's regex matching works on plain text
-          const plainDesc = desc.replace(/<[^>]+>/g, '');
+          // Strip HTML tags and ESO color codes (|cHHHHHH...|r) so the engine's regex matching works on plain text
+          const plainDesc = desc.replace(/<[^>]+>/g, '').replace(/\|c[0-9a-fA-F]{6}|\|r/g, '');
           cpDataGlobal[nodeId] = { type: 'skill', isUnlocked: true, description: plainDesc, name };
         }
         // sem descrição resolvível → node ignorado (sem efeito no motor)
