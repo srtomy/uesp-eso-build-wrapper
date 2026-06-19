@@ -1,16 +1,17 @@
 /**
- * Testa se a inicialização a partir do banco SQLite (eso-build-editor/local.db)
- * produz os mesmos stats que a inicialização via uesp-init-data.json.
+ * Valida que o uesp-game-data.json commitado está alinhado com o banco SQLite ao vivo.
  *
  * USO:
- *   npx ts-node scripts/test-db-init.ts <caminho-do-build.json> [caminho-do-db]
+ *   npm run test:db-init [caminho-do-build.json] [caminho-do-db] [versão]
  *
  * Padrões:
  *   build: ~/Downloads/uesp-build-export.json
  *   db:    ../eso-build-editor/local.db
+ *   versão: maior versão numérica disponível no banco
  *
- * O script roda o mesmo build DUAS vezes — uma com cada fonte de dados — e
- * compara os resultados entre si e contra `expectedStats` (se presente).
+ * O script roda o mesmo build DUAS vezes — uma com o JSON commitado e outra
+ * com leitura direta do banco — e compara os resultados. Divergências indicam
+ * que o JSON precisa ser regerado com: npm run generate-data -- --db <db>
  */
 
 // @ts-expect-error node:sqlite é experimental mas disponível no Node v22+
@@ -45,7 +46,7 @@ const build: BuildInput & { expectedStats?: Record<string, number> } = JSON.pars
   fs.readFileSync(buildJsonPath, 'utf-8'),
 );
 
-const INIT_JSON = path.resolve(__dirname, '../vendor/uesp-data/uesp-init-data.json');
+const INIT_JSON = path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json');
 const LINE = '─'.repeat(72);
 
 // ---------------------------------------------------------------------------
@@ -69,8 +70,8 @@ console.log(`  BUILD: ${path.basename(buildJsonPath)}`);
 console.log(`  DB:    ${dbPath}`);
 console.log(LINE);
 
-// Run #1 — JSON (baseline)
-console.log('\nRodando com uesp-init-data.json...');
+// Run #1 — JSON commitado (baseline)
+console.log('\nRodando com uesp-game-data.json (commitado)...');
 const t0 = Date.now();
 const jsonInitData = JSON.parse(fs.readFileSync(INIT_JSON, 'utf-8')) as UespInitData;
 const rawJson = runBuild('JSON', () => initEsoEngineFromData({ initData: jsonInitData }));
@@ -130,7 +131,7 @@ function compare(
   return mismatches.length;
 }
 
-const diffJsonDb = compare('JSON vs Banco', rawJson, rawDb, 'JSON', 'Banco');
+const diffJsonDb = compare('uesp-game-data.json vs Banco', rawJson, rawDb, 'JSON', 'Banco');
 
 // ---------------------------------------------------------------------------
 // Comparação com expectedStats (quando presentes no build exportado)
@@ -142,6 +143,6 @@ if (expected && Object.keys(expected).length > 0) {
 }
 
 console.log(
-  `\n  ${diffJsonDb === 0 ? GREEN + '✓ JSON e Banco produzem resultados idênticos' : RED + `✗ ${diffJsonDb} divergências entre JSON e Banco`}${RESET}\n`,
+  `\n  ${diffJsonDb === 0 ? GREEN + '✓ uesp-game-data.json está alinhado com o banco' : RED + `✗ ${diffJsonDb} divergências — regere o JSON com: npm run generate-data -- --db ${dbPath}`}${RESET}\n`,
 );
 process.exit(diffJsonDb === 0 ? 0 : 1);

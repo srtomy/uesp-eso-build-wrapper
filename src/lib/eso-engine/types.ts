@@ -11,9 +11,9 @@
  * UPDATING AFTER A NEW PATCH (when ZeniMax releases a new DLC):
  *   1. In vendor/uesp-esochardata/, run:
  *      git fetch upstream && git merge upstream/master
- *   2. Open https://en.uesp.net/wiki/Special:EsoBuildEditor in a browser.
- *   3. Run vendor/uesp-data/browser-extract.js in the DevTools Console.
- *   4. Save the downloaded JSON to vendor/uesp-data/uesp-init-data.json.
+ *   2. Download the latest UESP SQL dumps and seed local.db.
+ *   3. Run: npm run generate-data -- --db /path/to/local.db --version <patch>
+ *   4. Commit vendor/uesp-data/uesp-game-data.json
  *   5. Run tests: npm test
  */
 
@@ -305,8 +305,8 @@ export interface BuildInput {
    * O motor aplica automaticamente o efeito de cada passivo via regex no texto
    * da descrição (ESO_PASSIVEEFFECT_MATCHES).
    *
-   * Requer que g_SkillsData contenha os dados do skill (capturado via
-   * browser-extract.js após a página UESP carregar completamente).
+   * Requer que g_SkillsData contenha os dados do skill (presente em
+   * uesp-game-data.json gerado via npm run generate-data).
    *
    * Os IDs correspondem à coluna `abilityId` no banco de dados da UESP.
    * Exemplo: a passiva "Highborn" do High Elf tem abilityId 45284.
@@ -398,9 +398,9 @@ export interface ComputedStats {
 }
 
 // ---------------------------------------------------------------------------
-// Dados de inicialização do motor (extraídos do browser uma única vez)
-// Formato do arquivo vendor/uesp-data/uesp-init-data.json
+// Dados de inicialização do motor
 // ---------------------------------------------------------------------------
+
 export interface UespInitData {
   /** Fórmulas de cálculo dos stats (a "inteligência" do motor) */
   computedStats: Record<string, unknown>;

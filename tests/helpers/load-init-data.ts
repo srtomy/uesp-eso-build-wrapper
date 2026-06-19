@@ -2,8 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import type { UespInitData } from '../../src/lib/eso-engine';
 
-const DB_PATH = path.resolve(__dirname, '../../local.db');
-const JSON_PATH = path.resolve(__dirname, '../../vendor/uesp-data/uesp-init-data.json');
+const JSON_PATH = path.resolve(__dirname, '../../vendor/uesp-data/uesp-game-data.json');
 
 /**
  * Loads UespInitData from an open SQLite database connection.
@@ -157,29 +156,10 @@ export function loadInitDataFromDb(db: any, versionOverride?: string | null): Ue
   };
 }
 
-// Versão dos dados usada nos testes — deve coincidir com vendor/uesp-data/uesp-init-data.json.
-// Atualize aqui (e os golden values nos testes) após extrair uma nova versão do browser.
-const TEST_DATA_VERSION = '49';
-
 /**
- * Loads UespInitData for tests.
- * Uses local.db at the project root when present (pinned to TEST_DATA_VERSION);
- * falls back to the bundled JSON.
+ * Loads UespInitData for tests from the committed game data JSON.
+ * To update the JSON, run: npm run generate-data -- --db /path/to/local.db
  */
 export function loadInitData(): UespInitData {
-  if (fs.existsSync(DB_PATH)) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { DatabaseSync } = require('node:sqlite');
-      const db = new DatabaseSync(DB_PATH);
-      try {
-        return loadInitDataFromDb(db, TEST_DATA_VERSION);
-      } finally {
-        db.close();
-      }
-    } catch {
-      // fall through to JSON
-    }
-  }
   return JSON.parse(fs.readFileSync(JSON_PATH, 'utf-8')) as UespInitData;
 }
