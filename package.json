@@ -1,6 +1,6 @@
 {
   "name": "uesp-eso-build-wrapper",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Node.js wrapper around the UESP ESO Build Editor math engine. Calculate Elder Scrolls Online character stats (Health, Magicka, Stamina, mitigation, crit, etc.) without rewriting any game formulas.",
   "keywords": [
     "elder-scrolls-online",
@@ -46,7 +46,6 @@
     "vendor/uesp-esochardata/LICENSE",
     "vendor/uesp-esolog/resources/esoskills.js",
     "vendor/uesp-esolog/LICENSE",
-    "vendor/uesp-data/uesp-init-data.json",
     "THIRD_PARTY_NOTICES"
   ],
   "scripts": {
@@ -55,10 +54,12 @@
     "lint:fix": "eslint src tests --fix",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
-    "prepublishOnly": "npm run build && npm run lint && node -e \"require('fs').existsSync('vendor/uesp-data/uesp-init-data.json')||process.exit(1)\"",
+    "generate-data": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/generate-data.ts",
+    "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
     "test:explore": "ts-node --project tsconfig.scripts.json scripts/test-engine.ts",
-    "test:build": "ts-node --project tsconfig.scripts.json scripts/test-build.ts"
+    "test:build": "ts-node --project tsconfig.scripts.json scripts/test-build.ts",
+    "test:db-init": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/test-db-init.ts"
   },
   "devDependencies": {
     "@types/node": "^20.19.41",
