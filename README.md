@@ -159,6 +159,9 @@ interface BuildInput {
   passiveSkills?: number[];   // ability IDs of unlocked passive skills
   autoPassives?: boolean;     // auto-inject all racial + class passives (default: false)
   enchantOverrides?: Partial<Record<string, { enchantDesc: string; enchantName?: string }>>;
+  // ^ custom enchant glyphs per slot — overrides item.enchantDesc (exported by browser-export-build.js)
+  toggledSetBonuses?: string[]; // set bonus toggle keys enabled in the editor — see browser-export-build.js
+  // ^ example: ["Ansuul's Torment", "Ansuul's Torment (Bonus Damage)", "Spectral Cloak"]
 }
 ```
 
@@ -203,7 +206,7 @@ Use these to discover valid names for buffs, passives, and toggle skills.
 | `listClassPassives(cls)` | `PassiveSkillInfo[]` | All passive ranks for a given class (3 skill lines) |
 | `listPassivesBySkillLine(line)` | `PassiveSkillInfo[]` | Passives for any skill line (Heavy Armor, Undaunted, etc.) |
 | `listAvailableSkillLines()` | `string[]` | All available skill line names |
-| `listAvailableToggleSkills()` | `ToggleSkillInfo[]` | 101 toggle skills; `requiresCyrodiil` marks PvP-only |
+| `listAvailableToggleSkills()` | `ToggleSkillInfo[]` | 105 toggle skills; `requiresCyrodiil` marks PvP-only |
 
 ```ts
 // Example: see all Major buffs
@@ -212,6 +215,35 @@ const buffs = listAvailableBuffs('Major');
 const passives = listRacialPassives('High Elf');
 const ids = passives.map(p => p.abilityId);
 ```
+
+---
+
+## Validating Against the UESP Browser
+
+The `scripts/browser-export-build.js` script runs inside the UESP Build Editor DevTools console and exports the full build — inputs and expected stats — as a JSON file.
+
+**How to use:**
+
+1. Open [esobuilds.uesp.net](https://esobuilds.uesp.net), configure your build
+2. Open DevTools (F12) → Console, paste and run `browser-export-build.js`
+3. A `uesp-build-export.json` file is downloaded
+
+**Explore stats interactively:**
+
+```bash
+npm run test:build path/to/uesp-build-export.json
+```
+
+Prints all computed stats grouped by section (Attributes, Offense, Defense, etc.).
+
+**Add as a golden regression fixture:**
+
+```bash
+cp path/to/uesp-build-export.json tests/fixtures/my-build.json
+npm test
+```
+
+`tests/build-fixtures.test.ts` auto-discovers all `.json` files in `tests/fixtures/` and asserts every stat in `expectedStats` against the wrapper output. All divergences are shown at once.
 
 ---
 
