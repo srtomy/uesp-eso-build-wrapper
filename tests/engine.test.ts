@@ -1923,8 +1923,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
   // ── listAvailableToggleSkills ─────────────────────────────────────────────────
   describe('listAvailableToggleSkills — catálogo de toggle skills', () => {
-    it('retorna 101 toggle skills (1 entrada anônima filtrada)', () => {
-      expect(listAvailableToggleSkills().length).toBe(101);
+    it('retorna 105 toggle skills (1 entrada anônima filtrada)', () => {
+      expect(listAvailableToggleSkills().length).toBe(105);
     });
 
     it('cada entrada tem name, isPassive e effects', () => {
