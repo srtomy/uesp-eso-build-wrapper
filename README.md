@@ -23,10 +23,11 @@ npm install uesp-eso-build-wrapper
 ## Quick Start
 
 ```ts
-import { initEsoEngine, calculateBuild } from 'uesp-eso-build-wrapper';
+import { initEsoEngineFromData, calculateBuild } from 'uesp-eso-build-wrapper';
+import data from 'uesp-eso-build-wrapper/vendor/uesp-data/uesp-game-data.json';
 
-// Initialize once — resolves bundled vendor files automatically
-initEsoEngine();
+// Initialize once — pass the bundled game data directly
+initEsoEngineFromData({ initData: data });
 
 const stats = calculateBuild({
   character: {
@@ -37,10 +38,10 @@ const stats = calculateBuild({
   },
 });
 
-console.log(stats.Health); // 16000
-console.log(stats.Magicka); // 19104
+console.log(stats.Health);       // 16000
+console.log(stats.Magicka);      // 19104
 console.log(stats.MagickaRegen); // 514
-console.log(stats.SpellDamage); // 1000
+console.log(stats.SpellDamage);  // 1000
 ```
 
 ## With Equipped Items
@@ -48,14 +49,12 @@ console.log(stats.SpellDamage); // 1000
 Items are passed directly as returned by the [UESP public item API](https://esolog.uesp.net/exportJson.php?table=minedItem&id=70&level=50&quality=5).
 
 ```ts
-// 1. Fetch item data from UESP API
 const res = await fetch(
   'https://esolog.uesp.net/exportJson.php?table=minedItem&id=70&level=50&quality=5',
 );
 const data = await res.json();
-const item = data.minedItem[0]; // pick the variant you want
+const item = data.minedItem[0];
 
-// 2. Pass it directly — no mapping needed
 const stats = calculateBuild({
   character: {
     race: 'Nord',
@@ -71,18 +70,57 @@ const stats = calculateBuild({
 console.log(stats.Health); // includes item enchant + set bonus
 ```
 
+## With Passives, Buffs, and Skill Bars
+
+```ts
+import { initEsoEngineFromData, calculateBuild, listAvailableBuffs, listRacialPassives } from 'uesp-eso-build-wrapper';
+import data from 'uesp-eso-build-wrapper/vendor/uesp-data/uesp-game-data.json';
+
+initEsoEngineFromData({ initData: data });
+
+const stats = calculateBuild({
+  character: {
+    race: 'High Elf',
+    class: 'Sorcerer',
+    level: 50,
+    attributes: { health: 0, magicka: 64, stamina: 0 },
+    mundusStone: 'The Apprentice',
+    championPoints: 160,
+  },
+  // Auto-inject all racial + class passives at highest rank
+  autoPassives: true,
+  // Named buffs from the UESP buff catalog
+  activeBuffs: ['Major Prophecy', 'Minor Slayer', 'Major Sorcery'],
+  // Active skills slotted on bars (affects conditional set bonuses and skill-line passives)
+  skillBars: {
+    bar1: [
+      { skillId: 28807, morphIndex: 2 }, // Crystal Fragments
+      { skillId: 24322 },                 // Mages' Fury
+    ],
+  },
+});
+```
+
 ## API
 
-### `initEsoEngine(resourcesPath?, initDataPath?)`
+### `initEsoEngineFromData(options)`
 
-Initializes the UESP math engine. **Must be called once** before `calculateBuild()`.
+Initializes the UESP math engine from a pre-parsed game data object. **Must be called once** before `calculateBuild()`.
 
 Safe to call multiple times — only executes on the first call.
 
-| Param           | Type     | Default        | Description                                      |
-| --------------- | -------- | -------------- | ------------------------------------------------ |
-| `resourcesPath` | `string` | bundled vendor | Path to `esoEditBuild.js` and `esobuilddata.js`  |
-| `initDataPath`  | `string` | bundled vendor | Path to `uesp-init-data.json` with game formulas |
+```ts
+import data from 'uesp-eso-build-wrapper/vendor/uesp-data/uesp-game-data.json';
+initEsoEngineFromData({ initData: data });
+```
+
+| Option     | Type           | Description                              |
+| ---------- | -------------- | ---------------------------------------- |
+| `initData` | `UespInitData` | Parsed game data (bundled as `uesp-game-data.json`) |
+
+> `initEsoEngine()` (path-based) is still available for backwards compatibility but is **deprecated**.
+
+---
 
 ### `calculateBuild(input: BuildInput): ComputedStats`
 
@@ -93,22 +131,34 @@ Runs the UESP engine and returns the computed stats.
 ```ts
 interface BuildInput {
   character: {
-    race: string; // "High Elf" | "Nord" | "Breton" | "Khajiit" | ...
-    class: string; // "Sorcerer" | "Dragonknight" | "Nightblade" | ...
-    level: number; // 1–50
+    race: string;           // "High Elf" | "Nord" | "Breton" | "Khajiit" | ...
+    class: string;          // "Sorcerer" | "Dragonknight" | "Nightblade" | ...
+    level: number;          // 1–50
     attributes: {
-      health: number; // attribute points (max 64 total)
+      health: number;       // attribute points (max 64 total)
       magicka: number;
       stamina: number;
     };
-    mundusStone?: string; // "The Thief" | "The Apprentice" | ...
-    cyrodiil?: boolean; // Battle Spirit (PvP)
-    vampireStage?: number; // 0–4
+    mundusStone?: string;   // "The Thief" | "The Apprentice" | ...
+    mundusStone2?: string;  // second Mundus Stone (requires Twice-Born Star set)
+    cyrodiil?: boolean;     // Battle Spirit (PvP)
+    vampireStage?: number;  // 0–4
     werewolfStage?: number; // 0 or 1
     championPoints?: number; // 0–3600
-    rulesVersion?: string; // "Live" (default) | "PTS"
+    rulesVersion?: string;  // "Live" (default) | "PTS"
   };
   items?: Partial<Record<EquipSlot, UespItemApiData>>;
+  championPointNodes?: Record<string | number, ChampionPointNode>;
+  activeBuffs?: string[];     // named buffs — see listAvailableBuffs()
+  toggleSkills?: string[];    // toggled skills — see listAvailableToggleSkills()
+  skillBars?: {
+    bar1?: SkillSlot[];
+    bar2?: SkillSlot[];
+  };
+  activeWeaponBar?: 1 | 2;   // which weapon bar is active (default: 1)
+  passiveSkills?: number[];   // ability IDs of unlocked passive skills
+  autoPassives?: boolean;     // auto-inject all racial + class passives (default: false)
+  enchantOverrides?: Partial<Record<string, { enchantDesc: string; enchantName?: string }>>;
 }
 ```
 
@@ -123,7 +173,7 @@ Poison1 | Poison2 | Food | Potion
 
 #### `ComputedStats`
 
-Key stats returned (see [`types.ts`](src/lib/eso-engine/types.ts) for full list):
+Key stats returned (see [`types.ts`](src/lib/eso-engine/types.ts) for the full list):
 
 | Property                                               | Description                               |
 | ------------------------------------------------------ | ----------------------------------------- |
@@ -140,22 +190,51 @@ Key stats returned (see [`types.ts`](src/lib/eso-engine/types.ts) for full list)
 
 > All stat IDs match `g_EsoComputedStats` from the UESP engine (version 49+).
 
+---
+
+### Catalog Functions
+
+Use these to discover valid names for buffs, passives, and toggle skills.
+
+| Function | Returns | Description |
+|---|---|---|
+| `listAvailableBuffs(group?)` | `BuffInfo[]` | 164 named buffs; filter by group `"Major"` \| `"Minor"` \| `"Set"` \| `"Target"` \| … |
+| `listRacialPassives(race)` | `PassiveSkillInfo[]` | All passive ranks for a given race |
+| `listClassPassives(cls)` | `PassiveSkillInfo[]` | All passive ranks for a given class (3 skill lines) |
+| `listPassivesBySkillLine(line)` | `PassiveSkillInfo[]` | Passives for any skill line (Heavy Armor, Undaunted, etc.) |
+| `listAvailableSkillLines()` | `string[]` | All available skill line names |
+| `listAvailableToggleSkills()` | `ToggleSkillInfo[]` | 101 toggle skills; `requiresCyrodiil` marks PvP-only |
+
+```ts
+// Example: see all Major buffs
+const buffs = listAvailableBuffs('Major');
+// Example: find racial passive IDs for a High Elf build
+const passives = listRacialPassives('High Elf');
+const ids = passives.map(p => p.abilityId);
+```
+
+---
+
 ## Updating Formulas After a New ESO Patch
 
-When ZeniMax releases a new patch or DLC, the formulas may change. To update:
+When ZeniMax releases a new patch, the formulas and skill data may change. To update:
 
 ```bash
-# 1. Update the UESP submodule
+# 1. Update the UESP engine submodule
 cd vendor/uesp-esochardata
 git fetch upstream && git merge upstream/master
 cd ../..
 
-# 2. Re-extract the formulas from the UESP website
-#    Open https://esobuilds.uesp.net in a browser
-#    Run vendor/uesp-data/browser-extract.js in DevTools Console
-#    Save the result to vendor/uesp-data/uesp-init-data.json
+# 2. Download the latest UESP SQL dumps and seed local.db
+#    (see scripts/generate-data.ts for setup details)
 
-# 3. Run tests to verify
+# 3. Regenerate the bundled game data from the DB
+npm run generate-data -- --db /path/to/local.db --version <patch>
+
+# 4. Commit the updated game data
+git add vendor/uesp-data/uesp-game-data.json
+
+# 5. Run tests — update any golden values that changed intentionally
 npm test
 ```
 
