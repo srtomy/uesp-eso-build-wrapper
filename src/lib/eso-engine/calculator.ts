@@ -409,10 +409,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     if (snapshot) {
       for (const v of Object.values(snapshot) as any[]) {
         if (!v) continue;
-        if (
-          v.raceType === character.race &&
-          (v.nextSkill === -1 || String(v.nextSkill) === '-1')
-        ) {
+        if (v.raceType === character.race && (v.nextSkill === -1 || String(v.nextSkill) === '-1')) {
           allPassiveIds.add(Number(v.abilityId));
         }
       }
