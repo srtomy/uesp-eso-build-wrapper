@@ -98,11 +98,17 @@ function runFixture(fixturePath: string) {
     const got = raw[statId] ?? (result as any)[statId];
     if (got === undefined) continue; // stat not in our output — skip silently
 
-    const diff = Math.abs((got as number) - expected);
-    expect(
-      diff <= FLOAT_TOLERANCE,
-      `${statId}: got=${got} exp=${expected} diff=${got - expected > 0 ? '+' : ''}${(got - expected).toFixed(4)}`,
-    ).toBe(true);
+    const delta = (got as number) - expected;
+    const absDiff = Math.abs(delta);
+    const diffStr = Number.isInteger(delta)
+      ? `${delta > 0 ? '+' : ''}${delta}`
+      : `${delta > 0 ? '+' : ''}${delta.toFixed(4)}`;
+    expect
+      .soft(
+        absDiff <= FLOAT_TOLERANCE,
+        `${statId.padEnd(32)} got=${String(got).padStart(10)}   exp=${String(expected).padStart(10)}   diff=${diffStr}`,
+      )
+      .toBe(true);
   }
 }
 
