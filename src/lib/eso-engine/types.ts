@@ -338,6 +338,16 @@ export interface BuildInput {
    * ```
    */
   enchantOverrides?: Partial<Record<string, { enchantDesc: string; enchantName?: string }>>;
+  /**
+   * Chaves dos toggle set bonuses habilitados (correspondem a g_EsoBuildToggledSetData).
+   * Exportado automaticamente por browser-export-build.js quando o usuário ativa um toggle.
+   *
+   * As chaves são o `nameId` da regra (string), ex:
+   *   - "Ansuul's Torment"         → +7% damage done against monsters (base)
+   *   - "Ansuul's Torment (Bonus Damage)" → +14% additional (on interrupt)
+   *   - "Spectral Cloak"           → +6% damage done (via Blade Cloak proc)
+   */
+  toggledSetBonuses?: string[];
 }
 
 // ---------------------------------------------------------------------------

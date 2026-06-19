@@ -101,6 +101,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     passiveSkills,
     autoPassives,
     enchantOverrides,
+    toggledSetBonuses,
   } = input;
 
   setDomValue('esotbRace', character.race);
@@ -301,6 +302,18 @@ export function calculateBuild(input: BuildInput): ComputedStats {
       }
     }
   }
+  // Reset stack-based buff counts to 0 so that stacks-per-N formulas (e.g. Arcanist
+  // Crux) don't bleed over from previous calls. In the UESP browser the user sets
+  // count=0 explicitly; without this reset our wrapper leaves count=undefined, which
+  // the engine treats as "skip the maxTimes check" → defaults to 1 stack.
+  if (buffData && typeof buffData === 'object') {
+    for (const key of Object.keys(buffData)) {
+      const b = buffData[key];
+      if (b && typeof b === 'object' && b.maxTimes != null && b.count == null) {
+        b.count = 0;
+      }
+    }
+  }
   if (activeBuffs) {
     for (const buffName of activeBuffs) {
       if (buffData) {
@@ -397,7 +410,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
       for (const v of Object.values(snapshot) as any[]) {
         if (!v) continue;
         if (
-          (v.raceType === character.race || v.classType === character.class) &&
+          v.raceType === character.race &&
           (v.nextSkill === -1 || String(v.nextSkill) === '-1')
         ) {
           allPassiveIds.add(Number(v.abilityId));
@@ -465,7 +478,29 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     );
   }
 
-  updateFn(null, true);
+  // Patch IsEsoBuildToggledSetEnabled to honour toggledSetBonuses.
+  // The UESP engine reads this inside GetEsoInputSetValues (called after UpdateEsoItemSets
+  // sets valid=true for equipped sets). Without this patch, toggle set bonuses are never
+  // enabled in Node because the DOM checkboxes used by UpdateEsoBuildToggledSetData are empty.
+  const toggledSetIds = new Set(toggledSetBonuses ?? []);
+  const origIsEnabled = (global as any).IsEsoBuildToggledSetEnabled;
+  if (toggledSetIds.size > 0) {
+    (global as any).IsEsoBuildToggledSetEnabled = function (setId: any) {
+      if (toggledSetIds.has(String(setId))) {
+        const td = (global as any).g_EsoBuildToggledSetData?.[setId];
+        if (td?.valid) return true;
+      }
+      return origIsEnabled.call(this, setId);
+    };
+  }
+
+  try {
+    updateFn(null, true);
+  } finally {
+    if (toggledSetIds.size > 0) {
+      (global as any).IsEsoBuildToggledSetEnabled = origIsEnabled;
+    }
+  }
 
   // -------------------------------------------------------------------------
   // PASSO 5: Lê os resultados de g_EsoComputedStats[statId].value
