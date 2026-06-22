@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UESP ESO Build Exporter
 // @namespace    https://en.uesp.net/
-// @version      1.1.0
+// @version      1.2.0
 // @description  Adiciona botão de exportação no ESO Build Editor — sem precisar de DevTools (F12)
 // @author       Tarcisio Scotta
 // @match        https://en.uesp.net/wiki/Special:EsoBuildEditor*
@@ -68,10 +68,17 @@
     btn.addEventListener('mouseup',    function () { btn.style.background = '#0D47A1'; });
 
     btn.addEventListener('click', function () {
+      var race  = String($('#esotbRace').val() || '').toLowerCase().replace(/\s+/g, '-');
+      var cls   = String($('#esotbClass').val() || '').toLowerCase().replace(/\s+/g, '-');
+      var suggested = 'v50-' + (race || 'race') + '-' + (cls || 'class');
+      var name = prompt('Nome do arquivo de exportação:', suggested);
+      if (name === null) return; // cancelado
+
       btn.disabled = true;
       btn.textContent = '⏳ Exportando…';
+      var filename = (name.trim() || suggested).replace(/\.json$/i, '') + '.json';
       try {
-        exportBuild();
+        exportBuild(filename);
         btn.textContent = '✅ Exportado!';
       } catch (e) {
         btn.textContent = '❌ Erro — veja Console';
@@ -89,8 +96,14 @@
 
   // ─── lógica de exportação (idêntica ao browser-export-build.js) ─────────────
 
-  function exportBuild() {
+  function exportBuild(filename) {
+    var rulesVersion = String($('#esotbRulesVersion').val() || 'Live');
+
     var build = {
+      _meta: {
+        rulesVersion: rulesVersion,
+        exportedAt: new Date().toISOString(),
+      },
       character: {
         race:  String($('#esotbRace').val() || ''),
         class: String($('#esotbClass').val() || ''),
@@ -206,12 +219,23 @@
       });
     }
 
+    // toggle set bonuses habilitados pelo usuário no editor
+    if (typeof window.g_EsoBuildToggledSetData !== 'undefined') {
+      var toggledSetBonuses = [];
+      Object.keys(window.g_EsoBuildToggledSetData).forEach(function (id) {
+        var t = window.g_EsoBuildToggledSetData[id];
+        if (t && t.valid && t.enabled) toggledSetBonuses.push(id);
+      });
+      if (toggledSetBonuses.length > 0) build.toggledSetBonuses = toggledSetBonuses;
+    }
+
     // CP nodes alocados
     if (typeof window.g_EsoCpData !== 'undefined') {
       Object.keys(window.g_EsoCpData).forEach(function (nodeId) {
         var node = window.g_EsoCpData[nodeId];
-        if (node && node.points > 0)
-          build.championPointNodes[nodeId] = { points: node.points };
+        if (node && node.points > 0) {
+          build.championPointNodes[nodeId] = { points: node.points, isUnlocked: node.isUnlocked === true };
+        }
       });
     }
 
@@ -227,13 +251,14 @@
     }
 
     // download
-    downloadJSON(build, 'uesp-build-export.json');
+    downloadJSON(build, filename);
 
     var barCount = build.skillBars
       ? ((build.skillBars.bar1 || []).length + (build.skillBars.bar2 || []).length)
       : 0;
 
     console.log('[UESP Export] ✅ Build exportado!');
+    console.log('  Regras      : ' + rulesVersion);
     console.log('  Raça/Classe : ' + build.character.race + ' ' + build.character.class);
     console.log('  Itens       : ' + Object.keys(build.items).length + ' slots');
     console.log('  Passivas    : ' + (build.passiveSkills ? build.passiveSkills.length : 0));
