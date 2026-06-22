@@ -69,6 +69,13 @@ export {
   listAvailableSkillLines,
   listAvailableToggleSkills,
 } from './calculator';
+export { debugBuild } from './debug';
+export type {
+  BuildDebugInfo,
+  BuildDebugInputValues,
+  BuildDebugCpNode,
+  BuildDebugStatSource,
+} from './debug';
 import { cacheStatObjects } from './calculator';
 
 let initialized = false;
