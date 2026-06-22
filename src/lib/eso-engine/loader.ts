@@ -20,6 +20,7 @@ import { buildInputStats } from './input-stats';
 
 let engineLoaded = false;
 
+
 /**
  * Carrega e inicializa o motor da UESP.
  *
@@ -48,6 +49,9 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
 
   // 2. Injeta os dados de fórmulas como globais ANTES de carregar o script.
   //    O script da UESP referencia g_EsoComputedStats, g_EsoInputStats, etc. como globais.
+  //    A ordem de inserção do JSON deve ser preservada: o UESP processa deferredStats em
+  //    ordem de inserção, e stats como BashDamage (JSON pos 51) devem vir antes de
+  //    DirectDamageDone (JSON pos 71) para replicar o comportamento do browser.
   (global as any).g_EsoComputedStats = data.computedStats ?? {};
   (global as any).g_EsoInputStats = buildInputStats();
   (global as any).g_EsoInitialBuffData = data.buffData ?? {};
