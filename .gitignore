@@ -31,4 +31,5 @@ local.db
 *.db
 
 # personal Claude Code instructions (kept local, holds user preferences)
-CLAUDE.md
+# CLAUDE.md is versioned (project guide); CLAUDE.local.md holds personal prefs
+CLAUDE.local.md
