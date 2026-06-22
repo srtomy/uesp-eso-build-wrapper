@@ -341,7 +341,9 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         if (desc) {
           // Strip HTML tags and ESO color codes (|cHHHHHH...|r) so the engine's regex matching works on plain text
           const plainDesc = desc.replace(/<[^>]+>/g, '').replace(/\|c[0-9a-fA-F]{6}|\|r/g, '');
-          cpDataGlobal[nodeId] = { type: 'skill', isUnlocked: true, description: plainDesc, name };
+          // isUnlocked: use explicit value from fixture when present; default true for old fixtures without it
+          const isUnlocked = nodeData.isUnlocked !== undefined ? nodeData.isUnlocked : true;
+          cpDataGlobal[nodeId] = { type: 'skill', isUnlocked, description: plainDesc, name };
         }
         // sem descrição resolvível → node ignorado (sem efeito no motor)
       } else {
