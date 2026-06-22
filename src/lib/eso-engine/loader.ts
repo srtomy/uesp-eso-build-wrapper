@@ -20,7 +20,6 @@ import { buildInputStats } from './input-stats';
 
 let engineLoaded = false;
 
-
 /**
  * Carrega e inicializa o motor da UESP.
  *

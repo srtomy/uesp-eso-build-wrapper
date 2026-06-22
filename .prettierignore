@@ -1,2 +1,6 @@
 dist/
 vendor/
+
+# Golden build fixtures are machine-generated browser exports (scripts/uesp-build-exporter)
+# — not hand-edited, so don't enforce Prettier on them.
+tests/fixtures/
