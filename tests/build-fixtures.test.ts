@@ -113,7 +113,10 @@ function runFixture(fixturePath: string) {
 }
 
 const FIXTURES_DIR = path.resolve(__dirname, 'fixtures');
-const fixtures = fs.readdirSync(FIXTURES_DIR).filter((f) => f.endsWith('.json'));
+const fixtures = fs
+  .readdirSync(FIXTURES_DIR)
+  .filter((f) => f.endsWith('.json'))
+  .filter((f) => !f.endsWith('disabled.json'));
 
 describe('build fixtures', () => {
   for (const file of fixtures) {
