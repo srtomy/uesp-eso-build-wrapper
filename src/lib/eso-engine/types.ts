@@ -196,6 +196,12 @@ export interface ChampionPointNode {
    * Ex: 1000  ou  "10%"
    */
   currentBonus?: number | string;
+  /**
+   * Se o node está ativo/slotado no UESP.
+   * false = node tem pontos mas não está equipado (nós slotáveis não ativados).
+   * Quando ausente (fixtures antigos), assume true para compatibilidade.
+   */
+  isUnlocked?: boolean;
 }
 
 // ---------------------------------------------------------------------------
