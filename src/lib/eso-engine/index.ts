@@ -69,6 +69,7 @@ export {
   listAvailableSkillLines,
   listAvailableToggleSkills,
 } from './calculator';
+import { cacheStatObjects } from './calculator';
 
 let initialized = false;
 
@@ -116,6 +117,7 @@ export function initEsoEngineFromData({ initData }: EsoEngineFromDataOptions): v
   const resourcesPath = path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
   setupNodeEnvironment();
   loadUespEngine(resourcesPath, initData);
+  cacheStatObjects();
   initialized = true;
 }
 
