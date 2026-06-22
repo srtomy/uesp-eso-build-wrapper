@@ -31,6 +31,17 @@ import type {
   UespItemApiData,
 } from './types';
 
+// Cache dos objetos de stat — populado uma vez após initEsoEngineFromData.
+// Evita Object.keys/values a cada calculateBuild; ~200 objetos.
+let _statObjects: any[] | null = null;
+
+export function cacheStatObjects(): void {
+  const stats = (global as any).g_EsoComputedStats;
+  if (stats && typeof stats === 'object') {
+    _statObjects = Object.values(stats);
+  }
+}
+
 const ALL_SLOTS: EquipSlot[] = [
   'Head',
   'Shoulders',
@@ -84,12 +95,6 @@ function normalizeItemData(item: UespItemApiData): UespItemApiData {
  * ```
  */
 export function calculateBuild(input: BuildInput): ComputedStats {
-  // -------------------------------------------------------------------------
-  // PASSO 1: Injeta stats do personagem nos elementos mock do DOM.
-  // O motor lê esses valores via jQuery: $("#esotbRace").val(), etc.
-  // -------------------------------------------------------------------------
-  resetDomValues();
-
   const {
     character,
     items,
@@ -103,6 +108,84 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     enchantOverrides,
     toggledSetBonuses,
   } = input;
+
+  // ─── RESET DE ESTADO GLOBAL ───────────────────────────────────────────────
+  // Todos os resets em um lugar só — facilita identificar vazamentos entre chamadas.
+
+  // g_EsoComputedStats: zera value/preCapValue antes de calcular.
+  // No browser todos partem de 0 a cada load; na wrapper o objeto persiste entre
+  // chamadas e stats de um build anterior contaminam o próximo. O deferred loop
+  // (esoEditBuild.js:4397) copia g_EsoComputedStats[name].value de volta para
+  // inputValues[name] a cada passo j, então um valor remanescente corrompe stats
+  // computados cedo (ex: BashDamage). _statObjects é populado uma vez no init,
+  // evitando Object.keys a cada chamada.
+  if (_statObjects) {
+    for (const stat of _statObjects) {
+      stat.value = 0;
+      stat.preCapValue = 0;
+    }
+  }
+
+  const itemData: any = (global as any).g_EsoBuildItemData;
+  const enchantData: any = (global as any).g_EsoBuildEnchantData;
+  const buffData: any = (global as any).g_EsoBuildBuffData;
+  const toggleSkillData: any = (global as any).g_EsoBuildToggledSkillData;
+
+  const emptyBar = () =>
+    Array.from({ length: 6 }, (_, i) => ({
+      skillId: 0,
+      origSkillId: 0,
+      morphIndex: 0,
+      slotIndex: i,
+    }));
+
+  // Itens e encantamentos
+  for (const slot of ALL_SLOTS) {
+    itemData[slot] = {};
+    if (enchantData) enchantData[slot] = {};
+  }
+
+  // Champion Points
+  (global as any).g_EsoCpData = {};
+
+  // Buffs: zera flags de ativação e contadores (evita bleed de stacks como Crux de Arcanist)
+  if (buffData && typeof buffData === 'object') {
+    for (const key of Object.keys(buffData)) {
+      const b = buffData[key];
+      if (b && typeof b === 'object') {
+        b.enabled = false;
+        b.skillEnabled = false;
+        b.buffEnabled = false;
+        b.combatEnabled = false;
+        if (b.maxTimes != null && b.count == null) b.count = 0;
+      }
+    }
+  }
+
+  // Toggle skills: zera enabled E valid (valid ficava true de chamadas anteriores)
+  if (toggleSkillData && typeof toggleSkillData === 'object') {
+    for (const key of Object.keys(toggleSkillData)) {
+      const s = toggleSkillData[key];
+      if (s && typeof s === 'object') {
+        s.enabled = false;
+        s.combatEnabled = false;
+        s.valid = false;
+      }
+    }
+  }
+
+  // Skill bars e passivos/ativos
+  (global as any).g_EsoSkillBarData = [emptyBar(), emptyBar()];
+  (global as any).g_EsoSkillPassiveData = {};
+  (global as any).g_EsoSkillActiveData = {};
+
+  // ─── INJEÇÃO DE DADOS ────────────────────────────────────────────────────
+
+  // -------------------------------------------------------------------------
+  // PASSO 1: Injeta stats do personagem nos elementos mock do DOM.
+  // O motor lê esses valores via jQuery: $("#esotbRace").val(), etc.
+  // -------------------------------------------------------------------------
+  resetDomValues();
 
   setDomValue('esotbRace', character.race);
   setDomValue('esotbClass', character.class);
@@ -167,24 +250,16 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // populamos a variável global que o motor lê nativamente.
   // Os dados vêm exatamente no formato da API pública da UESP — sem adaptação.
   // -------------------------------------------------------------------------
-  const itemData: any = (global as any).g_EsoBuildItemData;
-  const enchantData: any = (global as any).g_EsoBuildEnchantData;
 
-  // Reseta todos os slots (evita dados de chamada anterior)
-  for (const slot of ALL_SLOTS) {
-    itemData[slot] = {};
-    if (enchantData) {
-      // Se há override customizado, popula g_EsoBuildEnchantData[slot] com os dados do glyph.
-      // Isso faz GetEsoEnchantData() usar o caminho customizado (isDefaultEnchant=false),
-      // e o engine aplica o fator de escala 0.4044 para slots pequenos (Hands/Waist/Feet/Shoulders).
-      // Clone raso para evitar mutação entre chamadas.
-      const override = enchantOverrides?.[slot];
-      enchantData[slot] = override ? { ...override } : {};
+  // Encantamentos customizados: faz GetEsoEnchantData() usar o caminho isDefaultEnchant=false,
+  // aplicando o fator 0.4044 para slots pequenos (Hands/Waist/Feet/Shoulders).
+  if (enchantData && enchantOverrides) {
+    for (const slot of ALL_SLOTS) {
+      const override = enchantOverrides[slot];
+      if (override) enchantData[slot] = { ...override };
     }
   }
 
-  // Reseta g_EsoCpData para evitar bleed-through entre chamadas
-  (global as any).g_EsoCpData = {};
   const cpDataGlobal: any = (global as any).g_EsoCpData;
 
   // Injeta os itens fornecidos (normalizados com defaults seguros)
@@ -288,32 +363,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   //
   // g_EsoBuildBuffData é um Proxy que auto-cria entradas.
   // Setar .enabled = true é suficiente para IsEsoBuffEnabled() retornar true.
-  // Reseta todos os buffs antes para evitar bleed-through entre chamadas.
+  // (reset já feito no bloco de reset global acima)
   // -------------------------------------------------------------------------
-  const buffData: any = (global as any).g_EsoBuildBuffData;
-  if (buffData && typeof buffData === 'object') {
-    for (const key of Object.keys(buffData)) {
-      const b = buffData[key];
-      if (b && typeof b === 'object') {
-        b.enabled = false;
-        b.skillEnabled = false;
-        b.buffEnabled = false;
-        b.combatEnabled = false;
-      }
-    }
-  }
-  // Reset stack-based buff counts to 0 so that stacks-per-N formulas (e.g. Arcanist
-  // Crux) don't bleed over from previous calls. In the UESP browser the user sets
-  // count=0 explicitly; without this reset our wrapper leaves count=undefined, which
-  // the engine treats as "skip the maxTimes check" → defaults to 1 stack.
-  if (buffData && typeof buffData === 'object') {
-    for (const key of Object.keys(buffData)) {
-      const b = buffData[key];
-      if (b && typeof b === 'object' && b.maxTimes != null && b.count == null) {
-        b.count = 0;
-      }
-    }
-  }
   if (activeBuffs) {
     for (const buffName of activeBuffs) {
       if (buffData) {
@@ -331,18 +382,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // PASSO 3c: Habilita toggle skills.
   //
   // IsEsoBuildToggledSkillEnabled() verifica: skillData.valid && skillData.enabled
-  // Reseta todos os toggles antes para evitar bleed-through entre chamadas.
+  // (reset de enabled, combatEnabled e valid já feito no bloco de reset global acima)
   // -------------------------------------------------------------------------
-  const toggleSkillData: any = (global as any).g_EsoBuildToggledSkillData;
-  if (toggleSkillData && typeof toggleSkillData === 'object') {
-    for (const key of Object.keys(toggleSkillData)) {
-      const s = toggleSkillData[key];
-      if (s && typeof s === 'object') {
-        s.enabled = false;
-        s.combatEnabled = false;
-      }
-    }
-  }
   if (toggleSkills) {
     for (const skillName of toggleSkills) {
       if (toggleSkillData) {
@@ -363,16 +404,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // LIMITAÇÃO ATUAL: sem g_SkillsData no uesp-init-data.json, os skill IDs são
   // injetados mas os passivos de skill line não geram stats. Será funcional
   // quando g_SkillsData for adicionado ao JSON de extração.
+  // (g_EsoSkillBarData já inicializado com barras vazias no bloco de reset acima)
   // -------------------------------------------------------------------------
-  const emptyBar = () =>
-    Array.from({ length: 6 }, (_, i) => ({
-      skillId: 0,
-      origSkillId: 0,
-      morphIndex: 0,
-      slotIndex: i,
-    }));
-  (global as any).g_EsoSkillBarData = [emptyBar(), emptyBar()];
-
   if (skillBars) {
     const barMap: [SkillSlot[] | undefined, 0 | 1][] = [
       [skillBars.bar1, 0],
@@ -400,8 +433,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   //
   // Cada entrada: { abilityId } — o engine busca g_SkillsData[abilityId] para
   // obter coeficientes e gerar a descrição do passivo.
+  // (g_EsoSkillPassiveData já zerado no bloco de reset acima)
   // -------------------------------------------------------------------------
-  (global as any).g_EsoSkillPassiveData = {};
   const allPassiveIds = new Set<number>(passiveSkills ?? []);
   if (autoPassives) {
     // Use the loader snapshot (written before any calculations) to avoid raceType mutation.
@@ -429,8 +462,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // GetEsoInputSkillActiveBar lê g_EsoSkillBarData[barra][slot].origSkillId e
   // busca g_EsoSkillActiveData[origSkillId].abilityId para obter a descrição.
   // Populamos automaticamente para todos os slots não-vazios das barras.
+  // (g_EsoSkillActiveData já zerado no bloco de reset acima)
   // -------------------------------------------------------------------------
-  (global as any).g_EsoSkillActiveData = {};
   if (skillBars) {
     const activeData: Record<number, { abilityId: number }> = {};
     const bars = [skillBars.bar1, skillBars.bar2];
@@ -744,3 +777,4 @@ export function listAvailableToggleSkills(): ToggleSkillInfo[] {
 
   return result.sort((a, b) => a.name.localeCompare(b.name));
 }
+
