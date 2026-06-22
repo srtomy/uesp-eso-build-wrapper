@@ -77,4 +77,3 @@ vendor/
 - All tests must pass (`npm test`)
 - Lint and format must pass (`npm run lint && npm run format:check`)
 - Add or update tests for any behaviour change
-- Update CHANGELOG.md under `[Unreleased]`
