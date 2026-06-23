@@ -10,5 +10,10 @@ export default defineConfig({
     forkOptions: {
       singleFork: true,
     },
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.d.ts'],
+    },
   },
 });
