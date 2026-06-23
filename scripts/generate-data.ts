@@ -98,8 +98,9 @@ db.close();
 const elapsed = Date.now() - t0;
 const csCount = Object.keys(initData.computedStats).length;
 const rulesTypes = Object.keys(initData.buildRules ?? {});
-const rulesCount = Object.values(initData.buildRules ?? {}).reduce(
-  (acc, bucket) => acc + Object.keys(bucket as Record<string, unknown>).length, 0
+const rulesCount = Object.values(initData.buildRules ?? {}).reduce<number>(
+  (acc, bucket) => acc + Object.keys(bucket as Record<string, unknown>).length,
+  0
 );
 const cpCount = Object.keys(initData.cpSkillsData ?? {}).length;
 const skillCount = Object.keys(initData.skillsData ?? {}).length;
