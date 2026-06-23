@@ -57,6 +57,7 @@
     "generate-data": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/generate-data.ts",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:explore": "ts-node --project tsconfig.json scripts/test-engine.ts",
     "test:build": "ts-node --project tsconfig.json scripts/test-build.ts",
     "test:db-init": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/test-db-init.ts"
