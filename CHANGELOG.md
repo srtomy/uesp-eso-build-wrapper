@@ -19,12 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - TS6059 error in editors for files under `tests/` and `scripts/` (tsconfig restructure)
 - Type error in `scripts/generate-data.ts` (`reduce<number>`)
+- `autoPassives` JSDoc incorrectly claimed class passives were injected; it mirrors the UESP "Auto Purchase Racial Passives" checkbox (racial only)
+
+### Removed
+- `initEsoEngine()` (deprecated since 0.2.0) — use `initEsoEngineFromData({ initData })` instead; `uesp-init-data.json` no longer exists
 
 ## [0.2.0] — 2026-06-06
 
 ### Added
 - `initEsoEngineFromData()` — init from pre-parsed `UespInitData` object (avoids FS reads at runtime)
-- `autoPassives` option: auto-inject all racial + class passives at highest rank
+- `autoPassives` option: auto-inject racial passives at highest rank
 - `toggledSetBonuses` input: toggle-keyed set bonuses (e.g. Ansuul's Torment)
 - `enchantOverrides`: per-slot custom enchant glyphs
 - `skillBars.bar2` + `activeWeaponBar` support
