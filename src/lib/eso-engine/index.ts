@@ -43,7 +43,6 @@ import * as path from 'path';
 import { setupNodeEnvironment } from './env-setup';
 import { loadUespEngine, resetEngineLoader } from './loader';
 import { calculateBuild } from './calculator';
-
 import type { UespInitData } from './types';
 
 export type {
@@ -79,35 +78,6 @@ export type {
 import { cacheStatObjects } from './calculator';
 
 let initialized = false;
-
-/**
- * @deprecated Use `initEsoEngineFromData({ initData })` instead.
- * This function loads game data from a JSON file on disk (bundled at vendor/uesp-data/uesp-init-data.json).
- * The new API accepts a pre-parsed `UespInitData` object directly, decoupling data loading from engine init.
- *
- * Migration:
- * ```ts
- * // Before
- * initEsoEngine();
- *
- * // After
- * import data from 'uesp-eso-build-wrapper/vendor/uesp-data/uesp-game-data.json';
- * initEsoEngineFromData({ initData: data });
- * ```
- */
-export function initEsoEngine(uespResourcesPath?: string, initData?: string | UespInitData): void {
-  if (initialized) return;
-  // __dirname resolves to dist/lib/eso-engine/ in the built package.
-  // Going up 3 levels reaches the package root (node_modules/uesp-eso-build-wrapper/).
-  const pkgRoot = path.resolve(__dirname, '../../..');
-  const resourcesPath =
-    uespResourcesPath ?? path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
-  const data: string | UespInitData =
-    initData ?? path.join(pkgRoot, 'vendor/uesp-data/uesp-init-data.json');
-  setupNodeEnvironment();
-  loadUespEngine(resourcesPath, data);
-  initialized = true;
-}
 
 export interface EsoEngineFromDataOptions {
   initData: UespInitData;

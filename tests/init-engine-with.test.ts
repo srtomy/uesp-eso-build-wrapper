@@ -12,7 +12,7 @@ afterAll(() => {
 });
 
 describe('initEsoEngineFromData', () => {
-  it('produz os mesmos stats baseline que initEsoEngine', () => {
+  it('produz os stats baseline corretos', () => {
     const stats = calculateBuild({
       character: {
         race: 'High Elf',

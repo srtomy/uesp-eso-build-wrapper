@@ -506,7 +506,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   if (typeof updateFn !== 'function') {
     throw new Error(
       '[eso-engine] UpdateEsoComputedStatsList_Real não está disponível. ' +
-        'Certifique-se de chamar initEsoEngine() antes de calculateBuild().',
+        'Certifique-se de chamar initEsoEngineFromData() antes de calculateBuild().',
     );
   }
 
@@ -606,7 +606,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
  * Each entry maps to one row in the UESP buff tab. Pass `entry.name` to
  * `BuildInput.activeBuffs` to enable that buff in a calculation.
  *
- * Must be called after `initEsoEngine()`.
+ * Must be called after `initEsoEngineFromData()`.
  *
  * @param group - Optional filter. Ex: "Major", "Minor", "Set", "Target",
  *   "Skill", "Potion", "Poison", "Cyrodiil", "Other".
@@ -673,7 +673,7 @@ function buildPassiveSkillInfos(
  * Each passive may appear in multiple ranks (rank 1, 2, 3).
  * Pass the abilityId of the desired rank to BuildInput.passiveSkills.
  *
- * Must be called after initEsoEngine().
+ * Must be called after initEsoEngineFromData().
  *
  * @param race - Race name as passed to BuildInput.character.race.
  *   Ex: "High Elf", "Nord", "Khajiit"
@@ -690,7 +690,7 @@ export function listRacialPassives(race: string): PassiveSkillInfo[] {
  * Each passive may appear in multiple ranks (rank 1, 2, 3).
  * Pass the abilityId of the desired rank to BuildInput.passiveSkills.
  *
- * Must be called after initEsoEngine().
+ * Must be called after initEsoEngineFromData().
  *
  * @param className - Class name as passed to BuildInput.character.class.
  *   Ex: "Sorcerer", "Nightblade", "Dragonknight"
@@ -707,7 +707,7 @@ export function listClassPassives(className: string): PassiveSkillInfo[] {
  * Each passive may appear in multiple ranks (rank 1, 2, 3).
  * Pass the abilityId of the desired rank to BuildInput.passiveSkills.
  *
- * Must be called after initEsoEngine().
+ * Must be called after initEsoEngineFromData().
  *
  * @param skillLine - Skill line name as it appears in g_SkillsData.
  *   Use listAvailableSkillLines() to discover valid names.
@@ -726,7 +726,7 @@ export function listPassivesBySkillLine(skillLine: string): PassiveSkillInfo[] {
  * Returns all skill line names that have passive skills available.
  * Use the returned names with listPassivesBySkillLine().
  *
- * Must be called after initEsoEngine().
+ * Must be called after initEsoEngineFromData().
  */
 export function listAvailableSkillLines(): string[] {
   const snapshot: any = (global as any).g_EsoPassiveSkillSnapshot;
@@ -747,7 +747,7 @@ export function listAvailableSkillLines(): string[] {
  * Toggle skills backed by a passive (isPassive=true) need the associated skill
  * in passiveSkills/skillBars for the engine to process the description match.
  *
- * Must be called after initEsoEngine().
+ * Must be called after initEsoEngineFromData().
  */
 export function listAvailableToggleSkills(): ToggleSkillInfo[] {
   const toggleData: any = (global as any).g_EsoBuildToggledSkillData;
