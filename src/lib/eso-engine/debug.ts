@@ -74,7 +74,7 @@ function pickNonZero(obj: Record<string, any>): Record<string, number> {
  * regras de passivos os leem indiretamente. O patch captura os inputValues exatos usados
  * no cálculo, sem re-executá-lo.
  *
- * Must be called after initEsoEngine().
+ * Must be called after initEsoEngineFromData().
  */
 export function debugBuild(input: BuildInput): BuildDebugInfo {
   const g = global as any;

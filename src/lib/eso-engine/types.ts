@@ -319,11 +319,11 @@ export interface BuildInput {
    */
   passiveSkills?: number[];
   /**
-   * When true, automatically injects the highest-rank racial and class passives
-   * for character.race and character.class (in addition to any explicit passiveSkills).
+   * When true, automatically injects the highest-rank racial passives for
+   * character.race (in addition to any explicit passiveSkills).
    *
-   * Equivalent to manually calling listRacialPassives(race) + listClassPassives(class),
-   * taking the highest rank of each passive, and adding those abilityIds to passiveSkills.
+   * Mirrors the UESP "Auto Purchase Racial Passives" checkbox — class passives
+   * must be passed explicitly via passiveSkills or listClassPassives().
    *
    * @default false
    */
