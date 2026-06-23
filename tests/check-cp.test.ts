@@ -56,13 +56,13 @@ describe('CP rules — estrutura carregada pelo motor', () => {
     expect(Object.keys(rules.cp).length).toBeGreaterThanOrEqual(84);
   });
 
-  it('g_EsoCpSkills é um objeto após initEsoEngine()', () => {
+  it('g_EsoCpSkills é um objeto após initEsoEngineFromData()', () => {
     const cpSkills = (global as any).g_EsoCpSkills;
     expect(cpSkills).toBeDefined();
     expect(typeof cpSkills).toBe('object');
   });
 
-  it('g_EsoCpSkillDesc é um objeto após initEsoEngine()', () => {
+  it('g_EsoCpSkillDesc é um objeto após initEsoEngineFromData()', () => {
     const cpSkillDesc = (global as any).g_EsoCpSkillDesc;
     expect(cpSkillDesc).toBeDefined();
     expect(typeof cpSkillDesc).toBe('object');

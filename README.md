@@ -90,7 +90,7 @@ const stats = calculateBuild({
     mundusStone: 'The Apprentice',
     championPoints: 160,
   },
-  // Auto-inject all racial + class passives at highest rank
+  // Auto-inject all racial passives at highest rank (mirrors UESP "Auto Purchase Racial Passives")
   autoPassives: true,
   // Named buffs from the UESP buff catalog
   activeBuffs: ['Major Prophecy', 'Minor Slayer', 'Major Sorcery'],
@@ -121,7 +121,6 @@ initEsoEngineFromData({ initData: data });
 | ---------- | -------------- | ---------------------------------------- |
 | `initData` | `UespInitData` | Parsed game data (bundled as `uesp-game-data.json`) |
 
-> `initEsoEngine()` (path-based) is still available for backwards compatibility but is **deprecated**.
 
 ---
 
@@ -160,7 +159,7 @@ interface BuildInput {
   };
   activeWeaponBar?: 1 | 2;   // which weapon bar is active (default: 1)
   passiveSkills?: number[];   // ability IDs of unlocked passive skills
-  autoPassives?: boolean;     // auto-inject all racial + class passives (default: false)
+  autoPassives?: boolean;     // auto-inject racial passives (default: false)
   enchantOverrides?: Partial<Record<string, { enchantDesc: string; enchantName?: string }>>;
   // ^ custom enchant glyphs per slot — overrides item.enchantDesc (exported by browser-export-build.js)
   toggledSetBonuses?: string[]; // set bonus toggle keys enabled in the editor — see browser-export-build.js
