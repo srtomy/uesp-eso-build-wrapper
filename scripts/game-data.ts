@@ -1,14 +1,13 @@
 import path from 'path';
 import fs from 'fs';
-import type { UespInitData } from '../../src/lib/eso-engine';
+import type { UespInitData } from '../src/lib/eso-engine';
 
-const JSON_PATH = path.resolve(__dirname, '../../vendor/uesp-data/uesp-game-data.json');
+const JSON_PATH = path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json');
 
 /**
  * Loads UespInitData from an open SQLite database connection.
- * Exported so test-db-init.ts can reuse this logic with its own DB path / version.
  */
-export function loadInitDataFromDb(db: any, versionOverride?: string | null): UespInitData {
+export function extractGameData(db: any, versionOverride?: string | null): UespInitData {
   const version: string =
     versionOverride ??
     (() => {

@@ -20,7 +20,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-engine';
 import { calculateBuild, initEsoEngineFromData, resetEngine } from '../src/lib/eso-engine';
-import { loadInitDataFromDb } from '../tests/helpers/load-init-data';
+import { extractGameData } from './game-data';
 
 // ---------------------------------------------------------------------------
 // Args
@@ -81,7 +81,7 @@ console.log(`  tempo: ${Date.now() - t0}ms`);
 console.log('\nRodando com local.db (SQLite)...');
 const db = new DatabaseSync(dbPath);
 const t1 = Date.now();
-const dbInitData = loadInitDataFromDb(db, versionOverride);
+const dbInitData = extractGameData(db, versionOverride);
 const tLoad = Date.now();
 console.log(`  carregamento do banco: ${tLoad - t1}ms`);
 const rawDb = runBuild('DB ', () => initEsoEngineFromData({ initData: dbInitData }));
