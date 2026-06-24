@@ -25,7 +25,7 @@ import {
   listAvailableSkillLines,
   listAvailableToggleSkills,
 } from '../src/lib/eso-engine';
-import { loadInitData } from './helpers/load-init-data';
+import { loadInitData } from '../scripts/game-data';
 
 // ── Engine setup ──────────────────────────────────────────────────────────────
 
