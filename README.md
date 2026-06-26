@@ -287,6 +287,26 @@ git add vendor/uesp-data/uesp-game-data.json
 npm test
 ```
 
+## Framework Integration
+
+### Next.js (Vercel / serverless)
+
+The vendor JS files (`esobuilddata.js`, `esoEditBuild.js`) are loaded at runtime via `fs.readFileSync` with a dynamic path. Next.js's output file tracer (`@vercel/nft`) cannot detect them automatically, so they must be declared explicitly in `next.config.ts`:
+
+```ts
+// next.config.ts
+const nextConfig: NextConfig = {
+  serverExternalPackages: ['uesp-eso-build-wrapper'],
+  outputFileTracingIncludes: {
+    '/**': ['./node_modules/uesp-eso-build-wrapper/vendor/**'],
+  },
+};
+```
+
+Without this, the engine will throw at runtime in any serverless environment (Vercel, AWS Lambda, etc.) because the vendor files are not included in the deployment bundle.
+
+---
+
 ## License
 
 MIT © srtomy
