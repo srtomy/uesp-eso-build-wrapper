@@ -15,7 +15,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import * as path from 'path';
 import * as fs from 'fs';
-import { loadInitDataFromDb } from '../tests/helpers/load-init-data';
+import { extractGameData } from './game-data';
 
 const ansi = (code: number) => (s: string) => `\x1b[${code}m${s}\x1b[0m`;
 const c = {
@@ -92,14 +92,15 @@ const version: string =
 log.info('Versão das regras: %s', c.cyan(c.bold(version)));
 
 const t0 = Date.now();
-const initData = loadInitDataFromDb(db, version);
+const initData = extractGameData(db, version);
 db.close();
 
 const elapsed = Date.now() - t0;
 const csCount = Object.keys(initData.computedStats).length;
 const rulesTypes = Object.keys(initData.buildRules ?? {});
-const rulesCount = Object.values(initData.buildRules ?? {}).reduce(
-  (acc, bucket) => acc + Object.keys(bucket as Record<string, unknown>).length, 0
+const rulesCount = Object.values(initData.buildRules ?? {}).reduce<number>(
+  (acc, bucket) => acc + Object.keys(bucket as Record<string, unknown>).length,
+  0
 );
 const cpCount = Object.keys(initData.cpSkillsData ?? {}).length;
 const skillCount = Object.keys(initData.skillsData ?? {}).length;

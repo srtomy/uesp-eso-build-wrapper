@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { initEsoEngineFromData, resetEngine, calculateBuild } from '../src/lib/eso-engine';
-import { loadInitData } from './helpers/load-init-data';
+import { loadInitData } from '../scripts/game-data';
 
 beforeAll(() => {
   resetEngine();
@@ -12,7 +12,7 @@ afterAll(() => {
 });
 
 describe('initEsoEngineFromData', () => {
-  it('produz os mesmos stats baseline que initEsoEngine', () => {
+  it('produz os stats baseline corretos', () => {
     const stats = calculateBuild({
       character: {
         race: 'High Elf',

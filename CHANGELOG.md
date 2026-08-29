@@ -2,68 +2,66 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.1] - 2026-06-07
-
-### Fixed
-
-- **npm package contents** — `vendor/uesp-esochardata` and `vendor/uesp-esolog` submodules were not initialized at publish time, causing the v0.1.0 tarball to ship without `esoskills.js`, `esobuilddata.js`, and `esoEditBuild.js`. The package was also missing `vendor/uesp-data/uesp-init-data.json`. All required vendor assets are now correctly included.
-
-## [0.1.0] - 2026-06-06
+## [0.3.0] — 2026-08-29
 
 ### Added
+- Per-node `isUnlocked` for Champion Points — unlock individual CP stars instead of whole nodes
+- `toggledSetBonuses` input: toggle-keyed set bonuses (e.g. Ansuul's Torment)
+- `debugBuild()`: diagnostic snapshot of engine state without re-running
+- `docs/ENGINE-QUIRKS.md` — catalog of known UESP engine quirks and calculation divergences
+- Framework Integration guide and improved vendor-not-found error message
+- `SECURITY.md` — security policy and trust-boundary documentation
+- GitHub issue templates (bug report, feature request) and PR template
+- Golden build fixtures for ESO v50 (5× High Elf Sorcerer, Khajiit Nightblade, Dark Elf Arcanist) with `.disabled.json` skip suffix support
+- `tsconfig.build.json` — dedicated emit config; `tsconfig.json` is now the broad editor config (fixes TS6059 for `tests/` files)
+- CI matrix now includes Node 20.x alongside 22.x
+- `test:coverage` script (uses `@vitest/coverage-v8`, already a devDependency)
 
-- **Passive skills** — `passiveSkills: [abilityId, ...]` applies any skill passive (armor lines, racial, class, guild, etc.) and scales by piece count where applicable
-- **`autoPassives`** — `character.autoPassives: true` applies all racial and class passives automatically for a character
-- **`skillBars`** — `skillBars: { bar1, bar2 }` slots active skills onto bars; skills that grant buffs while slotted (e.g. Major Prophecy from Inferno) apply automatically
-- **`toggleSkills`** — enables toggled skills (Cyrodiil PvP skills + passive toggles like Aegis of the Unseen)
-- **`mundusStone2`** — second Mundus Stone for Twice-Born Star builds
-- **`listRacialPassives(race)`** — catalog of all passive skills for a given race (all ranks)
-- **`listClassPassives(class)`** — catalog of all passive skills for a given class across all three skill lines
-- **`listPassivesBySkillLine(line)`** — catalog of passives for any skill line (Heavy Armor, Undaunted, Fighters Guild, etc.)
-- **`listAvailableSkillLines()`** — lists all available skill line names
-- **`listAvailableToggleSkills()`** — catalog of all 101 toggle skills with effects and Cyrodiil flag
-- **`listAvailableBuffs(group?)`** — catalog of 164 named buffs (Major/Minor/Set/…) filterable by group
-- **`activeBuffs`** — `activeBuffs: ['Major Prophecy', ...]` applies named buffs by name
-- **Drink buffs** — `items.Food` supports `type: '5'` for drink consumables (Stamina/Health recovery)
-- **`vendor/uesp-esolog`** submodule — provides `esoskills.js` for skill description resolution
-- **228-test suite** — full coverage of all features including regression tests for the `\n\n` whitespace fix
-
-### Fixed
-
-- **Movement cost passives** (`SneakCost`, `SprintCost`, `RollDodgeCost`) were over-calculated due to a monkey-patch in `loader.ts` (`RemoveEsoDescriptionFormats`) that collapsed `\n\n → " "`, breaking `[\r\n ]{2,}` regex patterns in Medium Armor rules. Patch removed; `ComputeEsoInputSkillValue` already handles `\n` normalization internally.
-- **`browser-extract.js`** URL corrected from `esobuilds.uesp.net` to `en.uesp.net/wiki/Special:EsoBuildEditor` to match `browser-export-build.js` and prevent `g_SkillsData` version mismatch
-- **`@vitest/coverage-v8`** moved from `dependencies` to `devDependencies`
-- **`.gitmodules`** SSH URLs changed to HTTPS for anonymous clone support
-
-## [0.1.0-beta-1] - 2026-06-03
-
-### Added
-
-- Champion Points metadata and dynamic description resolution for CP nodes
-- Full test suite: regeneration, armor, critical, Mundus Stone, effective power, full 12-item build
-- Vitest testing framework configuration (single-fork, serial execution required by the UESP global engine)
-- ESLint and Prettier configuration
+### Changed
+- ESO patch 50 data (`uesp-game-data.json` regenerated)
+- Browser exporter bumped to v1.2.0 (filename prompt, per-node `isUnlocked`, toggled set bonuses)
+- Calculator perf: consolidated global state resets and cached stat objects
 
 ### Fixed
+- Computed stats preserve JSON order — fixes `BashDamage` mapping divergence
+- TS6059 error in editors for files under `tests/` and `scripts/` (tsconfig restructure)
+- Type error in `scripts/generate-data.ts` (`reduce<number>`)
+- `autoPassives` JSDoc incorrectly claimed class passives were injected; it mirrors the UESP "Auto Purchase Racial Passives" checkbox (racial only)
 
-- Armor enchantment build rules added to `uesp-init-data.json`
+### Removed
+- **BREAKING**: `initEsoEngine()` (deprecated since 0.2.0) — use `initEsoEngineFromData({ initData })` instead; `uesp-init-data.json` no longer exists
 
-## [0.1.0-alpha] - initial release
+## [0.2.0] — 2026-06-06
 
 ### Added
+- `initEsoEngineFromData()` — init from pre-parsed `UespInitData` object (avoids FS reads at runtime)
+- `autoPassives` option: auto-inject racial passives at highest rank
+- `enchantOverrides`: per-slot custom enchant glyphs
+- `skillBars.bar2` + `activeWeaponBar` support
+- Full CP node support via `championPointNodes`
 
-- Node.js/TypeScript wrapper around the UESP ESO Build Editor math engine
-- `initEsoEngine()` singleton loader — executes UESP scripts via `vm.runInThisContext`
-- `calculateBuild()` — injects character inputs into mock DOM, runs UESP calculations, returns typed stats
-- 221 computed character statistics (Health, Magicka, Stamina, resistances, crit, regeneration, etc.)
-- Support for equipped items via UESP public item API format
-- Champion Points node injection (CP2 system)
-- Mundus Stone, active buffs, and food/drink buff support
-- Set bonuses resolved automatically by the UESP engine
-- Full TypeScript types for inputs and all computed stats
+### Fixed
+- `SneakCost`, `SprintCost`, `RollDodgeCost` overcalculated: removed monkey-patch on
+  `RemoveEsoDescriptionFormats` that collapsed `\n\n → " "` before `ComputeEsoInputSkillValue`
+  could process it (broke Medium Armor passive regexes)
+
+### Changed
+- `initEsoEngine()` (path-based) deprecated in favour of `initEsoEngineFromData()`
+
+## [0.1.0] — 2026-05-01
+
+### Added
+- Initial release
+- `calculateBuild()` wrapping the UESP engine via `vm.runInThisContext`
+- `listAvailableBuffs()`, `listRacialPassives()`, `listClassPassives()`,
+  `listPassivesBySkillLine()`, `listAvailableSkillLines()`, `listAvailableToggleSkills()`
+- `browser-export-build.js` DevTools exporter
+- Golden build-fixture test suite (`build-fixtures.test.ts`)
 - Zero runtime dependencies
-- `vendor/uesp-esochardata` as a git submodule (UESP engine scripts)
-- `vendor/uesp-data/uesp-init-data.json` — game formula data extracted from live UESP website
+
+[0.3.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/srtomy/uesp-eso-build-wrapper/releases/tag/v0.1.0

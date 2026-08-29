@@ -196,6 +196,12 @@ export interface ChampionPointNode {
    * Ex: 1000  ou  "10%"
    */
   currentBonus?: number | string;
+  /**
+   * Se o node está ativo/slotado no UESP.
+   * false = node tem pontos mas não está equipado (nós slotáveis não ativados).
+   * Quando ausente (fixtures antigos), assume true para compatibilidade.
+   */
+  isUnlocked?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -313,11 +319,11 @@ export interface BuildInput {
    */
   passiveSkills?: number[];
   /**
-   * When true, automatically injects the highest-rank racial and class passives
-   * for character.race and character.class (in addition to any explicit passiveSkills).
+   * When true, automatically injects the highest-rank racial passives for
+   * character.race (in addition to any explicit passiveSkills).
    *
-   * Equivalent to manually calling listRacialPassives(race) + listClassPassives(class),
-   * taking the highest rank of each passive, and adding those abilityIds to passiveSkills.
+   * Mirrors the UESP "Auto Purchase Racial Passives" checkbox — class passives
+   * must be passed explicitly via passiveSkills or listClassPassives().
    *
    * @default false
    */
@@ -338,6 +344,16 @@ export interface BuildInput {
    * ```
    */
   enchantOverrides?: Partial<Record<string, { enchantDesc: string; enchantName?: string }>>;
+  /**
+   * Chaves dos toggle set bonuses habilitados (correspondem a g_EsoBuildToggledSetData).
+   * Exportado automaticamente por browser-export-build.js quando o usuário ativa um toggle.
+   *
+   * As chaves são o `nameId` da regra (string), ex:
+   *   - "Ansuul's Torment"         → +7% damage done against monsters (base)
+   *   - "Ansuul's Torment (Bonus Damage)" → +14% additional (on interrupt)
+   *   - "Spectral Cloak"           → +6% damage done (via Blade Cloak proc)
+   */
+  toggledSetBonuses?: string[];
 }
 
 // ---------------------------------------------------------------------------

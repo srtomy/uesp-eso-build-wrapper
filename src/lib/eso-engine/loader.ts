@@ -48,6 +48,9 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
 
   // 2. Injeta os dados de fórmulas como globais ANTES de carregar o script.
   //    O script da UESP referencia g_EsoComputedStats, g_EsoInputStats, etc. como globais.
+  //    A ordem de inserção do JSON deve ser preservada: o UESP processa deferredStats em
+  //    ordem de inserção, e stats como BashDamage (JSON pos 51) devem vir antes de
+  //    DirectDamageDone (JSON pos 71) para replicar o comportamento do browser.
   (global as any).g_EsoComputedStats = data.computedStats ?? {};
   (global as any).g_EsoInputStats = buildInputStats();
   (global as any).g_EsoInitialBuffData = data.buffData ?? {};
@@ -223,7 +226,11 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
 
   const dataScriptPath = path.join(uespResourcesPath, 'esobuilddata.js');
   if (!fs.existsSync(dataScriptPath)) {
-    throw new Error(`[eso-engine] Script de dados da UESP não encontrado: ${dataScriptPath}`);
+    throw new Error(
+      `[eso-engine] Vendor script not found: ${dataScriptPath}\n` +
+        `If you are using Next.js or a serverless environment, vendor files must be explicitly included in the deployment bundle.\n` +
+        `See: https://github.com/srtomy/uesp-eso-build-wrapper#framework-integration`,
+    );
   }
   vm.runInThisContext(fs.readFileSync(dataScriptPath, 'utf-8'), { filename: dataScriptPath });
 

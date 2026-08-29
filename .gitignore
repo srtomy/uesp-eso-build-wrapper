@@ -1,8 +1,8 @@
 # deps
 node_modules/
 
-# build output
-dist/
+# build output — ignored on main, committed on develop for Vercel preview installs
+# dist/
 
 # env — never commit real secrets
 .env
@@ -25,3 +25,11 @@ coverage/
 
 # Claude Code local config (tool-specific, not project state)
 .claude/
+
+# local SQLite DB seeded from UESP dumps (regenerated via scripts/generate-data.ts)
+local.db
+*.db
+
+# personal Claude Code instructions (kept local, holds user preferences)
+# CLAUDE.md is versioned (project guide); CLAUDE.local.md holds personal prefs
+CLAUDE.local.md

@@ -8,7 +8,7 @@
 
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initEsoEngineFromData } from '../src/lib/eso-engine';
-import { loadInitData } from './helpers/load-init-data';
+import { loadInitData } from '../scripts/game-data';
 
 beforeAll(() => {
   initEsoEngineFromData({ initData: loadInitData() });
@@ -31,18 +31,18 @@ describe('CP rules — estrutura carregada pelo motor', () => {
     }
   });
 
-  it('regra 38750 existe e afeta Magicka (categoria Item)', () => {
+  it('regra 40814 existe e afeta Magicka (categoria Item)', () => {
     const matches = (global as any).ESO_CPEFFECT_MATCHES as any[];
-    const rule = matches.find((r: any) => r.ruleId === 38750 || r.ruleId === '38750');
+    const rule = matches.find((r: any) => r.ruleId === 40814 || r.ruleId === '40814');
     expect(rule).toBeDefined();
     const magickaEffect = rule.effects.find((e: any) => e.statId === 'Magicka');
     expect(magickaEffect).toBeDefined();
-    expect(magickaEffect.ruleId).toBe('38750');
+    expect(magickaEffect.ruleId).toBe('40814');
   });
 
-  it('regra 39152 existe e afeta CritDamage com display="%"', () => {
+  it('regra 41216 existe e afeta CritDamage com display="%"', () => {
     const matches = (global as any).ESO_CPEFFECT_MATCHES as any[];
-    const rule = matches.find((r: any) => r.ruleId === 39152 || r.ruleId === '39152');
+    const rule = matches.find((r: any) => r.ruleId === 41216 || r.ruleId === '41216');
     expect(rule).toBeDefined();
     const critEffect = rule.effects.find((e: any) => e.statId === 'CritDamage');
     expect(critEffect).toBeDefined();
@@ -56,13 +56,13 @@ describe('CP rules — estrutura carregada pelo motor', () => {
     expect(Object.keys(rules.cp).length).toBeGreaterThanOrEqual(84);
   });
 
-  it('g_EsoCpSkills é um objeto após initEsoEngine()', () => {
+  it('g_EsoCpSkills é um objeto após initEsoEngineFromData()', () => {
     const cpSkills = (global as any).g_EsoCpSkills;
     expect(cpSkills).toBeDefined();
     expect(typeof cpSkills).toBe('object');
   });
 
-  it('g_EsoCpSkillDesc é um objeto após initEsoEngine()', () => {
+  it('g_EsoCpSkillDesc é um objeto após initEsoEngineFromData()', () => {
     const cpSkillDesc = (global as any).g_EsoCpSkillDesc;
     expect(cpSkillDesc).toBeDefined();
     expect(typeof cpSkillDesc).toBe('object');
