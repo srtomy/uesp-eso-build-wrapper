@@ -12,7 +12,9 @@ export default defineConfig({
     },
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json-summary'],
+      // lcov feeds the SonarCloud scan (sonar.javascript.lcov.reportPaths);
+      // json-summary feeds scripts/coverage-summary.mjs.
+      reporter: ['text', 'json-summary', 'lcov'],
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.d.ts'],
     },
