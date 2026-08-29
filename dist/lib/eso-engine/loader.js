@@ -243,7 +243,9 @@ function loadUespEngine(uespResourcesPath, initData) {
     }
     const dataScriptPath = path.join(uespResourcesPath, 'esobuilddata.js');
     if (!fs.existsSync(dataScriptPath)) {
-        throw new Error(`[eso-engine] Script de dados da UESP não encontrado: ${dataScriptPath}`);
+        throw new Error(`[eso-engine] Vendor script not found: ${dataScriptPath}\n` +
+            `If you are using Next.js or a serverless environment, vendor files must be explicitly included in the deployment bundle.\n` +
+            `See: https://github.com/srtomy/uesp-eso-build-wrapper#framework-integration`);
     }
     vm.runInThisContext(fs.readFileSync(dataScriptPath, 'utf-8'), { filename: dataScriptPath });
     const scriptPath = path.join(uespResourcesPath, 'esoEditBuild.js');
