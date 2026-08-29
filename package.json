@@ -56,6 +56,8 @@
     "lint:fix": "eslint src tests --fix",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
+    "publint": "publint",
+    "attw": "attw --pack . --ignore-rules cjs-only-exports-default",
     "generate-data": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/generate-data.ts",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",

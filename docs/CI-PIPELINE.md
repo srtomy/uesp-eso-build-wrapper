@@ -41,6 +41,11 @@ Hygiene for every job:
   superseded runs on the same PR
 - explicit minimal `permissions: contents: read` at workflow level
 - `timeout-minutes` per job (e.g. 10)
+- `npm ci --ignore-scripts` — dependency lifecycle scripts never run in CI
+  (SonarCloud S6505; this repo's deps ship binaries via optionalDependencies,
+  no scripts needed)
+- package-validation tools run as npm scripts (lockfile-pinned local binaries —
+  no `npx` on-demand installs, SonarCloud S6505/S8543)
 
 ## 3. Branch protection on `main` (the actual gate)
 
@@ -94,7 +99,8 @@ TypeScript) and the `type` field was missing.
 
 - PR titles must follow **Conventional Commits**
   (`amannn/action-semantic-pull-request`) — this is also the input for the
-  release automation below
+  release automation below; third-party actions are pinned to the full commit
+  SHA, never a mutable tag (SonarCloud S7637)
 - PR template mirroring the `CONTRIBUTING.md` checklist
 
 ## 8. Release automation (phase 2, Trello #34)
