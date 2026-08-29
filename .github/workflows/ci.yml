@@ -64,7 +64,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20.x, 22.x]
+        # Latest Node LTS only (Krypton). Node 20 reached EOL 2026-04;
+        # re-add lines to `engines`/this matrix together.
+        node-version: [24.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -81,20 +83,19 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Test
-        if: matrix.node-version != '22.x'
+        if: matrix.node-version != '24.x'
         run: npm test
 
-      # The 22.x leg runs the suite with coverage instead of a second plain run.
       - name: Test with coverage
-        if: matrix.node-version == '22.x'
+        if: matrix.node-version == '24.x'
         run: npm run test:coverage
 
       - name: Coverage summary
-        if: matrix.node-version == '22.x'
+        if: matrix.node-version == '24.x'
         run: node scripts/coverage-summary.mjs
 
       - name: Upload coverage report
-        if: matrix.node-version == '22.x'
+        if: matrix.node-version == '24.x'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report

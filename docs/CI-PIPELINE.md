@@ -11,7 +11,9 @@ Goal: a PR may only be merged into `main` when the full pipeline passes. CI is a
 
 ## 1. Current state (`ci.yml`)
 
-Runs on `push` (main/develop) and `pull_request` → main, Node 20.x/22.x matrix:
+Runs on `push` (main/develop) and `pull_request` → main/develop, Node 24.x
+(latest LTS — Node 20 hit EOL 2026-04; policy: test the newest LTS line and
+keep `engines` in sync):
 
 - checkout with `submodules: recursive` (required — the engine is vendored)
 - `npm ci`
@@ -30,7 +32,7 @@ concern has its own required check name:
 |---|---|
 | `lint` | `npm run lint && npm run format:check` |
 | `typecheck` | `tsc --noEmit -p tsconfig.json` |
-| `test` | `npm test` (Node 20.x + 22.x matrix) |
+| `test` | `npm test` (Node 24.x, latest LTS; the job runs with coverage) |
 | `build` | `npm run build` |
 | `package` | `npm run build && publint && attw --pack . && npm publish --dry-run` |
 | `security` | `npm audit --audit-level=high` |
@@ -52,8 +54,8 @@ Hygiene for every job:
 Repository **Settings → Branches → Add rule** for `main`:
 
 - **Require a pull request before merging**
-- **Require status checks to pass**: `lint`, `typecheck`, `test (20.x)`,
-  `test (22.x)`, `build`, `package`, `security`
+- **Require status checks to pass**: `lint`, `typecheck`, `test (24.x)`,
+  `build`, `package`, `security`, `pr-title`, `SonarCloud Code Analysis`
 - **Require branches to be up to date before merging**
 - **Require linear history** (squash merges)
 - Do not allow bypassing the rules (admins included)
