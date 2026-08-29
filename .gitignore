@@ -26,10 +26,20 @@ coverage/
 # Claude Code local config (tool-specific, not project state)
 .claude/
 
+# opencode local config (tool-specific, not project state)
+.opencode/
+
+# personal Claude Code instructions (kept local, holds user preferences)
+CLAUDE.local.md
+
+# Claude Code / opencode — symlink pro md-vault pessoal (path absoluto, não portável)
+CLAUDE.md
+AGENTS.md
+
+# docs internas — symlinks pro md-vault privado, não vão pro repo público
+docs/reference.md
+docs/research
+
 # local SQLite DB seeded from UESP dumps (regenerated via scripts/generate-data.ts)
 local.db
 *.db
-
-# personal Claude Code instructions (kept local, holds user preferences)
-# CLAUDE.md is versioned (project guide); CLAUDE.local.md holds personal prefs
-CLAUDE.local.md
