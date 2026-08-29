@@ -1,0 +1,54 @@
+name: SonarCloud
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonar:
+    # Gated on a repository variable: enable after adding the SONAR_TOKEN
+    # secret and disabling the automatic analysis in SonarCloud
+    # (Administration > Analysis Method), so the analysis runs here —
+    # deterministic, honors sonar-project.properties, and required by
+    # branch protection under the same check name.
+    name: SonarCloud Code Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ vars.SONAR_SCANNING == 'true' }}
+    steps:
+      # Full history: Sonar needs it to determine new-code on promote PRs.
+      # Submodules: the test run loads the vendored UESP engine.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        run: npm run build
+
+      - name: Test with coverage (lcov for Sonar)
+        run: npm run test:coverage
+
+      - name: SonarCloud Scan
+        # SonarSource/sonarcloud-github-action@v5.0.0 — pinned to commit SHA.
+        uses: SonarSource/sonarcloud-github-action@ffc3010689be73b8e5ae0c57ce35968afd7909e8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
