@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Complete CI merge-gate pipeline: parallel jobs (lint, typecheck, test, build, package validation, security audit), coverage summary in the CI job summary, PR title enforcement (Conventional Commits), CodeQL, Dependabot, SonarCloud
+- `typecheck`, `publint` and `attw` npm scripts; branch protection on `main` with required status checks
+
+### Changed
+- **Node.js requirement bumped to >= 24 (latest LTS)** — Node 20 reached EOL in 2026-04; CI now tests Node 24.x only
+- `exports["."].types` moved to the first condition (order-sensitive for TypeScript resolution); added `"type": "commonjs"`
+- CI hardening: `npm ci --ignore-scripts`, lockfile-pinned package-validation binaries, third-party actions pinned by commit SHA
+
 ## [0.3.0] — 2026-08-29
 
 ### Added

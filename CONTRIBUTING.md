@@ -77,3 +77,7 @@ vendor/
 - All tests must pass (`npm test`)
 - Lint and format must pass (`npm run lint && npm run format:check`)
 - Add or update tests for any behaviour change
+- Title follows Conventional Commits (`feat:`, `fix:`, `chore:`, …) — it feeds the
+  automated CHANGELOG
+- CI runs on every PR and is required to merge into `main` — see
+  `docs/CI-PIPELINE.md` for the full pipeline (jobs, coverage, package validation)
