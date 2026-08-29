@@ -17,21 +17,24 @@ maturity improvements.
 
 ## Release flow
 
-- **Reintroduce `CHANGELOG.md`** (Keep a Changelog format). `CONTRIBUTING.md` still
-  tells contributors to update `[Unreleased]`, but the file was removed — either
-  recreate it or drop that line (tracked separately).
-- **Document the release process**: bump `package.json` version → tag `v0.x.0` →
-  `npm publish` (`prepublishOnly` already runs build + lint). Consider a GitHub
-  Actions release workflow triggered on tag.
-- **`npm publish` dry run** in CI on tags to catch packaging issues (the `files`
-  allowlist in `package.json` ships only `dist/` + specific vendor files).
+- ~~Reintroduce `CHANGELOG.md`~~ — done, Keep a Changelog format.
+- **Automate the release process** (release-please: version bump + CHANGELOG +
+  npm publish from a Release PR) — designed in `docs/CI-PIPELINE.md` §8,
+  tracked on Trello card #34.
+- **`npm publish --dry-run`** in CI to catch packaging issues (the `files`
+  allowlist in `package.json` ships only `dist/` + specific vendor files) —
+  part of the `package` job, see `docs/CI-PIPELINE.md` §5.
 
 ## CI / quality
 
-- **Test matrix**: CI runs only Node 22.x, but `engines` declares `>=20.12`. Add 20.x
-  (and optionally 24.x) to the matrix so the supported range is actually exercised.
+The full CI design (parallel jobs, typecheck, coverage, package validation,
+branch protection, PR hygiene) lives in **`docs/CI-PIPELINE.md`** (Trello #33).
+Remaining items not yet implemented:
+
 - **Coverage**: `@vitest/coverage-v8` is already a devDependency — wire up
-  `vitest run --coverage` and optionally a coverage gate/badge.
+  `vitest run --coverage` in CI (§4 of the CI doc).
+- **Branch protection on `main`** with required status checks (§3).
+- **Dependency security**: `npm audit` job + Dependabot (§6).
 
 ## Project-specific tooling (ties back to Trello card #7)
 

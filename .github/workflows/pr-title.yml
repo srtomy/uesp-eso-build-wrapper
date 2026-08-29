@@ -1,0 +1,36 @@
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  pr-title:
+    name: pr-title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate PR title (Conventional Commits)
+        # amannn/action-semantic-pull-request@v6.1.1 — pinned to commit SHA
+        # (third-party actions must not float on mutable tags: SonarCloud S7637)
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            chore
+            docs
+            ci
+            refactor
+            perf
+            test
+            build
+          # Exempt automated Release PRs (release-please, phase 2).
+          ignoreLabels: |
+            github-release
