@@ -42,6 +42,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Test with coverage (lcov for Sonar)
+        run: npm run test:coverage
+
       - name: SonarCloud Scan
         # SonarSource/sonarcloud-github-action@v5.0.0 — pinned to commit SHA.
         uses: SonarSource/sonarcloud-github-action@ffc3010689be73b8e5ae0c57ce35968afd7909e8
