@@ -2,7 +2,9 @@ name: PR title
 
 on:
   pull_request:
-    types: [opened, edited, reopened]
+    # synchronize: required checks must re-run on every new head commit,
+    # otherwise branch protection blocks the PR forever.
+    types: [opened, edited, reopened, synchronize]
 
 permissions:
   pull-requests: read
