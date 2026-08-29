@@ -93,8 +93,12 @@ TypeScript) and the `type` field was missing.
 ## 6. Dependency security
 
 - `npm audit --audit-level=high` as a required job (or osv-scanner)
-- **Dependabot** (or Renovate) for automated update PRs — each update PR is
-  validated by the CI gate itself
+- **Dependabot** for automated update PRs — dev-dependencies and github-actions
+  are **grouped** (one PR per ecosystem, they would otherwise conflict on the
+  same workflow files); each update PR is validated by the CI gate itself
+- **SonarCloud** (`sonar-project.properties`) excludes `vendor/**` and
+  `dist/**` — vendored UESP code and build output are not maintained here and
+  must not affect quality ratings
 - optional: **CodeQL** for static security analysis
 
 ## 7. PR hygiene
