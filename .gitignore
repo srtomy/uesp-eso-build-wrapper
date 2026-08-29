@@ -33,5 +33,6 @@ coverage/
 CLAUDE.md
 AGENTS.md
 
-# uesp-researcher — memória de pesquisa do agente, symlink pro md-vault pessoal
+# docs internas — symlinks pro md-vault privado, não vão pro repo público
+docs/reference.md
 docs/research
