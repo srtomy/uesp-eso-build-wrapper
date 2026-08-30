@@ -1,8 +1,8 @@
 # deps
 node_modules/
 
-# build output — ignored on main, committed on develop for Vercel preview installs
-# dist/
+# build output
+dist/
 
 # env — never commit real secrets
 .env
