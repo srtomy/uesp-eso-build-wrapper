@@ -14,7 +14,6 @@
  * que o JSON precisa ser regerado com: npm run generate-data -- --db <db>
  */
 
-// @ts-expect-error node:sqlite é experimental mas disponível no Node v22+
 import { DatabaseSync } from 'node:sqlite';
 import * as path from 'path';
 import * as fs from 'fs';

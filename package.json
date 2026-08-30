@@ -1,6 +1,6 @@
 {
   "name": "uesp-eso-build-wrapper",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Node.js wrapper around the UESP ESO Build Editor math engine. Calculate Elder Scrolls Online character stats (Health, Magicka, Stamina, mitigation, crit, etc.) without rewriting any game formulas.",
   "keywords": [
     "elder-scrolls-online",
@@ -27,16 +27,17 @@
     "url": "https://github.com/srtomy/uesp-eso-build-wrapper/issues"
   },
   "engines": {
-    "node": ">=20.12.0"
+    "node": ">=24.0.0"
   },
   "main": "dist/lib/eso-engine/index.js",
   "types": "dist/lib/eso-engine/index.d.ts",
+  "type": "commonjs",
   "sideEffects": true,
   "exports": {
     ".": {
+      "types": "./dist/lib/eso-engine/index.d.ts",
       "import": "./dist/lib/eso-engine/index.js",
-      "require": "./dist/lib/eso-engine/index.js",
-      "types": "./dist/lib/eso-engine/index.d.ts"
+      "require": "./dist/lib/eso-engine/index.js"
     }
   },
   "files": [
@@ -50,10 +51,13 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint src tests",
     "lint:fix": "eslint src tests --fix",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
+    "publint": "publint",
+    "attw": "attw --pack . --ignore-rules cjs-only-exports-default",
     "generate-data": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/generate-data.ts",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
@@ -63,13 +67,15 @@
     "test:db-init": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/test-db-init.ts"
   },
   "devDependencies": {
-    "@types/node": "^20.19.41",
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@types/node": "^26.3.0",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
     "@typescript-eslint/parser": "^8.60.1",
     "@vitest/coverage-v8": "^4.1.8",
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.3",
+    "publint": "^0.3.24",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vitest": "^4.1.7"

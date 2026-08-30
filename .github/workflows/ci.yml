@@ -4,29 +4,32 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    # Gate PRs into both integration targets (develop → main chain).
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  lint:
+    name: lint
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
-
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      - uses: actions/checkout@v7
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.x
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Lint
         run: npm run lint
@@ -34,8 +37,145 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Typecheck
+        run: npm run typecheck
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Latest Node LTS only (Krypton). Node 20 reached EOL 2026-04;
+        # re-add lines to `engines`/this matrix together.
+        node-version: [24.x]
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Test
+        if: matrix.node-version != '24.x'
+        run: npm test
+
+      - name: Test with coverage
+        if: matrix.node-version == '24.x'
+        run: npm run test:coverage
+
+      - name: Coverage summary
+        if: matrix.node-version == '24.x'
+        run: node scripts/coverage-summary.mjs
+
+      - name: Upload coverage report
+        if: matrix.node-version == '24.x'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage
+          if-no-files-found: error
+          retention-days: 14
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
       - name: Build
         run: npm run build
 
-      - name: Test
-        run: npm test
+      # dist/ is committed; fail if the working tree does not match the source.
+      - name: Check dist/ is up to date
+        run: git diff --exit-code dist
+
+  package:
+    name: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        run: npm run build
+
+      # Local lockfile-pinned binaries via npm scripts: no on-demand install and
+      # no lifecycle scripts (SonarCloud S6505/S8543).
+      - name: publint (package.json vs dist)
+        run: npm run publint
+
+      - name: attw (type declarations)
+        # cjs-only-exports-default is ignored via the npm script: dist/ is a
+        # CJS-only build, so ESM consumers go through Node's default interop.
+        # Proper fix is a dual CJS/ESM build — see docs/CI-PIPELINE.md §5.
+        run: npm run attw
+
+      - name: npm publish dry run (files allowlist)
+        run: npm publish --dry-run
+
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: npm audit
+        run: npm audit --audit-level=high
