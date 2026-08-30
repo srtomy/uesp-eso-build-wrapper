@@ -240,16 +240,6 @@ export function setupNodeEnvironment(): void {
   if (!console.time) (console as any).time = () => {};
   if (!console.timeEnd) (console as any).timeEnd = () => {};
 
-  // setTimeout síncrono — o motor usa setTimeout(..., 100) para atualização assíncrona.
-  // Substituímos por execução síncrona imediata para uso em servidor.
-  (global as any).setTimeout = (fn: Function, _delay?: number) => {
-    fn();
-    return 0;
-  };
-  (global as any).clearTimeout = () => {};
-  (global as any).setInterval = (_fn: Function, _d?: number) => 0;
-  (global as any).clearInterval = () => {};
-
   // window: usamos um Proxy que redireciona leituras/escritas para global.
   // Isso evita quebrar internos do Node.js com "global.window = global".
   if (!(global as any).window) {
