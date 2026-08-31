@@ -1755,13 +1755,13 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
     it('filtra por grupo "Major" — retorna 25 buffs', () => {
       const major = listAvailableBuffs('Major');
-      expect(major.length).toBe(25);
+      expect(major).toHaveLength(25);
       expect(major.every((b) => b.group === 'Major')).toBe(true);
     });
 
     it('filtra por grupo "Minor" — retorna 29 buffs', () => {
       const minor = listAvailableBuffs('Minor');
-      expect(minor.length).toBe(29);
+      expect(minor).toHaveLength(29);
     });
 
     it('cada BuffInfo tem name, group, effects', () => {
@@ -1846,7 +1846,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
   // ── listRacialPassives ────────────────────────────────────────────────────────
   describe('listRacialPassives — catálogo de passivos raciais', () => {
     it('retorna 10 entradas para High Elf (5 passivos × até 3 ranks)', () => {
-      expect(listRacialPassives('High Elf').length).toBe(10);
+      expect(listRacialPassives('High Elf')).toHaveLength(10);
     });
 
     it('cada entrada tem abilityId numérico, rank e baseName', () => {
@@ -1883,7 +1883,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
     it("High Elf inclui Syrabane's Boon em 3 ranks", () => {
       const boons = listRacialPassives('High Elf').filter((p) => p.baseName === "Syrabane's Boon");
-      expect(boons.length).toBe(3);
+      expect(boons).toHaveLength(3);
       expect(boons.map((p) => p.rank).sort()).toEqual([1, 2, 3]);
     });
   });
@@ -1924,7 +1924,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
   // ── listAvailableToggleSkills ─────────────────────────────────────────────────
   describe('listAvailableToggleSkills — catálogo de toggle skills', () => {
     it('retorna 105 toggle skills (1 entrada anônima filtrada)', () => {
-      expect(listAvailableToggleSkills().length).toBe(105);
+      expect(listAvailableToggleSkills()).toHaveLength(105);
     });
 
     it('cada entrada tem name, isPassive e effects', () => {
@@ -1945,7 +1945,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
     it('6 toggles requerem Cyrodiil', () => {
       const cyrodiil = listAvailableToggleSkills().filter((t) => t.requiresCyrodiil);
-      expect(cyrodiil.length).toBe(6);
+      expect(cyrodiil).toHaveLength(6);
     });
 
     it('War Horn é toggle de active skill (isPassive = false)', () => {
@@ -2043,7 +2043,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     it('Undaunted retorna 4 passivos (Mettle r1/r2 + Command r1/r2)', () => {
-      expect(listPassivesBySkillLine('Undaunted').length).toBe(4);
+      expect(listPassivesBySkillLine('Undaunted')).toHaveLength(4);
     });
 
     it('Light Armor inclui Concentration e Prodigy', () => {
