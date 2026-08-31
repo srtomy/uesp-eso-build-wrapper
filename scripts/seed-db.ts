@@ -56,6 +56,19 @@ function getArg(name: string): string | undefined {
 
 const hasFlag = (name: string) => args.includes(`--${name}`) || args.includes(`-${name[0]}`);
 
+/**
+ * Existência via statSync em try/catch (e não fs.existsSync) — o par
+ * existsSync + escrita posterior é sinalizado pelo CodeQL como TOCTOU
+ * (js/file-system-race).
+ */
+function fileExists(p: string): boolean {
+  try {
+    return fs.statSync(p).isFile();
+  } catch {
+    return false;
+  }
+}
+
 const dirArg = getArg('dir');
 const versionArg = getArg('version') ?? null;
 const skipApi = hasFlag('skip-api');
@@ -100,7 +113,7 @@ async function main(): Promise<void> {
   log.info('Saída: %s', c.bold(OUT_PATH));
   if (skipApi) log.warn('%s', c.yellow('--skip-api: skillsData sairá vazio'));
 
-  if (fs.existsSync(OUT_PATH) && !yesFlag) {
+  if (fileExists(OUT_PATH) && !yesFlag) {
     const proceed = await confirm(
       `${c.yellow('?')} Sobrescrever ${c.bold(path.basename(OUT_PATH))}? [y/N]: `,
     );

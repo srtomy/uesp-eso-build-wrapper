@@ -29,10 +29,7 @@ type Row = Record<string, any>;
 /**
  * Loads UespInitData from an open SQLite database connection.
  */
-export function extractGameData(
-  db: MinimalDb,
-  versionOverride?: string | null,
-): UespInitData {
+export function extractGameData(db: MinimalDb, versionOverride?: string | null): UespInitData {
   const version: string =
     versionOverride ??
     (() => {

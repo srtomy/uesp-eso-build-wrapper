@@ -49,7 +49,7 @@ describe('parseInsertValues', () => {
     expect(parseInsertValues("( 'Syrabane\\'s Ward' )")).toEqual([["Syrabane's Ward"]]);
   });
 
-  it('converte aspas duplas dobradas (\'\') em aspas simples', () => {
+  it("converte aspas duplas dobradas ('') em aspas simples", () => {
     expect(parseInsertValues("( 'Syrabane''s Ward' )")).toEqual([["Syrabane's Ward"]]);
   });
 
@@ -66,7 +66,7 @@ describe('parseInsertValues', () => {
   });
 
   it('para no ponto-e-vírgula final', () => {
-    expect(parseInsertValues("(1, 2); LIXO")).toEqual([[1, 2]]);
+    expect(parseInsertValues('(1, 2); LIXO')).toEqual([[1, 2]]);
   });
 });
 
@@ -84,8 +84,8 @@ describe('iterateDumpRows', () => {
   it('varre INSERT em múltiplas linhas de um dump .sql.gz', async () => {
     const dump = [
       'CREATE TABLE `rules` (`id` int, `name` text);',
-      'INSERT INTO `other` VALUES (9,\'ignore\');',
-      'INSERT INTO `rules` VALUES (1,\'first\\nline\'),',
+      "INSERT INTO `other` VALUES (9,'ignore');",
+      "INSERT INTO `rules` VALUES (1,'first\\nline'),",
       "  (2,'second''s');",
       'INSERT INTO `rules` VALUES (3,NULL);',
     ].join('\n');
@@ -140,7 +140,7 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
         'CREATE TABLE `effects` (`id` int, `ruleId` int, `version` text, `statId` text, `value` text, `display` text, `category` text, `combineAs` text, `roundNum` text, `factorValue` real, `statDesc` text, `buffId` text, `regexVar` text);',
         "INSERT INTO `effects` VALUES (9000,40378,'50','Health','10','','','','',NULL,'','','');",
         'CREATE TABLE `computedStats` (`id` int, `statId` text, `version` text, `title` text, `roundNum` text, `addClass` text, `comment` text, `minimumValue` real, `maximumValue` real, `deferLevel` int, `display` text, `compute` text, `idx` int, `category` text, `suffix` text, `dependsOn` text);',
-        'INSERT INTO `computedStats` VALUES (1,\'Health\',\'50\',\'Health\',\'\',\'\',\'\',NULL,NULL,NULL,\'\',\'["300 * Level", "122 * Attribute.Health", "+"]\',0,\'basic\',\'\',NULL);',
+        "INSERT INTO `computedStats` VALUES (1,'Health','50','Health','','','',NULL,NULL,NULL,'','[\"300 * Level\", \"122 * Attribute.Health\", \"+\"]',0,'basic','',NULL);",
       ].join('\n'),
     );
     writeGzip(
