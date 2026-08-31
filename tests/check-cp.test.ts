@@ -82,6 +82,6 @@ describe('CP rules — estrutura carregada pelo motor', () => {
 
   it('g_EsoCpData começa vazio (preenchido apenas durante calculateBuild)', () => {
     const cpData = (global as any).g_EsoCpData;
-    expect(Object.keys(cpData ?? {}).length).toBe(0);
+    expect(Object.keys(cpData ?? {})).toHaveLength(0);
   });
 });
