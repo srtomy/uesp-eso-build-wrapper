@@ -8,7 +8,7 @@
 
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initEsoEngineFromData } from '../src/lib/eso-engine';
-import { loadInitData } from '../scripts/game-data';
+import { loadInitData } from '../src/lib/uesp-data';
 
 beforeAll(() => {
   initEsoEngineFromData({ initData: loadInitData() });

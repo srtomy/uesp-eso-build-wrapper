@@ -15,7 +15,7 @@ import fs from 'fs';
 import path from 'path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
-import { loadInitData } from '../scripts/game-data';
+import { loadInitData } from '../src/lib/uesp-data';
 
 beforeAll(() => {
   initEsoEngineFromData({ initData: loadInitData() });

@@ -1,13 +1,35 @@
-import path from 'path';
-import fs from 'fs';
-import type { UespInitData } from '../src/lib/eso-engine';
+/**
+ * Extração dos dados de jogo da engine a partir de um banco SQLite da UESP.
+ *
+ * Este mapeamento é o caminho canônico que produz o `uesp-game-data.json`
+ * commitado — qualquer alteração aqui muda o JSON gerado. O wrapper consome
+ * apenas 7 tabelas (escopo engine-only):
+ *
+ *   dumps MariaDB → `computedStats`, `rules`, `effects`, `cp2Skills`,
+ *                    `cp2SkillDescriptions`
+ *   API UESP      → `playerSkills`, `skillTree`
+ */
 
-const JSON_PATH = path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json');
+import * as fs from 'fs';
+import * as path from 'path';
+import type { UespInitData } from '../eso-engine';
+
+const JSON_PATH = path.resolve(__dirname, '../../../vendor/uesp-data/uesp-game-data.json');
+
+/** Subconjunto da API do node:sqlite usado pela extração. */
+export interface MinimalDb {
+  prepare(sql: string): {
+    get(...params: unknown[]): unknown;
+    all(...params: unknown[]): unknown[];
+  };
+}
+
+type Row = Record<string, any>;
 
 /**
  * Loads UespInitData from an open SQLite database connection.
  */
-export function extractGameData(db: any, versionOverride?: string | null): UespInitData {
+export function extractGameData(db: MinimalDb, versionOverride?: string | null): UespInitData {
   const version: string =
     versionOverride ??
     (() => {
@@ -17,15 +39,15 @@ export function extractGameData(db: any, versionOverride?: string | null): UespI
       return String(row.v);
     })();
 
-  const csRows = db.prepare('SELECT * FROM computedStats WHERE version = ?').all(version) as any[];
-  const rulesRows = db.prepare('SELECT * FROM rules WHERE version = ?').all(version) as any[];
+  const csRows = db.prepare('SELECT * FROM computedStats WHERE version = ?').all(version) as Row[];
+  const rulesRows = db.prepare('SELECT * FROM rules WHERE version = ?').all(version) as Row[];
   const effectsRows = db
     .prepare('SELECT e.* FROM effects e JOIN rules r ON r.id = e.ruleId WHERE r.version = ?')
-    .all(version) as any[];
-  const cpSkillsRows = db.prepare('SELECT * FROM cp2Skills').all() as any[];
-  const cpDescRows = db.prepare('SELECT * FROM cp2SkillDescriptions').all() as any[];
-  const psRows = db.prepare('SELECT * FROM playerSkills').all() as any[];
-  const stRows = db.prepare('SELECT * FROM skillTree').all() as any[];
+    .all(version) as Row[];
+  const cpSkillsRows = db.prepare('SELECT * FROM cp2Skills').all() as Row[];
+  const cpDescRows = db.prepare('SELECT * FROM cp2SkillDescriptions').all() as Row[];
+  const psRows = db.prepare('SELECT * FROM playerSkills').all() as Row[];
+  const stRows = db.prepare('SELECT * FROM skillTree').all() as Row[];
 
   const computedStats: Record<string, unknown> = {};
   for (const row of csRows) {
@@ -292,7 +314,7 @@ export function extractGameData(db: any, versionOverride?: string | null): UespI
 
 /**
  * Loads UespInitData for tests from the committed game data JSON.
- * To update the JSON, run: npm run generate-data -- --db /path/to/local.db
+ * To update the JSON, run: npm run db:seed
  */
 export function loadInitData(): UespInitData {
   return JSON.parse(fs.readFileSync(JSON_PATH, 'utf-8')) as UespInitData;
