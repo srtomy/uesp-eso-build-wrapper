@@ -19,7 +19,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-engine';
 import { calculateBuild, initEsoEngineFromData, resetEngine } from '../src/lib/eso-engine';
-import { extractGameData } from './game-data';
+import { extractGameData } from '../src/lib/uesp-data';
 
 // ---------------------------------------------------------------------------
 // Args
