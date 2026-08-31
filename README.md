@@ -1,7 +1,9 @@
 # uesp-eso-build-wrapper
 
 [![CI](https://github.com/srtomy/uesp-eso-build-wrapper/actions/workflows/ci.yml/badge.svg)](https://github.com/srtomy/uesp-eso-build-wrapper/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/srtomy/uesp-eso-build-wrapper/graph/badge.svg)](https://codecov.io/gh/srtomy/uesp-eso-build-wrapper)
 [![npm](https://img.shields.io/npm/v/uesp-eso-build-wrapper.svg)](https://www.npmjs.com/package/uesp-eso-build-wrapper)
+[![Bundlephobia](https://img.shields.io/bundlephobia/minzip/uesp-eso-build-wrapper)](https://bundlephobia.com/package/uesp-eso-build-wrapper)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node >=24](https://img.shields.io/badge/node-%3E%3D24-brightgreen)](https://nodejs.org/en/download/)
 

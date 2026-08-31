@@ -103,6 +103,17 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # Upload lcov to Codecov (badge/PR comments). Non-blocking: Sonar is the
+      # coverage merge gate; a transient Codecov outage must not fail CI.
+      - name: Upload coverage to Codecov
+        if: matrix.node-version == '24.x'
+        uses: codecov/codecov-action@v7
+        with:
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          fail_ci_if_error: false
+
   build:
     name: build
     runs-on: ubuntu-latest
