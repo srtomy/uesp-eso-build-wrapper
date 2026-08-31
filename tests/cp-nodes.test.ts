@@ -83,7 +83,7 @@ describe('CP node injection — resolução de nome', () => {
     // Chama novamente sem nodes — o resultado anterior não deve persistir
     calculateBuild({ character: BASE_CHAR });
     const cpData = (global as any).g_EsoCpData;
-    expect(Object.keys(cpData ?? {}).length).toBe(0);
+    expect(Object.keys(cpData ?? {})).toHaveLength(0);
   });
 });
 
@@ -121,28 +121,33 @@ describe('CP node injection — resolução de descrição', () => {
     return (global as any).g_EsoCpData?.[nodeId];
   }
 
-  it('exact match: points=10 e chave 10 existe → usa "Desc at 10 pts."', () => {
-    const node = captureNodeAfterCall('60494', 10);
+  // Lookup de descrição por pontos: exato, floor (7→5, 3→0) e fallback
+  // (sem points) — mesmo corpo, parametrizados.
+  it.each([
+    {
+      title: 'exact match: points=10 e chave 10 existe',
+      points: 10,
+      expected: 'Desc at 10 pts.',
+    },
+    {
+      title: 'floor lookup: points=7 (só existem 0,5,10) → usa chave 5',
+      points: 7,
+      expected: 'Desc at 5 pts.',
+    },
+    {
+      title: 'floor lookup: points=3 (só existem 0,5,10) → usa chave 0',
+      points: 3,
+      expected: 'Base description.',
+    },
+    {
+      title: 'sem points fornecido → fallback chave 0',
+      points: undefined,
+      expected: 'Base description.',
+    },
+  ])('$title → usa "$expected"', ({ points, expected }) => {
+    const node = captureNodeAfterCall('60494', points);
     expect(node).toBeDefined();
-    expect(node.description).toBe('Desc at 10 pts.');
-  });
-
-  it('floor lookup: points=7 (só existem 0,5,10) → usa chave 5 → "Desc at 5 pts."', () => {
-    const node = captureNodeAfterCall('60494', 7);
-    expect(node).toBeDefined();
-    expect(node.description).toBe('Desc at 5 pts.');
-  });
-
-  it('floor lookup: points=3 (só existem 0,5,10) → usa chave 0 → "Base description."', () => {
-    const node = captureNodeAfterCall('60494', 3);
-    expect(node).toBeDefined();
-    expect(node.description).toBe('Base description.');
-  });
-
-  it('sem points fornecido → fallback chave 0 → "Base description."', () => {
-    const node = captureNodeAfterCall('60494', undefined);
-    expect(node).toBeDefined();
-    expect(node.description).toBe('Base description.');
+    expect(node.description).toBe(expected);
   });
 
   it('description explícita → override ignora g_EsoCpSkillDesc', () => {
@@ -251,14 +256,14 @@ describe('CP node injection — isolamento entre chamadas', () => {
     calculateBuild({ character: BASE_CHAR });
 
     const cpData = (global as any).g_EsoCpData;
-    expect(Object.keys(cpData ?? {}).length).toBe(0);
+    expect(Object.keys(cpData ?? {})).toHaveLength(0);
   });
 
   it('championPointNodes vazio → g_EsoCpData permanece vazio', () => {
     injectMockCpGlobals();
     calculateBuild({ character: BASE_CHAR, championPointNodes: {} });
     const cpData = (global as any).g_EsoCpData;
-    expect(Object.keys(cpData ?? {}).length).toBe(0);
+    expect(Object.keys(cpData ?? {})).toHaveLength(0);
   });
 
   it('dois nodes distintos em uma mesma chamada são ambos injetados', () => {

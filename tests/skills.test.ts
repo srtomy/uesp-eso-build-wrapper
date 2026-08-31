@@ -373,38 +373,23 @@ describe('Light Armor — Evocation (MagickaRegen % por peça, itens reais)', ()
 // Nota: armorRatings estimados — substituir por itens reais da API UESP.
 // ---------------------------------------------------------------------------
 describe('Heavy Armor — Resolve (PhysResist + SpellResist por peça)', () => {
-  it('rank 1: 7 peças heavy → delta +798 PhysResist e SpellResist (114 × 7)', () => {
-    const base = calculateBuild({ character: CHAR, items: SEVEN_HEAVY });
-    const withPassive = calculateBuild({
-      character: CHAR,
-      items: SEVEN_HEAVY,
-      passiveSkills: [29825],
-    });
-    expect(withPassive.PhysicalResist - base.PhysicalResist).toBe(114 * 7);
-    expect(withPassive.SpellResist - base.SpellResist).toBe(114 * 7);
-  });
-
-  it('rank 2: 7 peças heavy → delta +1603 PhysResist e SpellResist (229 × 7)', () => {
-    const base = calculateBuild({ character: CHAR, items: SEVEN_HEAVY });
-    const withPassive = calculateBuild({
-      character: CHAR,
-      items: SEVEN_HEAVY,
-      passiveSkills: [45531],
-    });
-    expect(withPassive.PhysicalResist - base.PhysicalResist).toBe(229 * 7);
-    expect(withPassive.SpellResist - base.SpellResist).toBe(229 * 7);
-  });
-
-  it('rank 3: 7 peças heavy → delta +2401 PhysResist e SpellResist (343 × 7)', () => {
-    const base = calculateBuild({ character: CHAR, items: SEVEN_HEAVY });
-    const withPassive = calculateBuild({
-      character: CHAR,
-      items: SEVEN_HEAVY,
-      passiveSkills: [45533],
-    });
-    expect(withPassive.PhysicalResist - base.PhysicalResist).toBe(343 * 7);
-    expect(withPassive.SpellResist - base.SpellResist).toBe(343 * 7);
-  });
+  it.each([
+    { rank: 1, skillId: 29825, perPiece: 114, delta: 114 * 7 },
+    { rank: 2, skillId: 45531, perPiece: 229, delta: 229 * 7 },
+    { rank: 3, skillId: 45533, perPiece: 343, delta: 343 * 7 },
+  ])(
+    'rank $rank: 7 peças heavy → delta +$delta PhysResist e SpellResist ($perPiece × 7)',
+    ({ skillId, delta }) => {
+      const base = calculateBuild({ character: CHAR, items: SEVEN_HEAVY });
+      const withPassive = calculateBuild({
+        character: CHAR,
+        items: SEVEN_HEAVY,
+        passiveSkills: [skillId],
+      });
+      expect(withPassive.PhysicalResist - base.PhysicalResist).toBe(delta);
+      expect(withPassive.SpellResist - base.SpellResist).toBe(delta);
+    },
+  );
 
   it('escala com número de peças: 3 heavy → delta +1029 (343 × 3)', () => {
     const threeHeavy = { Head: HEAVY.Head, Chest: HEAVY.Chest, Legs: HEAVY.Legs };
@@ -597,7 +582,7 @@ describe('g_EsoSkillActiveData populado a partir de skillBars', () => {
   it('skillBars sem skills → g_EsoSkillActiveData vazio após o cálculo', () => {
     calculateBuild({ character: CHAR });
     const activeData = (global as any).g_EsoSkillActiveData ?? {};
-    expect(Object.keys(activeData).length).toBe(0);
+    expect(Object.keys(activeData)).toHaveLength(0);
   });
 
   it('skillBars com 2 skills → g_EsoSkillActiveData tem 2 entradas', () => {
@@ -606,7 +591,7 @@ describe('g_EsoSkillActiveData populado a partir de skillBars', () => {
       skillBars: { bar1: [{ skillId: 28807 }, { skillId: 24322 }] },
     });
     const activeData = (global as any).g_EsoSkillActiveData ?? {};
-    expect(Object.keys(activeData).length).toBe(2);
+    expect(Object.keys(activeData)).toHaveLength(2);
     expect(activeData[28807]).toBeDefined();
     expect(activeData[28807].abilityId).toBe(28807);
     expect(activeData[24322]).toBeDefined();
