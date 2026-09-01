@@ -214,9 +214,12 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
   });
 
   it('popula as tabelas da API quando skipApi é false', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
-      new Response(JSON.stringify({ playerSkills: [], skillTree: [] }), { status: 200 }),
-    );
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(
+        async () =>
+          new Response(JSON.stringify({ playerSkills: [], skillTree: [] }), { status: 200 }),
+      );
 
     try {
       const result = await buildUespGameData({ dumpDir: tmpDir });
@@ -229,9 +232,11 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
   });
 
   it('falha quando a API retorna um erro de aplicação', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
-      new Response(JSON.stringify({ error: 'rate limited' }), { status: 200 }),
-    );
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(
+        async () => new Response(JSON.stringify({ error: 'rate limited' }), { status: 200 }),
+      );
 
     try {
       await expect(buildUespGameData({ dumpDir: tmpDir })).rejects.toThrow(/rate limited/);
