@@ -10,6 +10,7 @@ import {
   iterateDumpRows,
   parseInsertValues,
 } from '../src/lib/uesp-data';
+import { vi } from 'vitest';
 
 let tmpDir: string;
 
@@ -210,5 +211,37 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
     await expect(
       buildUespGameData({ dumpDir: path.join(tmpDir, 'vazio-inexistente'), skipApi: true }),
     ).rejects.toThrowError(/não encontrado/);
+  });
+
+  it('popula as tabelas da API quando skipApi é false', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(
+        async () =>
+          new Response(JSON.stringify({ playerSkills: [], skillTree: [] }), { status: 200 }),
+      );
+
+    try {
+      const result = await buildUespGameData({ dumpDir: tmpDir });
+      expect(result.counts.playerSkills).toBe(0);
+      expect(result.counts.skillTree).toBe(0);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it('falha quando a API retorna um erro de aplicação', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(
+        async () => new Response(JSON.stringify({ error: 'rate limited' }), { status: 200 }),
+      );
+
+    try {
+      await expect(buildUespGameData({ dumpDir: tmpDir })).rejects.toThrow(/rate limited/);
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 });
