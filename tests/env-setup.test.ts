@@ -37,7 +37,7 @@ describe('Node environment mock', () => {
     setupNodeEnvironment();
     const chain = (global as any).$('#field');
 
-    expect(chain.find('.child').parent().closest('.row').length).toBe(1);
+    expect(chain.find('.child').parent().closest('.row')).toHaveLength(1);
     expect(chain.addClass('active').removeClass('active').toggleClass('active')).toBeTruthy();
     expect(chain.hasClass('active')).toBe(false);
     expect(chain.css('display')).toBe('');
