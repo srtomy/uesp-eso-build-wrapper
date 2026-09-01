@@ -72,7 +72,9 @@ describe('debugBuild', () => {
     globalObject.GetEsoInputValues = undefined;
 
     try {
-      expect(() => debugBuild({ character: CHARACTER })).toThrow('GetEsoInputValues is not a function');
+      expect(() => debugBuild({ character: CHARACTER })).toThrow(
+        'GetEsoInputValues is not a function',
+      );
       expect(globalObject.GetEsoInputValues).toBeUndefined();
     } finally {
       globalObject.GetEsoInputValues = originalGetInputValues;
