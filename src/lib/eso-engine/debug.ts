@@ -6,18 +6,21 @@ import type { BuildInput, ComputedStats } from './types';
 // ferramenta de diagnóstico, não parte da superfície principal da lib.
 // ---------------------------------------------------------------------------
 
+/** One contribution to an input stat: which source (passive, CP, buff, set...) set it. */
 export interface BuildDebugStatSource {
   name: string;
   abilityId?: number | string;
   value: number | string;
 }
 
+/** State of a single Champion Point node during the calculation. */
 export interface BuildDebugCpNode {
   name: string;
   points: number;
   isUnlocked: boolean;
 }
 
+/** Per-category input values captured during the calculation (non-zero only). */
 export interface BuildDebugInputValues {
   Skill2: Record<string, number>;
   CP: Record<string, number>;

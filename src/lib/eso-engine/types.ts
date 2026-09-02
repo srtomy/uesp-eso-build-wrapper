@@ -3,7 +3,7 @@
  *
  * DATA FLOW:
  * 1. Your front-end fetches item data from the UESP public API:
- *    https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>
+ *    `https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>`
  * 2. Pass the returned object (UespItemApiData) directly to BuildInput.items[slot].
  * 3. Call calculateBuild(input) — the library injects everything into the UESP engine
  *    and returns the computed stats.
@@ -64,6 +64,7 @@ export interface BuffInfo {
   isVisible: boolean;
 }
 
+/** One passive skill at a specific rank, as returned by the `list*Passives()` catalog functions. */
 export interface PassiveSkillInfo {
   abilityId: number;
   name: string;
@@ -75,6 +76,7 @@ export interface PassiveSkillInfo {
   icon: string;
 }
 
+/** One toggle skill from the UESP toggle tab, as returned by listAvailableToggleSkills(). */
 export interface ToggleSkillInfo {
   name: string;
   displayName: string;
@@ -85,11 +87,12 @@ export interface ToggleSkillInfo {
   effects: BuffEffect[];
 }
 
-// ---------------------------------------------------------------------------
-// Dados de item retornados pela API pública da UESP
-// (esolog.uesp.net/exportJson.php?table=minedItem)
-// Todos os campos são strings conforme a API retorna.
-// ---------------------------------------------------------------------------
+/**
+ * Item data as returned by the UESP public item API
+ * (esolog.uesp.net/exportJson.php?table=minedItem).
+ * Pass the object straight into BuildInput.items[slot] — no transformation needed.
+ * All fields are strings, exactly as the API returns them.
+ */
 export interface UespItemApiData {
   itemId: string;
   name?: string;
@@ -132,6 +135,8 @@ export interface UespItemApiData {
 // The engine matches the text against buildRules.abilitydesc (17 rules) — see examples:
 //   { itemId: '23274', type: '4', abilityDesc: 'Increase Max Health by 3094 and Max Magicka by 2856. Magicka Recovery by 315.' }
 // Rules match "Max Health by N", "Max Magicka by N", "Magicka Recovery by N", etc.
+
+/** Equipment slots accepted by BuildInput.items. */
 export type EquipSlot =
   | 'Head'
   | 'Shoulders'
@@ -155,6 +160,7 @@ export type EquipSlot =
 // ---------------------------------------------------------------------------
 // Skill bar
 // ---------------------------------------------------------------------------
+/** One skill slotted on an action bar (BuildInput.skillBars). */
 export interface SkillSlot {
   /**
    * Chave de lookup em g_EsoSkillActiveData — corresponde a origSkillId no DOM
@@ -177,6 +183,7 @@ export interface SkillSlot {
 // ---------------------------------------------------------------------------
 // Node de Champion Points
 // ---------------------------------------------------------------------------
+/** One Champion Point node in BuildInput.championPointNodes. */
 export interface ChampionPointNode {
   /**
    * Pontos investidos neste node.
@@ -207,6 +214,15 @@ export interface ChampionPointNode {
 // ---------------------------------------------------------------------------
 // Input para a função calculateBuild()
 // ---------------------------------------------------------------------------
+/**
+ * Complete input for calculateBuild(): character sheet plus everything the
+ * character "has" — items, Champion Points, buffs, toggle skills, skill bars
+ * and passives.
+ *
+ * Only `character` is required; everything else is optional and starts empty.
+ * Each calculateBuild() call starts from a clean state — inputs never bleed
+ * between calls.
+ */
 export interface BuildInput {
   character: {
     /** Raça. Ex: "High Elf", "Nord", "Breton", "Khajiit", "Dark Elf" */
@@ -242,7 +258,7 @@ export interface BuildInput {
   };
   /**
    * Itens equipados. Passe o objeto retornado pela API da UESP diretamente.
-   * Busca: GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>
+   * Busca: `GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>`
    * Mapeie o item desejado (do array .minedItem[]) ao slot correto.
    */
   items?: Partial<Record<EquipSlot, UespItemApiData>>;
@@ -360,6 +376,13 @@ export interface BuildInput {
 // Resultado calculado pelo motor da UESP
 // Os stat IDs batem exatamente com os de g_EsoComputedStats (versão 49+).
 // ---------------------------------------------------------------------------
+/**
+ * The result of calculateBuild(): the key stats as named properties, plus
+ * `raw` with all 221 computed stats from the UESP engine.
+ *
+ * Stat IDs match `g_EsoComputedStats` exactly (UESP version 49+). Percent
+ * values are returned as the engine stores them (e.g. 12.5 = 12.5%).
+ */
 export interface ComputedStats {
   // Atributos máximos
   Health: number;
