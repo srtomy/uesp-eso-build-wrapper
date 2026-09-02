@@ -63,6 +63,10 @@
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:api": "typedoc --options typedoc.json",
     "test:explore": "ts-node --project tsconfig.json scripts/test-engine.ts",
     "test:build": "ts-node --project tsconfig.json scripts/test-build.ts",
     "test:db-init": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/test-db-init.ts"
@@ -79,7 +83,10 @@
     "prettier": "^3.8.3",
     "publint": "^0.3.24",
     "ts-node": "^10.9.2",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.13.0",
     "typescript": "^5.9.3",
+    "vitepress": "^2.0.0-alpha.19",
     "vitest": "^4.1.7"
   }
 }

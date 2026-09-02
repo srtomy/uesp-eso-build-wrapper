@@ -1,0 +1,19 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/lib/eso-engine/index.ts"],
+  "tsconfig": "tsconfig.json",
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none",
+  "name": "uesp-eso-build-wrapper",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "hideGenerator": true,
+  "disableSources": true,
+  "outputFileStrategy": "members",
+  "entryFileName": "index.md",
+  "propertiesFormat": "table",
+  "indexFormat": "table"
+}
