@@ -4,6 +4,10 @@ node_modules/
 # build output
 dist/
 
+# vitepress
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
 # env — never commit real secrets
 .env
 .env.local

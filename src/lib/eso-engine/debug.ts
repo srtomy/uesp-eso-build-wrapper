@@ -1,4 +1,6 @@
 import { calculateBuild } from './calculator';
+import { engineGlobals } from './engine-globals';
+import type { EngineInputValues } from './engine-globals';
 import type { BuildInput, ComputedStats } from './types';
 
 // ---------------------------------------------------------------------------
@@ -6,18 +8,21 @@ import type { BuildInput, ComputedStats } from './types';
 // ferramenta de diagnóstico, não parte da superfície principal da lib.
 // ---------------------------------------------------------------------------
 
+/** One contribution to an input stat: which source (passive, CP, buff, set...) set it. */
 export interface BuildDebugStatSource {
   name: string;
   abilityId?: number | string;
   value: number | string;
 }
 
+/** State of a single Champion Point node during the calculation. */
 export interface BuildDebugCpNode {
   name: string;
   points: number;
   isUnlocked: boolean;
 }
 
+/** Per-category input values captured during the calculation (non-zero only). */
 export interface BuildDebugInputValues {
   Skill2: Record<string, number>;
   CP: Record<string, number>;
@@ -47,7 +52,7 @@ export interface BuildDebugInfo {
   statSources: Record<string, BuildDebugStatSource[]>;
 }
 
-function pickNonZero(obj: Record<string, any>): Record<string, number> {
+function pickNonZero(obj: Record<string, number>): Record<string, number> {
   const out: Record<string, number> = {};
   if (!obj || typeof obj !== 'object') return out;
   for (const [k, v] of Object.entries(obj)) {
@@ -77,13 +82,13 @@ function pickNonZero(obj: Record<string, any>): Record<string, number> {
  * Must be called after initEsoEngineFromData().
  */
 export function debugBuild(input: BuildInput): BuildDebugInfo {
-  const g = global as any;
+  const g = engineGlobals();
 
-  let capturedIv: any = null;
+  let capturedIv: EngineInputValues | null = null;
   const origGetInputValues = g.GetEsoInputValues;
 
   if (typeof origGetInputValues === 'function') {
-    g.GetEsoInputValues = function (mergeComputedStats: any) {
+    g.GetEsoInputValues = function (mergeComputedStats: unknown) {
       const iv = origGetInputValues.call(this, mergeComputedStats);
       capturedIv = iv;
       return iv;
@@ -97,12 +102,12 @@ export function debugBuild(input: BuildInput): BuildDebugInfo {
     if (typeof origGetInputValues === 'function') g.GetEsoInputValues = origGetInputValues;
   }
 
-  const iv: any = capturedIv ?? {};
+  const iv: EngineInputValues = capturedIv ?? {};
 
   // CP node states — lê g_EsoCpData que ainda está populado do calculateBuild
   const cpNodes: Record<string, BuildDebugCpNode> = {};
-  const cpDataGlobal: Record<string, any> = g.g_EsoCpData ?? {};
-  const cpSkills: Record<string, any> = g.g_EsoCpSkills ?? {};
+  const cpDataGlobal = g.g_EsoCpData ?? {};
+  const cpSkills = g.g_EsoCpSkills ?? {};
   for (const [nodeId, cpData] of Object.entries(cpDataGlobal)) {
     if (!cpData || cpData.type !== 'skill') continue;
     // g_EsoCpData não armazena points — lê do input original
@@ -116,9 +121,9 @@ export function debugBuild(input: BuildInput): BuildDebugInfo {
 
   // Stat sources — populados pelo engine em AddEsoInputStatSource durante GetEsoInputValues
   const statSources: Record<string, BuildDebugStatSource[]> = {};
-  const rawSources: Record<string, any[]> = g.g_EsoInputStatSources ?? {};
+  const rawSources = g.g_EsoInputStatSources ?? {};
   for (const [statId, sources] of Object.entries(rawSources)) {
-    statSources[statId] = (sources as any[]).map((s) => ({
+    statSources[statId] = sources.map((s) => ({
       name: s.cp ?? s.passive ?? s.buff ?? s.source ?? 'unknown',
       abilityId: s.abilityId,
       value: s.value,

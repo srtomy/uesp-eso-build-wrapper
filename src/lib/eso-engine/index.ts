@@ -23,7 +23,7 @@
  *   },
  *   items: {
  *     // Pass the object returned by:
- *     // GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>
+ *     // `GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>`
  *     Chest: uespApiResponse.minedItem[0],
  *   },
  * });
@@ -79,14 +79,34 @@ import { cacheStatObjects } from './calculator';
 
 let initialized = false;
 
+/** Options for {@link initEsoEngineFromData}. */
 export interface EsoEngineFromDataOptions {
+  /** Parsed UESP game data (formulas, buffs, CP rules, skills...). */
   initData: UespInitData;
 }
 
 /**
  * Initializes the UESP math engine from a pre-parsed `UespInitData` object.
- * Use when data comes from a database or external source instead of the bundled JSON file.
- * The vendor resources path is resolved internally from the package.
+ *
+ * **Must be called once** before `calculateBuild()` or `debugBuild()`.
+ * Subsequent calls are no-ops — the engine loads exactly once per process.
+ *
+ * Use this when the game data comes from a file, database or external source
+ * instead of the package's vendored JSON. The vendor scripts path is resolved
+ * internally from the package installation.
+ *
+ * @param options - {@link EsoEngineFromDataOptions} with the parsed game data.
+ * @throws If the vendor UESP scripts cannot be read from the package.
+ *
+ * @example
+ * ```ts
+ * import fs from 'fs';
+ * import { initEsoEngineFromData } from 'uesp-eso-build-wrapper';
+ * import type { UespInitData } from 'uesp-eso-build-wrapper';
+ *
+ * const initData = JSON.parse(fs.readFileSync('uesp-game-data.json', 'utf-8')) as UespInitData;
+ * initEsoEngineFromData({ initData });
+ * ```
  */
 export function initEsoEngineFromData({ initData }: EsoEngineFromDataOptions): void {
   if (initialized) return;
