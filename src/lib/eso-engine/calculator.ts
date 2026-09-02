@@ -19,6 +19,8 @@
  */
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup';
+import { engineGlobals } from './engine-globals';
+import type { EnginePassiveRecord, EngineStatEntry } from './engine-globals';
 import type {
   BuffInfo,
   BuildInput,
@@ -33,10 +35,10 @@ import type {
 
 // Cache dos objetos de stat — populado uma vez após initEsoEngineFromData.
 // Evita Object.keys/values a cada calculateBuild; ~200 objetos.
-let _statObjects: any[] | null = null;
+let _statObjects: EngineStatEntry[] | null = null;
 
 export function cacheStatObjects(): void {
-  const stats = (global as any).g_EsoComputedStats;
+  const stats = engineGlobals().g_EsoComputedStats;
   if (stats && typeof stats === 'object') {
     _statObjects = Object.values(stats);
   }
@@ -136,10 +138,12 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     }
   }
 
-  const itemData: any = (global as any).g_EsoBuildItemData;
-  const enchantData: any = (global as any).g_EsoBuildEnchantData;
-  const buffData: any = (global as any).g_EsoBuildBuffData;
-  const toggleSkillData: any = (global as any).g_EsoBuildToggledSkillData;
+  const g = engineGlobals();
+
+  const itemData = g.g_EsoBuildItemData;
+  const enchantData = g.g_EsoBuildEnchantData;
+  const buffData = g.g_EsoBuildBuffData;
+  const toggleSkillData = g.g_EsoBuildToggledSkillData;
 
   const emptyBar = () =>
     Array.from({ length: 6 }, (_, i) => ({
@@ -156,7 +160,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // Champion Points
-  (global as any).g_EsoCpData = {};
+  g.g_EsoCpData = {};
 
   // Buffs: zera flags de ativação e contadores (evita bleed de stacks como Crux de Arcanist)
   if (buffData && typeof buffData === 'object') {
@@ -185,9 +189,9 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // Skill bars e passivos/ativos
-  (global as any).g_EsoSkillBarData = [emptyBar(), emptyBar()];
-  (global as any).g_EsoSkillPassiveData = {};
-  (global as any).g_EsoSkillActiveData = {};
+  g.g_EsoSkillBarData = [emptyBar(), emptyBar()];
+  g.g_EsoSkillPassiveData = {};
+  g.g_EsoSkillActiveData = {};
 
   // ─── INJEÇÃO DE DADOS ────────────────────────────────────────────────────
 
@@ -211,7 +215,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // Segunda Pedra de Mundus (requer set Twice-Born Star ou será ativada diretamente).
   // IsTwiceBornStarEnabled() lê a flag _esoWrapperTwiceBornOverride (patch em loader.ts)
   // quando o set não está equipado mas mundusStone2 é fornecido explicitamente.
-  (global as any)._esoWrapperTwiceBornOverride = !!character.mundusStone2;
+  g._esoWrapperTwiceBornOverride = !!character.mundusStone2;
   if (character.mundusStone2) {
     setDomValue('esotbMundus2', character.mundusStone2);
   }
@@ -270,11 +274,14 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     }
   }
 
-  const cpDataGlobal: any = (global as any).g_EsoCpData;
+  const cpDataGlobal = g.g_EsoCpData;
 
   // Injeta os itens fornecidos (normalizados com defaults seguros)
   if (items) {
-    for (const [slot, item] of Object.entries(items) as [EquipSlot, any][]) {
+    for (const [slot, item] of Object.entries(items) as [
+      EquipSlot,
+      UespItemApiData | undefined,
+    ][]) {
       if (item && item.itemId) {
         itemData[slot] = normalizeItemData(item);
       }
@@ -295,14 +302,14 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // -------------------------------------------------------------------------
   if (championPointNodes && Object.keys(championPointNodes).length > 0) {
     setDomValue('esotbEnableCP', 'true');
-    const hasCpRules = !!(global as any).g_EsoBuildRules?.cp;
-    const cpSkills: any = (global as any).g_EsoCpSkills ?? {};
-    const cpSkillDesc: any = (global as any).g_EsoCpSkillDesc ?? {};
+    const hasCpRules = !!g.g_EsoBuildRules?.cp;
+    const cpSkills = g.g_EsoCpSkills ?? {};
+    const cpSkillDesc = g.g_EsoCpSkillDesc ?? {};
 
     // Build reverse map: name → numeric nodeId (for named-string keys in the input)
     const cpNameToId: Record<string, string> = {};
     for (const [id, meta] of Object.entries(cpSkills)) {
-      const n = (meta as any).name;
+      const n = meta.name;
       if (n) cpNameToId[n] = id;
     }
 
@@ -426,7 +433,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     for (const [slots, barIndex] of barMap) {
       if (!slots) continue;
       slots.slice(0, 6).forEach((slot, slotIndex) => {
-        (global as any).g_EsoSkillBarData[barIndex][slotIndex] = {
+        g.g_EsoSkillBarData[barIndex][slotIndex] = {
           skillId: slot.skillId,
           origSkillId: slot.skillId,
           morphIndex: slot.morphIndex ?? 0,
@@ -450,9 +457,9 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   const allPassiveIds = new Set<number>(passiveSkills ?? []);
   if (autoPassives) {
     // Use the loader snapshot (written before any calculations) to avoid raceType mutation.
-    const snapshot: any = (global as any).g_EsoPassiveSkillSnapshot;
+    const snapshot = g.g_EsoPassiveSkillSnapshot;
     if (snapshot) {
-      for (const v of Object.values(snapshot) as any[]) {
+      for (const v of Object.values(snapshot)) {
         if (!v) continue;
         if (v.raceType === character.race && (v.nextSkill === -1 || String(v.nextSkill) === '-1')) {
           allPassiveIds.add(Number(v.abilityId));
@@ -465,7 +472,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     for (const abilityId of allPassiveIds) {
       passiveData[String(abilityId)] = { abilityId };
     }
-    (global as any).g_EsoSkillPassiveData = passiveData;
+    g.g_EsoSkillPassiveData = passiveData;
   }
 
   // -------------------------------------------------------------------------
@@ -477,7 +484,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // (g_EsoSkillActiveData já zerado no bloco de reset acima)
   // -------------------------------------------------------------------------
   if (skillBars) {
-    const activeData: Record<number, { abilityId: number }> = {};
+    const activeData: Record<string, { abilityId: number }> = {};
     const bars = [skillBars.bar1, skillBars.bar2];
     for (const bar of bars) {
       if (!bar) continue;
@@ -489,7 +496,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         }
       }
     }
-    (global as any).g_EsoSkillActiveData = activeData;
+    g.g_EsoSkillActiveData = activeData;
   }
 
   // -------------------------------------------------------------------------
@@ -501,8 +508,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // Ambos precisam ser sincronizados; usar valores distintos resulta em passivos errados.
   // -------------------------------------------------------------------------
   const activeBar = activeWeaponBar ?? 1;
-  (global as any).g_EsoBuildActiveWeapon = activeBar;
-  (global as any).g_EsoBuildActiveAbilityBar = activeBar;
+  g.g_EsoBuildActiveWeapon = activeBar;
+  g.g_EsoBuildActiveAbilityBar = activeBar;
 
   // -------------------------------------------------------------------------
   // PASSO 4: Executa o cálculo.
@@ -512,7 +519,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   //   - noUpdate = true         → pula DisplayEsoAllComputedStats e UpdateReadOnlyStats
   //                               (operações de DOM que não precisamos)
   // -------------------------------------------------------------------------
-  const updateFn = (global as any).UpdateEsoComputedStatsList_Real;
+  const updateFn = g.UpdateEsoComputedStatsList_Real;
   if (typeof updateFn !== 'function') {
     throw new Error(
       '[eso-engine] UpdateEsoComputedStatsList_Real não está disponível. ' +
@@ -525,11 +532,11 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // sets valid=true for equipped sets). Without this patch, toggle set bonuses are never
   // enabled in Node because the DOM checkboxes used by UpdateEsoBuildToggledSetData are empty.
   const toggledSetIds = new Set(toggledSetBonuses ?? []);
-  const origIsEnabled = (global as any).IsEsoBuildToggledSetEnabled;
+  const origIsEnabled = g.IsEsoBuildToggledSetEnabled;
   if (toggledSetIds.size > 0) {
-    (global as any).IsEsoBuildToggledSetEnabled = function (setId: any) {
+    g.IsEsoBuildToggledSetEnabled = function (setId: unknown) {
       if (toggledSetIds.has(String(setId))) {
-        const td = (global as any).g_EsoBuildToggledSetData?.[setId];
+        const td = g.g_EsoBuildToggledSetData?.[String(setId)];
         if (td?.valid) return true;
       }
       return origIsEnabled.call(this, setId);
@@ -540,14 +547,14 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     updateFn(null, true);
   } finally {
     if (toggledSetIds.size > 0) {
-      (global as any).IsEsoBuildToggledSetEnabled = origIsEnabled;
+      g.IsEsoBuildToggledSetEnabled = origIsEnabled;
     }
   }
 
   // -------------------------------------------------------------------------
   // PASSO 5: Lê os resultados de g_EsoComputedStats[statId].value
   // -------------------------------------------------------------------------
-  const computedStats: any = (global as any).g_EsoComputedStats ?? {};
+  const computedStats = g.g_EsoComputedStats ?? {};
   const raw: Record<string, number> = {};
 
   for (const statId of Object.keys(computedStats)) {
@@ -623,18 +630,18 @@ export function calculateBuild(input: BuildInput): ComputedStats {
  *   Omit to return all 164 buffs.
  */
 export function listAvailableBuffs(group?: string): BuffInfo[] {
-  const buffData: any = (global as any).g_EsoBuildBuffData;
+  const buffData = engineGlobals().g_EsoBuildBuffData;
   if (!buffData || typeof buffData !== 'object') return [];
 
   const result: BuffInfo[] = [];
 
-  for (const [name, entry] of Object.entries(buffData) as [string, any][]) {
+  for (const [name, entry] of Object.entries(buffData)) {
     if (!entry || typeof entry !== 'object') continue;
 
     const entryGroup: string = entry.group ?? entry.groupName ?? '';
     if (group !== undefined && entryGroup !== group) continue;
 
-    const effects = (Array.isArray(entry.effects) ? entry.effects : []).map((fx: any) => ({
+    const effects = (Array.isArray(entry.effects) ? entry.effects : []).map((fx) => ({
       statId: fx.statId ?? '',
       value: Number(fx.value ?? 0),
       display: fx.display ?? '',
@@ -657,13 +664,13 @@ export function listAvailableBuffs(group?: string): BuffInfo[] {
 // Uses g_EsoPassiveSkillSnapshot (written by loader.ts at engine init time) to avoid
 // the engine's mutation of g_SkillsData.raceType during calculations.
 function buildPassiveSkillInfos(
-  filter: (v: any) => boolean,
-  sortKey: (v: any) => string,
+  filter: (v: EnginePassiveRecord) => boolean,
+  sortKey: (v: EnginePassiveRecord) => string,
 ): PassiveSkillInfo[] {
-  const snapshot: any = (global as any).g_EsoPassiveSkillSnapshot;
+  const snapshot = engineGlobals().g_EsoPassiveSkillSnapshot;
   if (!snapshot || typeof snapshot !== 'object') return [];
 
-  return (Object.values(snapshot) as any[])
+  return Object.values(snapshot)
     .filter((v) => v && filter(v))
     .map((v) => ({
       abilityId: Number(v.abilityId),
@@ -739,11 +746,11 @@ export function listPassivesBySkillLine(skillLine: string): PassiveSkillInfo[] {
  * Must be called after initEsoEngineFromData().
  */
 export function listAvailableSkillLines(): string[] {
-  const snapshot: any = (global as any).g_EsoPassiveSkillSnapshot;
+  const snapshot = engineGlobals().g_EsoPassiveSkillSnapshot;
   if (!snapshot || typeof snapshot !== 'object') return [];
 
   const lines = new Set<string>();
-  for (const v of Object.values(snapshot) as any[]) {
+  for (const v of Object.values(snapshot)) {
     if (v?.skillLine) lines.add(v.skillLine);
   }
   return Array.from(lines).sort();
@@ -760,17 +767,17 @@ export function listAvailableSkillLines(): string[] {
  * Must be called after initEsoEngineFromData().
  */
 export function listAvailableToggleSkills(): ToggleSkillInfo[] {
-  const toggleData: any = (global as any).g_EsoBuildToggledSkillData;
+  const toggleData = engineGlobals().g_EsoBuildToggledSkillData;
   if (!toggleData || typeof toggleData !== 'object') return [];
 
   const result: ToggleSkillInfo[] = [];
 
-  for (const [name, entry] of Object.entries(toggleData) as [string, any][]) {
+  for (const [name, entry] of Object.entries(toggleData)) {
     if (!entry || typeof entry !== 'object') continue;
     if (!name) continue; // skip anonymous entries (no nameId in the rule)
 
-    const matchData: any = entry.matchData ?? {};
-    const effects = (Array.isArray(matchData.effects) ? matchData.effects : []).map((fx: any) => ({
+    const matchData = entry.matchData ?? {};
+    const effects = (Array.isArray(matchData.effects) ? matchData.effects : []).map((fx) => ({
       statId: fx.statId ?? '',
       value: Number(fx.value ?? 0),
       display: fx.display ?? '',
