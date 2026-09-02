@@ -15,8 +15,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vm from 'vm';
-import type { UespInitData } from './types';
-import { buildInputStats } from './input-stats';
+import type { UespInitData } from './types.js';
+import { buildInputStats } from './input-stats.js';
 
 let engineLoaded = false;
 

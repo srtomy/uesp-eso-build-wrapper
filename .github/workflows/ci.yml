@@ -164,10 +164,15 @@ jobs:
         run: npm run publint
 
       - name: attw (type declarations)
-        # cjs-only-exports-default is ignored via the npm script: dist/ is a
-        # CJS-only build, so ESM consumers go through Node's default interop.
-        # Proper fix is a dual CJS/ESM build — see docs/CI-PIPELINE.md §5.
+        # Dual CJS/ESM build: exports["."].import → dist/esm (real ESM),
+        # require → dist/lib (CJS). No ignore-rules needed anymore.
         run: npm run attw
+
+      - name: ESM/CJS smoke test (pack + import + calculateBuild)
+        # Packs the tarball, installs into a clean project and imports the
+        # package via `import` (ESM) and `require` (CJS), initializing the
+        # engine from the vendored game data and computing a build.
+        run: npm run test:esm
 
       - name: npm publish dry run (files allowlist)
         run: npm publish --dry-run
