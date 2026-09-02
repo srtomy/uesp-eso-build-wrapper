@@ -39,11 +39,12 @@
  *   5. Run tests: npm test
  */
 
+import * as fs from 'fs';
 import * as path from 'path';
-import { setupNodeEnvironment } from './env-setup';
-import { loadUespEngine, resetEngineLoader } from './loader';
-import { calculateBuild } from './calculator';
-import type { UespInitData } from './types';
+import { setupNodeEnvironment } from './env-setup.js';
+import { loadUespEngine, resetEngineLoader } from './loader.js';
+import { calculateBuild } from './calculator.js';
+import type { UespInitData } from './types.js';
 
 export type {
   BuildInput,
@@ -58,7 +59,7 @@ export type {
   UespInitData,
   ChampionPointNode,
   SkillSlot,
-} from './types';
+} from './types.js';
 export {
   calculateBuild,
   listAvailableBuffs,
@@ -67,15 +68,15 @@ export {
   listPassivesBySkillLine,
   listAvailableSkillLines,
   listAvailableToggleSkills,
-} from './calculator';
-export { debugBuild } from './debug';
+} from './calculator.js';
+export { debugBuild } from './debug.js';
 export type {
   BuildDebugInfo,
   BuildDebugInputValues,
   BuildDebugCpNode,
   BuildDebugStatSource,
-} from './debug';
-import { cacheStatObjects } from './calculator';
+} from './debug.js';
+import { cacheStatObjects } from './calculator.js';
 
 let initialized = false;
 
@@ -110,12 +111,38 @@ export interface EsoEngineFromDataOptions {
  */
 export function initEsoEngineFromData({ initData }: EsoEngineFromDataOptions): void {
   if (initialized) return;
-  const pkgRoot = path.resolve(__dirname, '../../..');
+  const pkgRoot = findPackageRoot(__dirname);
   const resourcesPath = path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
   setupNodeEnvironment();
   loadUespEngine(resourcesPath, initData);
   cacheStatObjects();
   initialized = true;
+}
+
+/**
+ * Sobe a árvore de diretórios a partir do módulo atual até achar o package root
+ * (o `package.json` com o nome do wrapper). Indiferente à profundidade da saída:
+ * a build CJS emite em `dist/lib/...` e a ESM em `dist/esm/lib/...`, então um
+ * `path.resolve(__dirname, '../../..')` fixo quebra na ESM. O `package.json`
+ * aninhado `dist/esm/{"type":"module"}` é ignorado porque não tem `name`.
+ */
+function findPackageRoot(startDir: string): string {
+  const PACKAGE_NAME = 'uesp-eso-build-wrapper';
+  let dir = path.resolve(startDir);
+  for (;;) {
+    const pkgJsonPath = path.join(dir, 'package.json');
+    if (fs.existsSync(pkgJsonPath)) {
+      const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8')) as { name?: string };
+      if (pkg.name === PACKAGE_NAME) return dir;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  throw new Error(
+    `[eso-engine] Package root não encontrado a partir de ${startDir} — ` +
+      'os scripts vendor da UESP não podem ser localizados.',
+  );
 }
 
 /**

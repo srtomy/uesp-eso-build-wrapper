@@ -1,7 +1,7 @@
-import { calculateBuild } from './calculator';
-import { engineGlobals } from './engine-globals';
-import type { EngineInputValues } from './engine-globals';
-import type { BuildInput, ComputedStats } from './types';
+import { calculateBuild } from './calculator.js';
+import { engineGlobals } from './engine-globals.js';
+import type { EngineInputValues } from './engine-globals.js';
+import type { BuildInput, ComputedStats } from './types.js';
 
 // ---------------------------------------------------------------------------
 // Tipos de debug — vivem aqui (não em types.ts) porque são internos à

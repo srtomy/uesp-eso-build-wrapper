@@ -14,7 +14,7 @@
  * This module is internal — it is not part of the public API.
  */
 
-import type { UespItemApiData } from './types';
+import type { UespItemApiData } from './types.js';
 
 /** One stat object in `g_EsoComputedStats`. */
 export interface EngineStatEntry {

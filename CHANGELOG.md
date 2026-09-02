@@ -5,9 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] — 2026-09-02
 
 ### Added
+- **Dual CJS/ESM build** — `dist/esm` (real ESM, `exports["."].import`) alongside the CJS build (`dist/lib`, `exports["."].require`); package root is resolved by walking up to the wrapper's `package.json`, so it works at any output depth
+- `attw --pack .` now passes on all resolution modes (`node10`, `node16` CJS/ESM, `bundler`) **without** `--ignore-rules` — the `CJSOnlyExportsDefault` workaround is gone
+- `test:esm` smoke test: packs the tarball, installs it into a clean project and imports `uesp-eso-build-wrapper` via both `import` (ESM) and `require` (CJS), initializing the engine with the vendored game data
 - Complete CI merge-gate pipeline: parallel jobs (lint, typecheck, test, build, package validation, security audit), coverage summary in the CI job summary, PR title enforcement (Conventional Commits), CodeQL, Dependabot, SonarCloud
 - `typecheck`, `publint` and `attw` npm scripts; branch protection on `main` with required status checks
 
@@ -15,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Node.js requirement bumped to >= 24 (latest LTS)** — Node 20 reached EOL in 2026-04; CI now tests Node 24.x only
 - `exports["."].types` moved to the first condition (order-sensitive for TypeScript resolution); added `"type": "commonjs"`
 - CI hardening: `npm ci --ignore-scripts`, lockfile-pinned package-validation binaries, third-party actions pinned by commit SHA
+- Removed the Bundlephobia badge from the README (its API is rate-limited and the image was broken)
 
 ## [0.3.0] — 2026-08-29
 
@@ -73,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Golden build-fixture test suite (`build-fixtures.test.ts`)
 - Zero runtime dependencies
 
+[0.4.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/srtomy/uesp-eso-build-wrapper/releases/tag/v0.1.0

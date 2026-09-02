@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "./dist/esm"
+  },
+  "include": ["src/lib/eso-engine/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

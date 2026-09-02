@@ -1,6 +1,6 @@
 {
   "name": "uesp-eso-build-wrapper",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Node.js wrapper around the UESP ESO Build Editor math engine. Calculate Elder Scrolls Online character stats (Health, Magicka, Stamina, mitigation, crit, etc.) without rewriting any game formulas.",
   "keywords": [
     "elder-scrolls-online",
@@ -35,9 +35,14 @@
   "sideEffects": true,
   "exports": {
     ".": {
-      "types": "./dist/lib/eso-engine/index.d.ts",
-      "import": "./dist/lib/eso-engine/index.js",
-      "require": "./dist/lib/eso-engine/index.js"
+      "import": {
+        "types": "./dist/esm/lib/eso-engine/index.d.ts",
+        "default": "./dist/esm/lib/eso-engine/index.js"
+      },
+      "require": {
+        "types": "./dist/lib/eso-engine/index.d.ts",
+        "default": "./dist/lib/eso-engine/index.js"
+      }
     }
   },
   "files": [
@@ -50,26 +55,29 @@
     "THIRD_PARTY_NOTICES"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc -p tsconfig.build.json",
+    "build:esm": "tsc -p tsconfig.build-esm.json && node scripts/postbuild-esm.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint src tests",
     "lint:fix": "eslint src tests --fix",
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
     "publint": "publint",
-    "attw": "attw --pack . --ignore-rules cjs-only-exports-default",
-    "generate-data": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/generate-data.ts",
-    "db:seed": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/seed-db.ts",
+    "attw": "attw --pack .",
+    "generate-data": "TS_NODE_PROJECT=tsconfig.tsnode.json node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/generate-data.ts",
+    "db:seed": "TS_NODE_PROJECT=tsconfig.tsnode.json node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/seed-db.ts",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
+    "test:esm": "node scripts/test-esm-import.mjs",
     "test:coverage": "vitest run --coverage",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "docs:api": "typedoc --options typedoc.json",
-    "test:explore": "ts-node --project tsconfig.json scripts/test-engine.ts",
-    "test:build": "ts-node --project tsconfig.json scripts/test-build.ts",
-    "test:db-init": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/test-db-init.ts"
+    "test:explore": "ts-node --project tsconfig.tsnode.json scripts/test-engine.ts",
+    "test:build": "ts-node --project tsconfig.tsnode.json scripts/test-build.ts",
+    "test:db-init": "TS_NODE_PROJECT=tsconfig.tsnode.json node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/test-db-init.ts"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
