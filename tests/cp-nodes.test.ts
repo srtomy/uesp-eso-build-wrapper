@@ -1,14 +1,14 @@
 /**
- * Testes para a resolução dinâmica de nomes e descrições dos nodes CP2.
+ * Tests for the dynamic resolution of CP2 node names and descriptions.
  *
- * Contexto: calculator.ts popula g_EsoCpData[nodeId] usando os globals
- * g_EsoCpSkills (nomes) e g_EsoCpSkillDesc (descrições por nível de pontos).
- * Esses globals são injetados por loader.ts a partir de cpSkillsData e
- * cpSkillDescData no uesp-init-data.json (extraídos do browser).
+ * Context: calculator.ts populates g_EsoCpData[nodeId] using the globals
+ * g_EsoCpSkills (names) and g_EsoCpSkillDesc (descriptions per point level).
+ * These globals are injected by loader.ts from cpSkillsData and
+ * cpSkillDescData in uesp-init-data.json (extracted from the browser).
  *
- * Os testes usam globals mockados para serem independentes do JSON extraído.
- * O comportamento do motor UESP (cálculo dos stats) não é testado aqui —
- * apenas a lógica de provisão de dados para o motor.
+ * The tests use mocked globals to stay independent of the extracted JSON.
+ * The UESP engine behavior (stat calculation) is not tested here —
+ * only the data-provisioning logic feeding the engine.
  */
 
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
@@ -29,8 +29,8 @@ beforeAll(() => {
   originalCpSkillDesc = (global as any).g_EsoCpSkillDesc;
 });
 
-// Dados mockados que simulam o que o browser extrai após re-execução do
-// browser-extract.js (g_EsoCpSkills e g_EsoCpSkillDesc injetados pelo loader).
+// Mocked data simulating what the browser extracts after re-running
+// browser-extract.js (g_EsoCpSkills and g_EsoCpSkillDesc injected by the loader).
 const MOCK_CP_SKILLS = {
   '60494': { name: 'Inspiration Boost', disciplineIndex: 0 },
   '60500': { name: 'Gifted Rider', disciplineIndex: 1 },
@@ -48,7 +48,7 @@ const MOCK_CP_SKILL_DESC: Record<string, Record<string | number, string>> = {
   },
 };
 
-// Personagem mínimo para rodar calculateBuild sem interferência nos testes de CP.
+// Minimal character to run calculateBuild without interfering with the CP tests.
 const BASE_CHAR = {
   race: 'High Elf',
   class: 'Sorcerer',
@@ -56,54 +56,54 @@ const BASE_CHAR = {
   attributes: { health: 0, magicka: 64, stamina: 0 },
 } as const;
 
-/** Injeta os globals mockados e retorna a função de restore. */
+/** Injects the mocked globals and returns the restore function. */
 function injectMockCpGlobals() {
   (global as any).g_EsoCpSkills = MOCK_CP_SKILLS;
   (global as any).g_EsoCpSkillDesc = MOCK_CP_SKILL_DESC;
 }
 
-/** Restaura os globals para os valores reais carregados do JSON. */
+/** Restores the globals to the real values loaded from the JSON. */
 function clearMockCpGlobals() {
   (global as any).g_EsoCpSkills = originalCpSkills;
   (global as any).g_EsoCpSkillDesc = originalCpSkillDesc;
 }
 
-// ── Testes ────────────────────────────────────────────────────────────────────
+// ── Tests ────────────────────────────────────────────────────────────────────
 
-describe('CP node injection — resolução de nome', () => {
+describe('CP node injection — name resolution', () => {
   beforeAll(injectMockCpGlobals);
   afterEach(clearMockCpGlobals);
 
-  it('g_EsoCpData é vazio após calculateBuild (reset automático confirmado)', () => {
+  it('g_EsoCpData is empty after calculateBuild (automatic reset confirmed)', () => {
     injectMockCpGlobals();
     calculateBuild({
       character: BASE_CHAR,
       championPointNodes: { '60494': { points: 5 } },
     });
-    // Chama novamente sem nodes — o resultado anterior não deve persistir
+    // Call again without nodes — the previous result must not persist
     calculateBuild({ character: BASE_CHAR });
     const cpData = (global as any).g_EsoCpData;
     expect(Object.keys(cpData ?? {})).toHaveLength(0);
   });
 });
 
-describe('CP node injection — resolução de descrição', () => {
+describe('CP node injection — description resolution', () => {
   beforeAll(injectMockCpGlobals);
   afterEach(clearMockCpGlobals);
 
   /**
-   * Captura g_EsoCpData logo após calculateBuild injetar os nodes mas antes
-   * do motor resetar. Usamos uma versão instrumentada via spy no objeto global.
+   * Captures g_EsoCpData right after calculateBuild injects the nodes but before
+   * the engine resets. We use an instrumented version via a spy on the global object.
    *
-   * Estratégia: após calculateBuild, o motor chamou UpdateEsoComputedStatsList_Real
-   * que reseta g_EsoCpData internamente. Para capturar o estado durante a injeção,
-   * lemos g_EsoCpData antes de chamar calculateBuild e comparamos com o snapshot
-   * que calculateBuild registra ao chamar o motor.
+   * Strategy: after calculateBuild, the engine called UpdateEsoComputedStatsList_Real
+   * which resets g_EsoCpData internally. To capture the state during injection,
+   * we read g_EsoCpData before calling calculateBuild and compare it with the snapshot
+   * that calculateBuild records when calling the engine.
    *
-   * Como não temos acesso a um hook interno, testamos o comportamento observável:
-   * re-injetamos os mocks, chamamos calculateBuild com nodes, e checamos que
-   * g_EsoCpData ESTÁ populado IMEDIATAMENTE ao retornar (antes que qualquer outro
-   * código o limpe — o reset ocorre apenas no início da PRÓXIMA chamada).
+   * Since we have no access to an internal hook, we test the observable behavior:
+   * we re-inject the mocks, call calculateBuild with nodes, and check that
+   * g_EsoCpData IS populated IMMEDIATELY on return (before any other code
+   * clears it — the reset only happens at the START of the NEXT call).
    */
   function captureNodeAfterCall(nodeId: string, points?: number, description?: string): any {
     injectMockCpGlobals();
@@ -116,49 +116,49 @@ describe('CP node injection — resolução de descrição', () => {
       championPointNodes: { [nodeId]: nodeData },
     });
 
-    // g_EsoCpData é reset no INÍCIO da próxima chamada, não no final desta.
-    // Portanto ainda está populado imediatamente após o retorno.
+    // g_EsoCpData is reset at the START of the next call, not at the end of this one.
+    // So it is still populated immediately after the return.
     return (global as any).g_EsoCpData?.[nodeId];
   }
 
-  // Lookup de descrição por pontos: exato, floor (7→5, 3→0) e fallback
-  // (sem points) — mesmo corpo, parametrizados.
+  // Description lookup by points: exact, floor (7→5, 3→0) and fallback
+  // (no points) — same body, parameterized.
   it.each([
     {
-      title: 'exact match: points=10 e chave 10 existe',
+      title: 'exact match: points=10 and key 10 exists',
       points: 10,
       expected: 'Desc at 10 pts.',
     },
     {
-      title: 'floor lookup: points=7 (só existem 0,5,10) → usa chave 5',
+      title: 'floor lookup: points=7 (only 0,5,10 exist) → uses key 5',
       points: 7,
       expected: 'Desc at 5 pts.',
     },
     {
-      title: 'floor lookup: points=3 (só existem 0,5,10) → usa chave 0',
+      title: 'floor lookup: points=3 (only 0,5,10 exist) → uses key 0',
       points: 3,
       expected: 'Base description.',
     },
     {
-      title: 'sem points fornecido → fallback chave 0',
+      title: 'no points given → fallback to key 0',
       points: undefined,
       expected: 'Base description.',
     },
-  ])('$title → usa "$expected"', ({ points, expected }) => {
+  ])('$title → uses "$expected"', ({ points, expected }) => {
     const node = captureNodeAfterCall('60494', points);
     expect(node).toBeDefined();
     expect(node.description).toBe(expected);
   });
 
-  it('description explícita → override ignora g_EsoCpSkillDesc', () => {
+  it('explicit description → override ignores g_EsoCpSkillDesc', () => {
     const override = 'Grants 1 Max Magicka per stage. Current bonus: 1000';
     const node = captureNodeAfterCall('60494', 5, override);
     expect(node).toBeDefined();
     expect(node.description).toBe(override);
   });
 
-  it('HTML nas descrições do JSON é removido antes de chegar ao motor', () => {
-    // Simula o formato real do cpSkillDescData (com HTML como no browser-extract)
+  it('HTML in JSON descriptions is stripped before reaching the engine', () => {
+    // Simulates the real cpSkillDescData format (with HTML as in browser-extract)
     (global as any).g_EsoCpSkills = { '60494': { name: 'Inspiration Boost', disciplineIndex: 0 } };
     (global as any).g_EsoCpSkillDesc = {
       '60494': {
@@ -175,19 +175,19 @@ describe('CP node injection — resolução de descrição', () => {
     expect(node.description).toContain('42');
   });
 
-  it('points acima da chave máxima disponível → floor lookup usa a maior chave', () => {
-    // mock tem chaves 0, 5, 10 — points=999 deve retornar chave 10
+  it('points above the highest available key → floor lookup uses the largest key', () => {
+    // mock has keys 0, 5, 10 — points=999 must return key 10
     const node = captureNodeAfterCall('60494', 999);
     expect(node).toBeDefined();
     expect(node.description).toBe('Desc at 10 pts.');
   });
 });
 
-describe('CP node injection — nome real vs fallback', () => {
+describe('CP node injection — real name vs fallback', () => {
   beforeAll(injectMockCpGlobals);
   afterEach(clearMockCpGlobals);
 
-  it('node em g_EsoCpSkills → name = nome real ("Inspiration Boost")', () => {
+  it('node in g_EsoCpSkills → name = real name ("Inspiration Boost")', () => {
     injectMockCpGlobals();
     calculateBuild({
       character: BASE_CHAR,
@@ -197,9 +197,9 @@ describe('CP node injection — nome real vs fallback', () => {
     expect(node?.name).toBe('Inspiration Boost');
   });
 
-  it('node AUSENTE de g_EsoCpSkills → name = "CP_<nodeId>"', () => {
+  it('node MISSING from g_EsoCpSkills → name = "CP_<nodeId>"', () => {
     injectMockCpGlobals();
-    // Node '99999' não existe nos mocks, mas tem descrição via override
+    // Node '99999' does not exist in the mocks, but has a description via override
     calculateBuild({
       character: BASE_CHAR,
       championPointNodes: {
@@ -211,11 +211,11 @@ describe('CP node injection — nome real vs fallback', () => {
   });
 });
 
-describe('CP node injection — estrutura de g_EsoCpData', () => {
+describe('CP node injection — g_EsoCpData structure', () => {
   beforeAll(injectMockCpGlobals);
   afterEach(clearMockCpGlobals);
 
-  it('node injetado tem isUnlocked=true e type="skill"', () => {
+  it('injected node has isUnlocked=true and type="skill"', () => {
     injectMockCpGlobals();
     calculateBuild({
       character: BASE_CHAR,
@@ -226,8 +226,8 @@ describe('CP node injection — estrutura de g_EsoCpData', () => {
     expect(node?.type).toBe('skill');
   });
 
-  it('node sem descrição resolvível NÃO é injetado em g_EsoCpData', () => {
-    // g_EsoCpSkillDesc vazio + sem description + sem points → não injeta
+  it('node without a resolvable description is NOT injected into g_EsoCpData', () => {
+    // empty g_EsoCpSkillDesc + no description + no points → does not inject
     (global as any).g_EsoCpSkills = { '77777': { name: 'Unknown Node' } };
     (global as any).g_EsoCpSkillDesc = {};
 
@@ -240,33 +240,33 @@ describe('CP node injection — estrutura de g_EsoCpData', () => {
   });
 });
 
-describe('CP node injection — isolamento entre chamadas', () => {
+describe('CP node injection — isolation between calls', () => {
   afterEach(clearMockCpGlobals);
 
-  it('g_EsoCpData é resetado: nodes da chamada anterior não persistem', () => {
+  it('g_EsoCpData is reset: nodes from the previous call do not persist', () => {
     injectMockCpGlobals();
-    // Chamada A: com node CP
+    // Call A: with CP node
     calculateBuild({
       character: BASE_CHAR,
       championPointNodes: { '60494': { points: 10 } },
     });
 
     injectMockCpGlobals();
-    // Chamada B: sem nodes CP → g_EsoCpData deve estar vazio
+    // Call B: without CP nodes → g_EsoCpData must be empty
     calculateBuild({ character: BASE_CHAR });
 
     const cpData = (global as any).g_EsoCpData;
     expect(Object.keys(cpData ?? {})).toHaveLength(0);
   });
 
-  it('championPointNodes vazio → g_EsoCpData permanece vazio', () => {
+  it('empty championPointNodes → g_EsoCpData stays empty', () => {
     injectMockCpGlobals();
     calculateBuild({ character: BASE_CHAR, championPointNodes: {} });
     const cpData = (global as any).g_EsoCpData;
     expect(Object.keys(cpData ?? {})).toHaveLength(0);
   });
 
-  it('dois nodes distintos em uma mesma chamada são ambos injetados', () => {
+  it('two distinct nodes in the same call are both injected', () => {
     injectMockCpGlobals();
     calculateBuild({
       character: BASE_CHAR,

@@ -1,19 +1,19 @@
 /**
- * Testes para cálculo de skill passivos e ativos via passiveSkills / skillBars.
+ * Tests for passive and active skill calculation via passiveSkills / skillBars.
  *
- * Requer g_SkillsData + esoskills.js (vendor/uesp-esolog/resources/esoskills.js).
+ * Requires g_SkillsData + esoskills.js (vendor/uesp-esolog/resources/esoskills.js).
  *
- * IDs dos passivos testados (Heavy Armor e Light Armor skill lines):
- *   29825 — Resolve rank 1 (Heavy Armor): +114 PhysResist+SpellResist por peça heavy
- *   45531 — Resolve rank 2 (Heavy Armor): +229 PhysResist+SpellResist por peça heavy
- *   45533 — Resolve rank 3 (Heavy Armor): +343 PhysResist+SpellResist por peça heavy
- *   29663 — Spell Warding rank 1 (Light Armor): +363 SpellResist por peça light
- *   45559 — Spell Warding rank 2 (Light Armor): +726 SpellResist por peça light
- *   29665 — Evocation rank 1 (Light Armor): +2% MagickaRegen por peça light
- *   45557 — Evocation rank 2 (Light Armor): +4% MagickaRegen por peça light
+ * Tested passive IDs (Heavy Armor and Light Armor skill lines):
+ *   29825 — Resolve rank 1 (Heavy Armor): +114 PhysResist+SpellResist per heavy piece
+ *   45531 — Resolve rank 2 (Heavy Armor): +229 PhysResist+SpellResist per heavy piece
+ *   45533 — Resolve rank 3 (Heavy Armor): +343 PhysResist+SpellResist per heavy piece
+ *   29663 — Spell Warding rank 1 (Light Armor): +363 SpellResist per light piece
+ *   45559 — Spell Warding rank 2 (Light Armor): +726 SpellResist per light piece
+ *   29665 — Evocation rank 1 (Light Armor): +2% MagickaRegen per light piece
+ *   45557 — Evocation rank 2 (Light Armor): +4% MagickaRegen per light piece
  *
- * Itens light armor: dados reais da API UESP — set Whorl of the Depths, level 50.
- * Itens heavy armor: dados reais da API UESP — set Telvanni Efficiency, level 50.
+ * Light armor items: real UESP API data — Whorl of the Depths set, level 50.
+ * Heavy armor items: real UESP API data — Telvanni Efficiency set, level 50.
  *   Source: esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=50&quality=5
  */
 
@@ -51,7 +51,7 @@ const BASE_ITEM: Partial<UespItemApiData> = {
   setBonusDesc5: '',
 };
 
-/** Light armor — armorRatings reais da API UESP (Whorl of the Depths, level 50 quality 5) */
+/** Light armor — real armorRatings from the UESP API (Whorl of the Depths, level 50 quality 5) */
 const LIGHT: Record<string, UespItemApiData> = {
   Head: {
     ...BASE_ITEM,
@@ -104,7 +104,7 @@ const LIGHT: Record<string, UespItemApiData> = {
   } as UespItemApiData,
 };
 
-/** Medium armor — bare items (sem set, sem enchant) para isolar deltas de passivo */
+/** Medium armor — bare items (no set, no enchant) to isolate passive deltas */
 const MEDIUM_BASE: Partial<UespItemApiData> = {
   ...BASE_ITEM,
   armorType: '2',
@@ -127,7 +127,7 @@ const SEVEN_MEDIUM: Record<string, UespItemApiData> = {
 };
 
 /**
- * Heavy armor — set Telvanni Efficiency, dados reais da API UESP.
+ * Heavy armor — Telvanni Efficiency set, real UESP API data.
  * Source: esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=50&quality=5
  * Trait 16 = Reinforced (Increase armor enchantment effect by 25%).
  */
@@ -229,17 +229,17 @@ beforeAll(() => {
 // ---------------------------------------------------------------------------
 // Infraestrutura
 // ---------------------------------------------------------------------------
-describe('infraestrutura de skills', () => {
-  it('esoskills.js está carregado — GetEsoSkillDescription é uma função', () => {
+describe('skill infrastructure', () => {
+  it('esoskills.js is loaded — GetEsoSkillDescription is a function', () => {
     expect(typeof (global as any).GetEsoSkillDescription).toBe('function');
   });
 
-  it('g_SkillsData tem pelo menos 1000 skills', () => {
+  it('g_SkillsData has at least 1000 skills', () => {
     const sd = (global as any).g_SkillsData ?? {};
     expect(Object.keys(sd).length).toBeGreaterThanOrEqual(1000);
   });
 
-  it('g_SkillsData[45533] é Heavy Armor Resolve rank 3', () => {
+  it('g_SkillsData[45533] is Heavy Armor Resolve rank 3', () => {
     const skill = (global as any).g_SkillsData?.[45533];
     expect(skill).toBeDefined();
     expect(skill.name).toBe('Resolve');
@@ -248,7 +248,7 @@ describe('infraestrutura de skills', () => {
     expect(skill.isPassive).toBeTruthy();
   });
 
-  it('ESO_PASSIVEEFFECT_MATCHES tem regra para Physical+Spell Resist por heavy armor', () => {
+  it('ESO_PASSIVEEFFECT_MATCHES has a rule for Physical+Spell Resist per heavy armor piece', () => {
     const matches = (global as any).ESO_PASSIVEEFFECT_MATCHES as any[];
     const rule = matches?.find(
       (m: any) =>
@@ -262,7 +262,7 @@ describe('infraestrutura de skills', () => {
     expect(rule.factorStatId).toBe('ArmorHeavy');
   });
 
-  it('passiveSkills vazio não crasha e retorna os mesmos stats que sem o campo', () => {
+  it('empty passiveSkills does not crash and returns the same stats as without the field', () => {
     const without = calculateBuild({ character: CHAR });
     const withEmpty = calculateBuild({ character: CHAR, passiveSkills: [] });
     expect(withEmpty.Magicka).toBe(without.Magicka);
@@ -271,10 +271,10 @@ describe('infraestrutura de skills', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Light Armor — Spell Warding (SpellResist por peça) — valores reais
+// Light Armor — Spell Warding (SpellResist per piece) — real values
 // ---------------------------------------------------------------------------
-describe('Light Armor — Spell Warding (SpellResist por peça, itens reais)', () => {
-  it('rank 1: 7 peças light → delta +2541 SpellResist (363 × 7)', () => {
+describe('Light Armor — Spell Warding (SpellResist per piece, real items)', () => {
+  it('rank 1: 7 light pieces → delta +2541 SpellResist (363 × 7)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -284,7 +284,7 @@ describe('Light Armor — Spell Warding (SpellResist por peça, itens reais)', (
     expect(withPassive.SpellResist - base.SpellResist).toBe(363 * 7);
   });
 
-  it('rank 2: 7 peças light → delta +5082 SpellResist (726 × 7)', () => {
+  it('rank 2: 7 light pieces → delta +5082 SpellResist (726 × 7)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -294,7 +294,7 @@ describe('Light Armor — Spell Warding (SpellResist por peça, itens reais)', (
     expect(withPassive.SpellResist - base.SpellResist).toBe(726 * 7);
   });
 
-  it('rank 2: SpellResist absoluto com 7 peças light = base(7501) + passive(5082) = 12583', () => {
+  it('rank 2: absolute SpellResist with 7 light pieces = base(7501) + passive(5082) = 12583', () => {
     // base: 7 light pieces w/ real armorRatings → 7501 SpellResist
     // + Spell Warding r2: 726 × 7 = 5082
     const withPassive = calculateBuild({
@@ -305,7 +305,7 @@ describe('Light Armor — Spell Warding (SpellResist por peça, itens reais)', (
     expect(withPassive.SpellResist).toBe(12583);
   });
 
-  it('não afeta PhysicalResist', () => {
+  it('does not affect PhysicalResist', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -315,7 +315,7 @@ describe('Light Armor — Spell Warding (SpellResist por peça, itens reais)', (
     expect(withPassive.PhysicalResist).toBe(base.PhysicalResist);
   });
 
-  it('escala com número de peças: 3 light → delta +2178 (726 × 3)', () => {
+  it('scales with piece count: 3 light → delta +2178 (726 × 3)', () => {
     const threeLight = { Chest: LIGHT.Chest, Legs: LIGHT.Legs, Hands: LIGHT.Hands };
     const base = calculateBuild({ character: CHAR, items: threeLight });
     const withPassive = calculateBuild({
@@ -326,7 +326,7 @@ describe('Light Armor — Spell Warding (SpellResist por peça, itens reais)', (
     expect(withPassive.SpellResist - base.SpellResist).toBe(726 * 3);
   });
 
-  it('sem armor equipado → passivo não aplica (fator = 0)', () => {
+  it('no armor equipped → passive does not apply (factor = 0)', () => {
     const base = calculateBuild({ character: CHAR });
     const withPassive = calculateBuild({ character: CHAR, passiveSkills: [45559] });
     expect(withPassive.SpellResist).toBe(base.SpellResist);
@@ -334,10 +334,10 @@ describe('Light Armor — Spell Warding (SpellResist por peça, itens reais)', (
 });
 
 // ---------------------------------------------------------------------------
-// Light Armor — Evocation (MagickaRegen % por peça) — valores reais
+// Light Armor — Evocation (MagickaRegen % per piece) — real values
 // ---------------------------------------------------------------------------
-describe('Light Armor — Evocation (MagickaRegen % por peça, itens reais)', () => {
-  it('rank 1: 7 peças light → MagickaRegen aumenta ~14% (2% × 7)', () => {
+describe('Light Armor — Evocation (MagickaRegen % per piece, real items)', () => {
+  it('rank 1: 7 light pieces → MagickaRegen rises ~14% (2% × 7)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -347,7 +347,7 @@ describe('Light Armor — Evocation (MagickaRegen % por peça, itens reais)', ()
     expect(withPassive.MagickaRegen / base.MagickaRegen).toBeCloseTo(1.14, 1);
   });
 
-  it('rank 2: 7 peças light → MagickaRegen aumenta ~28% (4% × 7)', () => {
+  it('rank 2: 7 light pieces → MagickaRegen rises ~28% (4% × 7)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -357,7 +357,7 @@ describe('Light Armor — Evocation (MagickaRegen % por peça, itens reais)', ()
     expect(withPassive.MagickaRegen / base.MagickaRegen).toBeCloseTo(1.28, 1);
   });
 
-  it('não afeta SpellDamage', () => {
+  it('does not affect SpellDamage', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -369,16 +369,16 @@ describe('Light Armor — Evocation (MagickaRegen % por peça, itens reais)', ()
 });
 
 // ---------------------------------------------------------------------------
-// Heavy Armor — Resolve (PhysicalResist + SpellResist por peça)
-// Nota: armorRatings estimados — substituir por itens reais da API UESP.
+// Heavy Armor — Resolve (PhysicalResist + SpellResist per piece)
+// Note: estimated armorRatings — replace with real UESP API items.
 // ---------------------------------------------------------------------------
-describe('Heavy Armor — Resolve (PhysResist + SpellResist por peça)', () => {
+describe('Heavy Armor — Resolve (PhysResist + SpellResist per piece)', () => {
   it.each([
     { rank: 1, skillId: 29825, perPiece: 114, delta: 114 * 7 },
     { rank: 2, skillId: 45531, perPiece: 229, delta: 229 * 7 },
     { rank: 3, skillId: 45533, perPiece: 343, delta: 343 * 7 },
   ])(
-    'rank $rank: 7 peças heavy → delta +$delta PhysResist e SpellResist ($perPiece × 7)',
+    'rank $rank: 7 heavy pieces → delta +$delta PhysResist and SpellResist ($perPiece × 7)',
     ({ skillId, delta }) => {
       const base = calculateBuild({ character: CHAR, items: SEVEN_HEAVY });
       const withPassive = calculateBuild({
@@ -391,7 +391,7 @@ describe('Heavy Armor — Resolve (PhysResist + SpellResist por peça)', () => {
     },
   );
 
-  it('escala com número de peças: 3 heavy → delta +1029 (343 × 3)', () => {
+  it('scales with piece count: 3 heavy → delta +1029 (343 × 3)', () => {
     const threeHeavy = { Head: HEAVY.Head, Chest: HEAVY.Chest, Legs: HEAVY.Legs };
     const base = calculateBuild({ character: CHAR, items: threeHeavy });
     const withPassive = calculateBuild({
@@ -402,7 +402,7 @@ describe('Heavy Armor — Resolve (PhysResist + SpellResist por peça)', () => {
     expect(withPassive.PhysicalResist - base.PhysicalResist).toBe(343 * 3);
   });
 
-  it('sem armor equipado → passivo não aplica (fator = 0)', () => {
+  it('no armor equipped → passive does not apply (factor = 0)', () => {
     const base = calculateBuild({ character: CHAR });
     const withPassive = calculateBuild({ character: CHAR, passiveSkills: [45533] });
     expect(withPassive.PhysicalResist).toBe(base.PhysicalResist);
@@ -411,10 +411,10 @@ describe('Heavy Armor — Resolve (PhysResist + SpellResist por peça)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Múltiplos passivos simultâneos
+// Multiple simultaneous passives
 // ---------------------------------------------------------------------------
-describe('múltiplos passivos simultâneos', () => {
-  it('HA Resolve r3 + LA Spell Warding r2 com itens mistos somam corretamente', () => {
+describe('multiple simultaneous passives', () => {
+  it('HA Resolve r3 + LA Spell Warding r2 with mixed items add up correctly', () => {
     // 4 heavy + 3 light
     const mixedItems = {
       Head: HEAVY.Head,
@@ -431,13 +431,13 @@ describe('múltiplos passivos simultâneos', () => {
       items: mixedItems,
       passiveSkills: [45533, 45559], // Resolve r3 + Spell Warding r2
     });
-    // Resolve: 343 × 4 heavy = +1372 (PhysResist e SpellResist)
-    // Spell Warding: 726 × 3 light = +2178 (só SpellResist)
+    // Resolve: 343 × 4 heavy = +1372 (PhysResist and SpellResist)
+    // Spell Warding: 726 × 3 light = +2178 (SpellResist only)
     expect(withBoth.PhysicalResist - base.PhysicalResist).toBe(343 * 4);
     expect(withBoth.SpellResist - base.SpellResist).toBe(343 * 4 + 726 * 3);
   });
 
-  it('passivos de ranks diferentes não se acumulam — só o fornecido é aplicado', () => {
+  it('passives of different ranks do not stack — only the given one is applied', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_HEAVY });
     const rank1 = calculateBuild({ character: CHAR, items: SEVEN_HEAVY, passiveSkills: [29825] });
     const rank3 = calculateBuild({ character: CHAR, items: SEVEN_HEAVY, passiveSkills: [45533] });
@@ -447,18 +447,18 @@ describe('múltiplos passivos simultâneos', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Medium Armor — Agility (SpellDamage + WeaponDamage % por peça)
+// Medium Armor — Agility (SpellDamage + WeaponDamage % per piece)
 //
-// IDs dos passivos:
-//   29686 — Agility rank 1: +1% Spell/Weapon Damage por peça de Medium Armor
-//   45572 — Agility rank 2: +2% Spell/Weapon Damage por peça de Medium Armor
+// Passive IDs:
+//   29686 — Agility rank 1: +1% Spell/Weapon Damage per Medium Armor piece
+//   45572 — Agility rank 2: +2% Spell/Weapon Damage per Medium Armor piece
 //
-// Estes passivos usam regex [\r\n ]{2,} na regra; dependem do \n\n → "  "
-// (dois espaços) gerado por ComputeEsoInputSkillValue. Servem como regressão
-// para o monkey-patch que foi removido de loader.ts (2026-06-06).
+// These passives use the [\r\n ]{2,} regex in the rule; they depend on \n\n → "  "
+// (two spaces) generated by ComputeEsoInputSkillValue. They serve as a regression
+// for the monkey-patch removed from loader.ts (2026-06-06).
 // ---------------------------------------------------------------------------
-describe('Medium Armor — Agility (Spell/WeaponDamage % por peça)', () => {
-  it('rank 1: 7 peças medium → SpellDamage +70 e WeaponDamage +70 (1% × 7)', () => {
+describe('Medium Armor — Agility (Spell/WeaponDamage % per piece)', () => {
+  it('rank 1: 7 medium pieces → SpellDamage +70 and WeaponDamage +70 (1% × 7)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -469,7 +469,7 @@ describe('Medium Armor — Agility (Spell/WeaponDamage % por peça)', () => {
     expect(withPassive.WeaponDamage - base.WeaponDamage).toBe(70);
   });
 
-  it('rank 2: 7 peças medium → SpellDamage +140 e WeaponDamage +140 (2% × 7)', () => {
+  it('rank 2: 7 medium pieces → SpellDamage +140 and WeaponDamage +140 (2% × 7)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -480,7 +480,7 @@ describe('Medium Armor — Agility (Spell/WeaponDamage % por peça)', () => {
     expect(withPassive.WeaponDamage - base.WeaponDamage).toBe(140);
   });
 
-  it('escala com número de peças: 3 medium → SpellDamage +60 (2% × 3)', () => {
+  it('scales with piece count: 3 medium → SpellDamage +60 (2% × 3)', () => {
     const threeItems = {
       Chest: SEVEN_MEDIUM.Chest,
       Legs: SEVEN_MEDIUM.Legs,
@@ -495,7 +495,7 @@ describe('Medium Armor — Agility (Spell/WeaponDamage % por peça)', () => {
     expect(withPassive.SpellDamage - base.SpellDamage).toBe(60);
   });
 
-  it('sem armor equipado → passivo não aplica (fator = 0)', () => {
+  it('no armor equipped → passive does not apply (factor = 0)', () => {
     const base = calculateBuild({ character: CHAR });
     const withPassive = calculateBuild({ character: CHAR, passiveSkills: [45572] });
     expect(withPassive.SpellDamage).toBe(base.SpellDamage);
@@ -503,18 +503,18 @@ describe('Medium Armor — Agility (Spell/WeaponDamage % por peça)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Medium Armor Bonuses (150181) — redução de custo de movimento
+// Medium Armor Bonuses (150181) — movement cost reduction
 //
-// Skill 150181 ("Medium Armor Bonuses") contém múltiplos efeitos em descrição
-// multi-linha (separados por \n\n). As regras 38323 e 38720 usam [\r\n ]{2,}
-// para detectar fins de item de lista — dependem de \n\n → "  " (dois espaços)
-// gerado internamente por ComputeEsoInputSkillValue.
+// Skill 150181 ("Medium Armor Bonuses") contains multiple effects in a
+// multi-line description (separated by \n\n). Rules 38323 and 38720 use [\r\n ]{2,}
+// to detect list-item endings — they depend on \n\n → "  " (two spaces)
+// generated internally by ComputeEsoInputSkillValue.
 //
-// Estes testes são regressão directa para o monkey-patch removido em 2026-06-06
-// (loader.ts: RemoveEsoDescriptionFormats colapsava \n\n → " " e quebrava {2,}).
+// These tests are a direct regression for the monkey-patch removed on 2026-06-06
+// (loader.ts: RemoveEsoDescriptionFormats collapsed \n\n → " " and broke {2,}).
 // ---------------------------------------------------------------------------
-describe('Medium Armor Bonuses — SneakCost e SprintCost (via raw)', () => {
-  it('7 peças medium → SneakCost reduz de 133 para 87 (−5% × 7 peças)', () => {
+describe('Medium Armor Bonuses — SneakCost and SprintCost (via raw)', () => {
+  it('7 medium pieces → SneakCost drops from 133 to 87 (−5% × 7 pieces)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -525,7 +525,7 @@ describe('Medium Armor Bonuses — SneakCost e SprintCost (via raw)', () => {
     expect(withPassive.raw.SneakCost - base.raw.SneakCost).toBe(-46);
   });
 
-  it('7 peças medium → SprintCost reduz de 500 para 460 (−1% × 7 peças)', () => {
+  it('7 medium pieces → SprintCost drops from 500 to 460 (−1% × 7 pieces)', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
     const withPassive = calculateBuild({
       character: CHAR,
@@ -536,7 +536,7 @@ describe('Medium Armor Bonuses — SneakCost e SprintCost (via raw)', () => {
     expect(withPassive.raw.SprintCost - base.raw.SprintCost).toBe(-40);
   });
 
-  it('sem armor equipado → nenhuma redução (fator ArmorMedium = 0)', () => {
+  it('no armor equipped → no reduction (ArmorMedium factor = 0)', () => {
     const base = calculateBuild({ character: CHAR });
     const withPassive = calculateBuild({ character: CHAR, passiveSkills: [150181] });
     expect(withPassive.raw.SneakCost).toBe(base.raw.SneakCost);
@@ -545,17 +545,17 @@ describe('Medium Armor Bonuses — SneakCost e SprintCost (via raw)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// passiveSkills — sem bleed-through entre chamadas
+// passiveSkills — no bleed-through between calls
 // ---------------------------------------------------------------------------
-describe('passiveSkills — sem bleed-through entre chamadas', () => {
-  it('chamada sem passiveSkills após chamada com passivo não mantém efeito', () => {
+describe('passiveSkills — no bleed-through between calls', () => {
+  it('call without passiveSkills after a call with a passive keeps no effect', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45559] }); // Spell Warding r2
     const clean = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     expect(clean.SpellResist).toBe(base.SpellResist);
   });
 
-  it('passivo diferente na chamada seguinte não acumula com o anterior', () => {
+  it('a different passive on the next call does not stack with the previous one', () => {
     const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
     calculateBuild({ character: CHAR, items: SEVEN_LIGHT, passiveSkills: [45559] }); // Spell Warding r2
     const onlyWarding = calculateBuild({
@@ -568,9 +568,9 @@ describe('passiveSkills — sem bleed-through entre chamadas', () => {
       items: SEVEN_LIGHT,
       passiveSkills: [45557],
     }); // Evocation r2
-    // SpellResist do Evocation deve ser igual ao base (Evocation não afeta SpellResist)
+    // Evocation SpellResist must equal the base (Evocation does not affect SpellResist)
     expect(onlyEvocation.SpellResist).toBe(base.SpellResist);
-    // Warding ainda deve aplicar corretamente
+    // Warding must still apply correctly
     expect(onlyWarding.SpellResist - base.SpellResist).toBe(726 * 7);
   });
 });
@@ -578,14 +578,14 @@ describe('passiveSkills — sem bleed-through entre chamadas', () => {
 // ---------------------------------------------------------------------------
 // g_EsoSkillActiveData — skill bars
 // ---------------------------------------------------------------------------
-describe('g_EsoSkillActiveData populado a partir de skillBars', () => {
-  it('skillBars sem skills → g_EsoSkillActiveData vazio após o cálculo', () => {
+describe('g_EsoSkillActiveData populated from skillBars', () => {
+  it('skillBars without skills → g_EsoSkillActiveData empty after calculation', () => {
     calculateBuild({ character: CHAR });
     const activeData = (global as any).g_EsoSkillActiveData ?? {};
     expect(Object.keys(activeData)).toHaveLength(0);
   });
 
-  it('skillBars com 2 skills → g_EsoSkillActiveData tem 2 entradas', () => {
+  it('skillBars with 2 skills → g_EsoSkillActiveData has 2 entries', () => {
     calculateBuild({
       character: CHAR,
       skillBars: { bar1: [{ skillId: 28807 }, { skillId: 24322 }] },
@@ -597,7 +597,7 @@ describe('g_EsoSkillActiveData populado a partir de skillBars', () => {
     expect(activeData[24322]).toBeDefined();
   });
 
-  it('skillBars com ambas as barras → entradas de todas as skills', () => {
+  it('skillBars with both bars → entries for all skills', () => {
     calculateBuild({
       character: CHAR,
       skillBars: {
