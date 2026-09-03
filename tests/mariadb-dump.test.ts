@@ -29,60 +29,60 @@ function writeGzip(fileName: string, content: string): string {
 }
 
 describe('parseInsertValues', () => {
-  it('parseia tupla simples com NULL e números', () => {
+  it('parses a simple tuple with NULL and numbers', () => {
     expect(parseInsertValues("(1,'abc',NULL),(2,'x',-3.5)")).toEqual([
       [1, 'abc', null],
       [2, 'x', -3.5],
     ]);
   });
 
-  it('parseia inteiro negativo e float', () => {
+  it('parses negative integers and floats', () => {
     expect(parseInsertValues('(-5,2.75,-0.5)')).toEqual([[-5, 2.75, -0.5]]);
   });
 
-  it('unescapes sequências MariaDB (\\n, \\r, \\t, \\0, \\", \\\\)', () => {
+  it('unescapes MariaDB sequences (\\n, \\r, \\t, \\0, \\", \\\\)', () => {
     expect(parseInsertValues("( 'a\\nb','c\\rd','e\\tf','g\\0h','i\"j','k\\\\l' )")).toEqual([
       ['a\nb', 'c\rd', 'e\tf', 'g\0h', 'i"j', 'k\\l'],
     ]);
   });
 
-  it("converte aspas duplas escapadas (\\') em aspas simples", () => {
+  it("converts escaped quotes (\\') into single quotes", () => {
     expect(parseInsertValues("( 'Syrabane\\'s Ward' )")).toEqual([["Syrabane's Ward"]]);
   });
 
-  it("converte aspas duplas dobradas ('') em aspas simples", () => {
+  it("converts doubled quotes ('') into single quotes", () => {
     expect(parseInsertValues("( 'Syrabane''s Ward' )")).toEqual([["Syrabane's Ward"]]);
   });
 
-  it('mantém vírgulas e parênteses dentro de strings', () => {
+  it('keeps commas and parentheses inside strings', () => {
     expect(parseInsertValues("( '(a, b)', 'x,y' )")).toEqual([['(a, b)', 'x,y']]);
   });
 
-  it('parseia string vazia como string (não NULL)', () => {
+  it('parses an empty string as a string (not NULL)', () => {
     expect(parseInsertValues("( '', NULL )")).toEqual([['', null]]);
   });
 
-  it('não entra em loop com input malformado', () => {
+  it('does not loop on malformed input', () => {
     expect(parseInsertValues("( a, 'x' )")).toEqual([[null]]);
   });
 
-  it('para no ponto-e-vírgula final', () => {
+  it('stops at the trailing semicolon', () => {
     expect(parseInsertValues('(1, 2); LIXO')).toEqual([[1, 2]]);
   });
 });
 
 describe('assertCols', () => {
-  it('passa com a quantidade exata', () => {
+  it('passes with the exact count', () => {
     expect(() => assertCols([1, null, 'a'], 3, 't')).not.toThrow();
   });
 
-  it('falha com quantidade divergente', () => {
+  it('fails on a mismatched count', () => {
     expect(() => assertCols([1, 'a'], 3, 'rules')).toThrowError(/rules: expected 3 columns/);
   });
 });
 
 describe('iterateDumpRows', () => {
-  it('varre INSERT em múltiplas linhas de um dump .sql.gz', async () => {
+  it('scans multi-line INSERTs from a .sql.gz dump', async () => {
     const dump = [
       'CREATE TABLE `rules` (`id` int, `name` text);',
       "INSERT INTO `other` VALUES (9,'ignore');",
@@ -102,7 +102,7 @@ describe('iterateDumpRows', () => {
     ]);
   });
 
-  it('varre dump .sql plain', async () => {
+  it('scans a plain .sql dump', async () => {
     const file = path.join(tmpDir, 'plain.sql');
     fs.writeFileSync(file, "INSERT INTO `t` VALUES (10,'a');\n");
 
@@ -114,17 +114,17 @@ describe('iterateDumpRows', () => {
 });
 
 describe('findDumpFile', () => {
-  it('retorna null quando não há dump do prefixo', () => {
+  it('returns null when there is no dump for the prefix', () => {
     expect(findDumpFile(tmpDir, 'inexistente')).toBeNull();
   });
 
-  it('pega o maior número de patch (novo)', () => {
+  it('picks the highest patch number (newest)', () => {
     fs.writeFileSync(path.join(tmpDir, 'buildEditor49.sql.gz'), 'x');
     fs.writeFileSync(path.join(tmpDir, 'buildEditor50.sql.gz'), 'x');
     expect(findDumpFile(tmpDir, 'buildEditor')).toMatch(/buildEditor50\.sql\.gz$/);
   });
 
-  it('ignora arquivos com extensão não-dump', () => {
+  it('ignores files with a non-dump extension', () => {
     fs.writeFileSync(path.join(tmpDir, 'cp50.sql.gz'), 'x');
     fs.writeFileSync(path.join(tmpDir, 'cp50.sql.txt'), 'x');
     expect(findDumpFile(tmpDir, 'cp')).toMatch(/cp50\.sql\.gz$/);
@@ -156,7 +156,7 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
     );
   });
 
-  it('popula as 5 tabelas de dump e resolve a versão máxima', async () => {
+  it('populates the 5 dump tables and resolves the max version', async () => {
     const { initData, version, counts } = await buildUespGameData({
       dumpDir: tmpDir,
       skipApi: true,
@@ -171,7 +171,7 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
       cp2SkillDescriptions: 2,
     });
 
-    // computedStats: compute parseado de JSON, ids como string
+    // computedStats: compute parsed from JSON, ids as strings
     const cs = initData.computedStats.Health as Record<string, unknown>;
     expect(cs).toMatchObject({
       id: '1',
@@ -181,7 +181,7 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
       compute: ['300 * Level', '122 * Attribute.Health', '+'],
     });
 
-    // rules + effects: join por ruleId, bools convertidos
+    // rules + effects: join by ruleId, bools converted
     const rule = (initData.buildRules as Record<string, Record<string, Record<string, unknown>>>)
       .buff['40378'];
     expect(rule).toMatchObject({ id: 40378, version: '50', isEnabled: false, isVisible: true });
@@ -189,7 +189,7 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
       { id: '9000', ruleId: '40378', statId: 'Health', value: '10', round: '' },
     ]);
 
-    // cp2Skills: reais viram string no mapeamento
+    // cp2Skills: reals become strings in the mapping
     const cp = (initData.cpSkillsData ?? {})['59526'] as Record<string, unknown>;
     expect(cp).toMatchObject({
       id: '39',
@@ -200,20 +200,20 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
       jumpPoints: '[1,2]',
     });
 
-    // cp2SkillDescriptions indexado por points
+    // cp2SkillDescriptions indexed by points
     expect((initData.cpSkillDescData ?? {})['59526']).toEqual(['desc zero', 'desc um']);
 
-    // skipApi: skillsData vazio
+    // skipApi: empty skillsData
     expect(initData.skillsData).toEqual({});
   });
 
-  it('falha claramente quando o dump não existe', async () => {
+  it('fails clearly when the dump does not exist', async () => {
     await expect(
       buildUespGameData({ dumpDir: path.join(tmpDir, 'vazio-inexistente'), skipApi: true }),
     ).rejects.toThrowError(/not found/);
   });
 
-  it('popula as tabelas da API quando skipApi é false', async () => {
+  it('populates the API tables when skipApi is false', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(
@@ -231,7 +231,7 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
     }
   });
 
-  it('falha quando a API retorna um erro de aplicação', async () => {
+  it('fails when the API returns an application error', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockImplementation(

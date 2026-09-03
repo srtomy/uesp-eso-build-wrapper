@@ -12,7 +12,7 @@ afterAll(() => {
 });
 
 describe('initEsoEngineFromData', () => {
-  it('produz os stats baseline corretos', () => {
+  it('produces the correct baseline stats', () => {
     const stats = calculateBuild({
       character: {
         race: 'High Elf',
@@ -26,7 +26,7 @@ describe('initEsoEngineFromData', () => {
     expect(stats.Stamina).toBe(12000);
   });
 
-  it('é idempotente — segunda chamada não reinicializa', () => {
+  it('is idempotent — second call does not reinitialize', () => {
     expect(() => initEsoEngineFromData({ initData: loadInitData() })).not.toThrow();
   });
 });
