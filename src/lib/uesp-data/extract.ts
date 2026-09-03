@@ -12,9 +12,12 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import type { UespInitData } from '../eso-engine';
+import type { UespInitData } from '../eso-engine/index.js';
 
-const JSON_PATH = path.resolve(__dirname, '../../../vendor/uesp-data/uesp-game-data.json');
+const JSON_PATH = path.resolve(
+  import.meta.dirname,
+  '../../../vendor/uesp-data/uesp-game-data.json',
+);
 
 /** Subconjunto da API do node:sqlite usado pela extração. */
 export interface MinimalDb {

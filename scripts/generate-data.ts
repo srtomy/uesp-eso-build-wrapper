@@ -14,7 +14,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import * as path from 'path';
 import * as fs from 'fs';
-import { extractGameData } from '../src/lib/uesp-data';
+import { extractGameData } from '../src/lib/uesp-data/index.js';
 
 const ansi = (code: number) => (s: string) => `\x1b[${code}m${s}\x1b[0m`;
 const c = {
@@ -68,7 +68,7 @@ if (!fs.existsSync(dbPath)) {
 // Output
 // ---------------------------------------------------------------------------
 
-const OUT_PATH = path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json');
+const OUT_PATH = path.resolve(import.meta.dirname, '../vendor/uesp-data/uesp-game-data.json');
 
 // ---------------------------------------------------------------------------
 // Main

@@ -6,9 +6,9 @@
  * resultado — a dependência é unidirecional (uesp-data → eso-engine/types).
  */
 
-export { extractGameData, loadInitData } from './extract';
-export type { MinimalDb } from './extract';
-export { buildUespGameData } from './seed';
+export { extractGameData, loadInitData } from './extract.js';
+export type { MinimalDb } from './extract.js';
+export { buildUespGameData } from './seed.js';
 export type {
   BuildUespGameDataOptions,
   BuildUespGameDataResult,
@@ -16,12 +16,12 @@ export type {
   SeedProgressKind,
   ColumnSpec,
   SqlType,
-} from './seed';
+} from './seed.js';
 export {
   assertCols,
   findDumpFile,
   iterateDumpRows,
   openDump,
   parseInsertValues,
-} from './mariadb-dump';
-export type { SqlValue } from './mariadb-dump';
+} from './mariadb-dump.js';
+export type { SqlValue } from './mariadb-dump.js';

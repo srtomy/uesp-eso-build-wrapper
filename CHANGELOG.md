@@ -10,10 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Complete CI merge-gate pipeline: parallel jobs (lint, typecheck, test, build, package validation, security audit), coverage summary in the CI job summary, PR title enforcement (Conventional Commits), CodeQL, Dependabot, SonarCloud
 - `typecheck`, `publint` and `attw` npm scripts; branch protection on `main` with required status checks
+- `test:esm` smoke test: packs the tarball, installs it into a clean project and exercises `uesp-eso-build-wrapper` from both ESM (`import`) and CJS (`require(esm)`), initializing the engine with the vendored game data
 
 ### Changed
 - **Node.js requirement bumped to >= 24 (latest LTS)** — Node 20 reached EOL in 2026-04; CI now tests Node 24.x only
-- `exports["."].types` moved to the first condition (order-sensitive for TypeScript resolution); added `"type": "commonjs"`
+- **ESM-only package** — `"type": "module"`, single tsc build emitting real ESM (`module: nodenext`), `exports["."]` reduced to `{ types, default }`; sources use `import.meta.dirname` and explicit `.js` extensions on relative imports. CJS consumers on supported Node versions keep working via `require(esm)`; on older runtimes use `await import()`
+- attw: the `cjs-only-exports-default` workaround is gone; `cjs-resolves-to-esm` is ignored instead (attw models Node 16 semantics, `engines >= 24` resolves `require(esm)` natively)
+- Dev scripts run through `tsx` instead of ts-node (CJS-only and unmaintained)
 - CI hardening: `npm ci --ignore-scripts`, lockfile-pinned package-validation binaries, third-party actions pinned by commit SHA
 
 ## [0.3.0] — 2026-08-29

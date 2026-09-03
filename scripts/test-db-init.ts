@@ -17,16 +17,16 @@
 import { DatabaseSync } from 'node:sqlite';
 import * as path from 'path';
 import * as fs from 'fs';
-import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-engine';
-import { calculateBuild, initEsoEngineFromData, resetEngine } from '../src/lib/eso-engine';
-import { extractGameData } from '../src/lib/uesp-data';
+import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-engine/index.js';
+import { calculateBuild, initEsoEngineFromData, resetEngine } from '../src/lib/eso-engine/index.js';
+import { extractGameData } from '../src/lib/uesp-data/index.js';
 
 // ---------------------------------------------------------------------------
 // Args
 // ---------------------------------------------------------------------------
 const buildJsonPath =
   process.argv[2] ?? path.resolve(process.env.HOME!, 'Downloads/uesp-build-export.json');
-const dbPath = process.argv[3] ?? path.resolve(__dirname, '../../eso-build-editor/local.db');
+const dbPath = process.argv[3] ?? path.resolve(import.meta.dirname, '../../eso-build-editor/local.db');
 // Versão das regras a usar. Altere aqui para fixar manualmente (ex: '49', '50').
 // null = maior versão numérica disponível no banco.
 const RULES_VERSION: string | null = null;
@@ -45,7 +45,7 @@ const build: BuildInput & { expectedStats?: Record<string, number> } = JSON.pars
   fs.readFileSync(buildJsonPath, 'utf-8'),
 );
 
-const INIT_JSON = path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json');
+const INIT_JSON = path.resolve(import.meta.dirname, '../vendor/uesp-data/uesp-game-data.json');
 const LINE = '─'.repeat(72);
 
 // ---------------------------------------------------------------------------
