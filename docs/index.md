@@ -20,10 +20,12 @@ This library loads that **vendored, unmodified engine** into Node.js and acts as
 
 The wrapper never implements a single game formula. When a stat looks wrong after a patch, the fix is always in the game *data* fed to the engine — never in wrapper math. That is what makes it stay correct across ESO patches.
 
-## Features
+## Key properties
 
-- **100% UESP formulas** — same engine powering [esobuilds.uesp.net](https://esobuilds.uesp.net)
+- **Runs locally, no network for calculations** — `calculateBuild()` is synchronous and performs no HTTP requests; the vendored engine runs in-process. See [Architecture](/architecture).
+- **100% UESP formulas** — same engine powering [esobuilds.uesp.net](https://esobuilds.uesp.net), zero ESO math in the wrapper
 - **221 computed stats** — every Computed Character Statistic from the build editor
+- **UESP item data plugs in directly** — `exportJson.php?table=minedItem` objects go straight into `BuildInput.items`
 - **Zero runtime dependencies** — pure Node.js
 - **Full TypeScript types** — typed inputs and outputs, TSDoc-documented [API Reference](/api/)
 - **Singleton loader** — engine loads once per process, subsequent builds are cheap
@@ -48,6 +50,7 @@ On `initEsoEngineFromData()`, the wrapper loads the vendored UESP scripts into N
 
 ## Next steps
 
+- [Architecture](/architecture) — local engine, network policy, data flow
 - [Getting Started](/getting-started) — install, init, first calculation
 - [Guides](/guides/character) — every input in depth: items, CP, buffs, skills
 - [Reading the Output](/output) — what comes back and how to use it

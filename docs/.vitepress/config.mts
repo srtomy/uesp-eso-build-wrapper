@@ -28,6 +28,7 @@ function englishTheme(): NavSidebar {
     ],
     sidebar: [
       { text: 'Introduction', link: '/' },
+      { text: 'Architecture', link: '/architecture' },
       { text: 'Getting Started', link: '/getting-started' },
       {
         text: 'Guides',
@@ -113,6 +114,7 @@ function portugueseTheme(): NavSidebar {
     ],
     sidebar: [
       { text: 'Introdução', link: '/pt/' },
+      { text: 'Arquitetura', link: '/pt/architecture' },
       { text: 'Primeiros Passos', link: '/pt/getting-started' },
       {
         text: 'Guias',
