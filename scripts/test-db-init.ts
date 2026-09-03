@@ -1,17 +1,17 @@
 /**
- * Valida que o uesp-game-data.json commitado está alinhado com o banco SQLite ao vivo.
+ * Validates that the committed uesp-game-data.json is aligned with the live SQLite database.
  *
- * USO:
- *   npm run test:db-init [caminho-do-build.json] [caminho-do-db] [versão]
+ * USAGE:
+ *   npm run test:db-init [path-to-build.json] [path-to-db] [version]
  *
- * Padrões:
+ * Defaults:
  *   build: ~/Downloads/uesp-build-export.json
  *   db:    ../eso-build-editor/local.db
- *   versão: maior versão numérica disponível no banco
+ *   version: highest numeric version available in the database
  *
- * O script roda o mesmo build DUAS vezes — uma com o JSON commitado e outra
- * com leitura direta do banco — e compara os resultados. Divergências indicam
- * que o JSON precisa ser regerado com: npm run generate-data -- --db <db>
+ * The script runs the same build TWICE — once with the committed JSON and once
+ * reading the database directly — and compares the results. Mismatches indicate
+ * that the JSON needs to be regenerated with: npm run generate-data -- --db <db>
  */
 
 import { DatabaseSync } from 'node:sqlite';
@@ -27,17 +27,17 @@ import { extractGameData } from '../src/lib/uesp-data/index.js';
 const buildJsonPath =
   process.argv[2] ?? path.resolve(process.env.HOME!, 'Downloads/uesp-build-export.json');
 const dbPath = process.argv[3] ?? path.resolve(import.meta.dirname, '../../eso-build-editor/local.db');
-// Versão das regras a usar. Altere aqui para fixar manualmente (ex: '49', '50').
-// null = maior versão numérica disponível no banco.
+// Rules version to use. Change here to pin manually (e.g. '49', '50').
+// null = highest numeric version available in the database.
 const RULES_VERSION: string | null = null;
 const versionOverride = process.argv[4] ?? RULES_VERSION;
 
 if (!fs.existsSync(buildJsonPath)) {
-  console.error(`Build JSON não encontrado: ${buildJsonPath}`);
+  console.error(`Build JSON not found: ${buildJsonPath}`);
   process.exit(1);
 }
 if (!fs.existsSync(dbPath)) {
-  console.error(`Banco de dados não encontrado: ${dbPath}`);
+  console.error(`Database not found: ${dbPath}`);
   process.exit(1);
 }
 
@@ -69,22 +69,22 @@ console.log(`  BUILD: ${path.basename(buildJsonPath)}`);
 console.log(`  DB:    ${dbPath}`);
 console.log(LINE);
 
-// Run #1 — JSON commitado (baseline)
-console.log('\nRodando com uesp-game-data.json (commitado)...');
+// Run #1 — committed JSON (baseline)
+console.log('\nRunning with uesp-game-data.json (committed)...');
 const t0 = Date.now();
 const jsonInitData = JSON.parse(fs.readFileSync(INIT_JSON, 'utf-8')) as UespInitData;
 const rawJson = runBuild('JSON', () => initEsoEngineFromData({ initData: jsonInitData }));
-console.log(`  tempo: ${Date.now() - t0}ms`);
+console.log(`  time: ${Date.now() - t0}ms`);
 
 // Run #2 — DB
-console.log('\nRodando com local.db (SQLite)...');
+console.log('\nRunning with local.db (SQLite)...');
 const db = new DatabaseSync(dbPath);
 const t1 = Date.now();
 const dbInitData = extractGameData(db, versionOverride);
 const tLoad = Date.now();
-console.log(`  carregamento do banco: ${tLoad - t1}ms`);
+console.log(`  database load: ${tLoad - t1}ms`);
 const rawDb = runBuild('DB ', () => initEsoEngineFromData({ initData: dbInitData }));
-console.log(`  tempo total (carga + cálculo): ${Date.now() - t1}ms`);
+console.log(`  total time (load + calc): ${Date.now() - t1}ms`);
 db.close();
 
 // ---------------------------------------------------------------------------
@@ -114,13 +114,13 @@ function compare(
 
   console.log(`\n${LINE}`);
   console.log(
-    `  ${BOLD}${label}${RESET}  (${matches.length} ok, ${mismatches.length} divergências)`,
+    `  ${BOLD}${label}${RESET}  (${matches.length} ok, ${mismatches.length} mismatches)`,
   );
   console.log(`  ${'STAT'.padEnd(42)} ${labelA.padStart(12)} ${labelB.padStart(12)}  OK?`);
   console.log('  ' + '·'.repeat(74));
   for (const r of [...mismatches, ...matches]) {
     const color = r.match ? GREEN : RED;
-    const flag = r.match ? 'ok   ' : 'DIFER';
+    const flag = r.match ? 'ok   ' : 'DIFF ';
     const diff = r.match ? '' : ` (${r.vb > r.va ? '+' : ''}${(r.vb - r.va).toFixed(0)})`;
     console.log(
       `  ${color}${r.id.padEnd(42)} ${String(r.va).padStart(12)} ${String(r.vb).padStart(12)}${diff.padEnd(10)}  ${flag}${RESET}`,
@@ -130,18 +130,18 @@ function compare(
   return mismatches.length;
 }
 
-const diffJsonDb = compare('uesp-game-data.json vs Banco', rawJson, rawDb, 'JSON', 'Banco');
+const diffJsonDb = compare('uesp-game-data.json vs DB', rawJson, rawDb, 'JSON', 'DB');
 
 // ---------------------------------------------------------------------------
-// Comparação com expectedStats (quando presentes no build exportado)
+// Comparison with expectedStats (when present in the exported build)
 // ---------------------------------------------------------------------------
 const expected = build.expectedStats;
 if (expected && Object.keys(expected).length > 0) {
   compare('UESP vs JSON', expected, rawJson, 'UESP', 'JSON');
-  compare('UESP vs Banco', expected, rawDb, 'UESP', 'Banco');
+  compare('UESP vs DB', expected, rawDb, 'UESP', 'DB');
 }
 
 console.log(
-  `\n  ${diffJsonDb === 0 ? GREEN + '✓ uesp-game-data.json está alinhado com o banco' : RED + `✗ ${diffJsonDb} divergências — regere o JSON com: npm run generate-data -- --db ${dbPath}`}${RESET}\n`,
+  `\n  ${diffJsonDb === 0 ? GREEN + '✓ uesp-game-data.json is aligned with the database' : RED + `✗ ${diffJsonDb} mismatches — regenerate the JSON with: npm run generate-data -- --db ${dbPath}`}${RESET}\n`,
 );
 process.exit(diffJsonDb === 0 ? 0 : 1);
