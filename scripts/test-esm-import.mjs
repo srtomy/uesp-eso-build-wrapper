@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * Smoke test do pacote ESM-only: empacota o tarball, instala num projeto limpo
- * e importa 'uesp-eso-build-wrapper' via `import` (ESM) e via `require` a partir
- * de CJS (require(esm), estável no Node >= 22.12 — o engines do pacote é >= 24),
- * inicializando o motor com o game data do repo e calculando um build.
+ * Smoke test for the ESM-only package: packs the tarball, installs it into a clean
+ * project and imports 'uesp-eso-build-wrapper' via `import` (ESM) and via `require` from
+ * CJS (require(esm), stable on Node >= 22.12 — the package engines field is >= 24),
+ * initializing the engine with the repo game data and calculating a build.
  *
- * É o teste real de resolução do pacote:
+ * It is the real package-resolution test:
  *   - exports["."] → dist/lib/eso-engine/index.{js,d.ts} (ESM, via import.meta.dirname)
- *   - os scripts vendor (esoEditBuild.js, esobuilddata.js, esoskills.js) vêm do
- *     pacote instalado — se a resolução de caminho do pacote falhar, a init lança.
+ *   - the vendor scripts (esoEditBuild.js, esobuilddata.js, esoskills.js) come from the
+ *     installed package — if package path resolution fails, init throws.
  *
- * USO: npm run test:esm   (roda npm run build antes)
+ * USAGE: npm run test:esm   (run npm run build first)
  */
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -22,11 +22,11 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const gameData = path.join(repoRoot, 'vendor/uesp-data/uesp-game-data.json');
 
 if (!fs.existsSync(path.join(repoRoot, 'dist/lib/eso-engine/index.js'))) {
-  console.error('[test-esm] build faltando: dist/lib/eso-engine/index.js — rode npm run build primeiro');
+  console.error('[test-esm] missing build: dist/lib/eso-engine/index.js — run npm run build first');
   process.exit(1);
 }
 if (!fs.existsSync(gameData)) {
-  console.error('[test-esm] vendor/uesp-data/uesp-game-data.json não encontrado');
+  console.error('[test-esm] vendor/uesp-data/uesp-game-data.json not found');
   process.exit(1);
 }
 
@@ -54,7 +54,7 @@ if (m.default !== m.calculateBuild) {
 }
 for (const fn of ['listAvailableBuffs', 'listRacialPassives', 'debugBuild']) {
   if (typeof m[fn] !== 'function') {
-    console.error(\`[esm-smoke] export faltando: \${fn}\`);
+    console.error(\`[esm-smoke] missing export: \${fn}\`);
     process.exitCode = 1;
   }
 }
@@ -63,8 +63,8 @@ console.log(\`[esm-smoke] ok — Health=\${stats.Health} Magicka=\${stats.Magick
 `;
 
 const cjsSmokeSrc = `
-// require(esm): o pacote é ESM-only; no Node >= 22.12 o require() de ESM é estável
-// (o engines do pacote é >= 24). m recebe o namespace do módulo.
+// require(esm): the package is ESM-only; on Node >= 22.12 require() of ESM is stable
+// (the package engines field is >= 24). m receives the module namespace.
 const m = require('uesp-eso-build-wrapper');
 const fs = require('node:fs');
 
@@ -98,7 +98,7 @@ try {
   }).trim();
   const tarball = path.join(tmp, tarballName);
 
-  // Sem dependências de runtime → instalação offline.
+  // No runtime dependencies → offline install.
   execFileSync('npm', ['install', '--no-audit', '--no-fund', tarball], { cwd: tmp, stdio: 'inherit' });
 
   const env = { ...process.env, GAME_DATA: gameData };

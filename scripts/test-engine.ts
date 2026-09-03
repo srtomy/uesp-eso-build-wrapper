@@ -1,7 +1,7 @@
 /**
- * Script de exploração manual do motor ESO — rode sem precisar subir nenhum servidor.
+ * Manual exploration script for the ESO engine — run without needing to start any server.
  *
- * USO:
+ * USAGE:
  *   npm run test:explore
  */
 
@@ -11,7 +11,7 @@ import { initEsoEngineFromData, calculateBuild } from '../src/lib/eso-engine/ind
 import type { BuildInput, UespInitData, UespItemApiData } from '../src/lib/eso-engine/index.js';
 
 // ---------------------------------------------------------------------------
-// Inicializa o motor (uma vez por processo)
+// Initialize the engine (once per process)
 // ---------------------------------------------------------------------------
 const gameData = JSON.parse(
   fs.readFileSync(path.resolve(import.meta.dirname, '../vendor/uesp-data/uesp-game-data.json'), 'utf-8'),
@@ -19,14 +19,14 @@ const gameData = JSON.parse(
 initEsoEngineFromData({ initData: gameData });
 
 // ---------------------------------------------------------------------------
-// Exemplo: item real buscado da API da UESP
+// Example: real item fetched from the UESP API
 // GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=70&level=1&quality=1
-// (Cured Kwama Leggings — apenas para demonstrar o mapeamento de campos)
+// (Cured Kwama Leggings — only to demonstrate the field mapping)
 // ---------------------------------------------------------------------------
 const exampleLegItem: UespItemApiData = {
   itemId: '70',
   name: 'Cured Kwama Leggings',
-  armorRating: '1234', // use o valor real do nível max (160CP quality 5)
+  armorRating: '1234', // use the real max-level value (160CP quality 5)
   weaponPower: '0',
   armorType: '2', // 2 = Medium
   weaponType: '0',
@@ -51,9 +51,9 @@ const exampleLegItem: UespItemApiData = {
 };
 
 // ---------------------------------------------------------------------------
-// TEST 1: Personagem sem itens (baseline puro por raça/classe/nível)
+// TEST 1: Character without items (pure baseline by race/class/level)
 // ---------------------------------------------------------------------------
-console.log('\n=== TEST 1: High Elf Sorcerer nv50, 64 pts Magicka, sem itens ===');
+console.log('\n=== TEST 1: High Elf Sorcerer lv50, 64 pts Magicka, no items ===');
 
 const result1 = calculateBuild({
   character: {
@@ -64,24 +64,24 @@ const result1 = calculateBuild({
   },
 });
 
-// Valores esperados (fórmulas reais UESP v49):
-// Health  = (300*50 + 1000) * 1 = 16000 (sem pontos em health)
+// Expected values (real UESP v49 formulas):
+// Health  = (300*50 + 1000) * 1 = 16000 (no points in health)
 // Magicka = (220*50 + 1000 + 111*64) * 1 = 19104
 // Stamina = (220*50 + 1000) * 1 = 12000
 // MagickaRegen = round(9.30612*50 + 48.7) = 514
-console.log('Health:      ', result1.Health, ' (esperado: 16000)');
-console.log('Magicka:     ', result1.Magicka, ' (esperado: 19104)');
-console.log('Stamina:     ', result1.Stamina, ' (esperado: 12000)');
+console.log('Health:      ', result1.Health, ' (expected: 16000)');
+console.log('Magicka:     ', result1.Magicka, ' (expected: 19104)');
+console.log('Stamina:     ', result1.Stamina, ' (expected: 12000)');
 console.log('SpellDamage: ', result1.SpellDamage);
 console.log('SpellCrit:   ', result1.SpellCrit);
-console.log('MagickaRegen:', result1.MagickaRegen, ' (esperado: 514)');
+console.log('MagickaRegen:', result1.MagickaRegen, ' (expected: 514)');
 console.log('EffectivePower:', result1.EffectivePower);
 
 // ---------------------------------------------------------------------------
-// TEST 2: Mesmo personagem COM item equipado — valida que g_EsoBuildItemData
-//         foi populado corretamente e o motor processou o item
+// TEST 2: Same character WITH an equipped item — validates that g_EsoBuildItemData
+//         was populated correctly and the engine processed the item
 // ---------------------------------------------------------------------------
-console.log('\n=== TEST 2: Mesmo personagem COM calça equipada ===');
+console.log('\n=== TEST 2: Same character WITH legs equipped ===');
 
 const result2 = calculateBuild({
   character: {
@@ -97,10 +97,10 @@ const result2 = calculateBuild({
 
 console.log('Health:     ', result2.Health);
 console.log('Magicka:    ', result2.Magicka);
-console.log('Stamina:    ', result2.Stamina, ' (esperado > 12000 pelo enchant de stamina)');
+console.log('Stamina:    ', result2.Stamina, ' (expected > 12000 from the stamina enchant)');
 console.log('SpellDamage:', result2.SpellDamage);
 
-// TEST 3: Nord Tank nv50 com heavy armor (armorType=3)
+// TEST 3: Nord Tank lv50 with heavy armor (armorType=3)
 console.log('\n=== TEST 3: Nord Dragonknight Tank, 64 pts Health, heavy chest ===');
 
 const heavyChest: UespItemApiData = {
@@ -128,12 +128,12 @@ const result3 = calculateBuild({
 });
 
 // Health = (300*50 + 1000 + 122*64) * 1 = 16000 + 7808 = 23808
-console.log('Health:      ', result3.Health, ' (esperado: 23808)');
+console.log('Health:      ', result3.Health, ' (expected: 23808)');
 console.log('Magicka:     ', result3.Magicka);
 console.log('Stamina:     ', result3.Stamina);
 console.log('PhysicalResist:    ', result3.PhysicalResist);
 console.log('DefensePhysicalMitigation:', result3.DefensePhysicalMitigation);
 
-console.log('\n✓ Todos os testes executados. Verifique os valores acima.');
-console.log('  Stats brutos disponíveis em result1.raw, result2.raw, result3.raw');
-console.log('  Exemplo: result1.raw =', JSON.stringify(Object.keys(result1.raw).slice(0, 10)));
+console.log('\n✓ All tests executed. Check the values above.');
+console.log('  Raw stats available in result1.raw, result2.raw, result3.raw');
+console.log('  Example: result1.raw =', JSON.stringify(Object.keys(result1.raw).slice(0, 10)));

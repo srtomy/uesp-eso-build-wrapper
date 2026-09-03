@@ -2,7 +2,7 @@
 // @name         UESP ESO Build Exporter
 // @namespace    https://en.uesp.net/
 // @version      1.2.0
-// @description  Adiciona botão de exportação no ESO Build Editor — sem precisar de DevTools (F12)
+// @description  Adds an export button to the ESO Build Editor — no DevTools (F12) needed
 // @author       Tarcisio Scotta
 // @match        https://en.uesp.net/wiki/Special:EsoBuildEditor*
 // @grant        none
@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  // ─── aguarda o motor UESP carregar ─────────────────────────────────────────
+  // ─── wait for the UESP engine to load ─────────────────────────────────────
 
   function waitForEngine(callback) {
     var attempts = 0;
@@ -28,19 +28,19 @@
         callback();
       } else if (attempts >= 60) {
         clearInterval(interval);
-        console.warn('[UESP Export] Motor não carregou em 30s — adicionando botão mesmo assim');
+        console.warn('[UESP Export] Engine did not load in 30s — adding button anyway');
         callback();
       }
     }, 500);
   }
 
-  // ─── botão flutuante ────────────────────────────────────────────────────────
+  // ─── floating button ────────────────────────────────────────────────────────
 
   function createButton() {
     var btn = document.createElement('button');
     btn.id = 'uesp-export-btn';
     btn.textContent = '📤 Export JSON';
-    btn.title = 'Exportar build atual para uesp-build-export.json\n(para comparar com o engine local)';
+    btn.title = 'Export current build to uesp-build-export.json\n(to compare with the local engine)';
 
     var baseStyle = [
       'position:fixed',
@@ -71,18 +71,18 @@
       var race  = String($('#esotbRace').val() || '').toLowerCase().replace(/\s+/g, '-');
       var cls   = String($('#esotbClass').val() || '').toLowerCase().replace(/\s+/g, '-');
       var suggested = 'v50-' + (race || 'race') + '-' + (cls || 'class');
-      var name = prompt('Nome do arquivo de exportação:', suggested);
-      if (name === null) return; // cancelado
+      var name = prompt('Export file name:', suggested);
+      if (name === null) return; // cancelled
 
       btn.disabled = true;
-      btn.textContent = '⏳ Exportando…';
+      btn.textContent = '⏳ Exporting…';
       var filename = (name.trim() || suggested).replace(/\.json$/i, '') + '.json';
       try {
         exportBuild(filename);
-        btn.textContent = '✅ Exportado!';
+        btn.textContent = '✅ Exported!';
       } catch (e) {
-        btn.textContent = '❌ Erro — veja Console';
-        console.error('[UESP Export] Erro ao exportar:', e);
+        btn.textContent = '❌ Error — see Console';
+        console.error('[UESP Export] Failed to export:', e);
       }
       setTimeout(function () {
         btn.disabled = false;
@@ -91,10 +91,10 @@
     });
 
     document.body.appendChild(btn);
-    console.log('[UESP Export] Botão adicionado. Clique em "📤 Export JSON" para exportar.');
+    console.log('[UESP Export] Button added. Click "📤 Export JSON" to export.');
   }
 
-  // ─── lógica de exportação (idêntica ao browser-export-build.js) ─────────────
+  // ─── export logic (identical to browser-export-build.js) ────────────────────
 
   function exportBuild(filename) {
     var rulesVersion = String($('#esotbRulesVersion').val() || 'Live');
@@ -120,7 +120,7 @@
       championPointNodes: {},
     };
 
-    // campos opcionais do personagem
+    // optional character fields
     var mundus = String($('#esotbMundus').val() || '');
     if (mundus) build.character.mundusStone = mundus;
 
@@ -136,7 +136,7 @@
     var cp = parseInt(String($('#esotbCPTotalPoints').val())) || 0;
     if (cp > 0) build.character.championPoints = cp;
 
-    // itens por slot
+    // items by slot
     if (typeof window.g_EsoBuildItemData !== 'undefined') {
       Object.keys(window.g_EsoBuildItemData).forEach(function (slot) {
         var item = window.g_EsoBuildItemData[slot];
@@ -144,7 +144,7 @@
       });
     }
 
-    // enchant overrides (glyphs selecionados explicitamente no editor)
+    // enchant overrides (glyphs explicitly selected in the editor)
     if (typeof window.g_EsoBuildEnchantData !== 'undefined') {
       build.enchantOverrides = {};
       Object.keys(window.g_EsoBuildEnchantData).forEach(function (slot) {
@@ -161,7 +161,7 @@
       if (Object.keys(build.enchantOverrides).length === 0) delete build.enchantOverrides;
     }
 
-    // buffs ativos
+    // active buffs
     if (typeof window.g_EsoBuildBuffData !== 'undefined') {
       Object.keys(window.g_EsoBuildBuffData).forEach(function (name) {
         if (window.g_EsoBuildBuffData[name] && window.g_EsoBuildBuffData[name].enabled)
@@ -169,7 +169,7 @@
       });
     }
 
-    // barras de skills
+    // skill bars
     if (typeof window.UpdateEsoSkillBarData !== 'undefined') {
       try { window.UpdateEsoSkillBarData(); } catch (e) {}
     }
@@ -198,7 +198,7 @@
         build.activeWeaponBar = window.g_EsoBuildActiveAbilityBar;
     }
 
-    // passivas ativas
+    // active passives
     if (typeof window.g_EsoSkillPassiveData !== 'undefined') {
       var passiveIds = [];
       Object.keys(window.g_EsoSkillPassiveData).forEach(function (key) {
@@ -211,7 +211,7 @@
     // auto racial passives
     if ($('#esotbEnableRaceAutoPurchase').prop('checked')) build.autoPassives = true;
 
-    // toggle skills ativas
+    // active toggle skills
     if (typeof window.g_EsoBuildToggledSkillData !== 'undefined') {
       Object.keys(window.g_EsoBuildToggledSkillData).forEach(function (name) {
         if (window.g_EsoBuildToggledSkillData[name] && window.g_EsoBuildToggledSkillData[name].enabled)
@@ -219,7 +219,7 @@
       });
     }
 
-    // toggle set bonuses habilitados pelo usuário no editor
+    // toggle set bonuses enabled by the user in the editor
     if (typeof window.g_EsoBuildToggledSetData !== 'undefined') {
       var toggledSetBonuses = [];
       Object.keys(window.g_EsoBuildToggledSetData).forEach(function (id) {
@@ -229,7 +229,7 @@
       if (toggledSetBonuses.length > 0) build.toggledSetBonuses = toggledSetBonuses;
     }
 
-    // CP nodes alocados
+    // allocated CP nodes
     if (typeof window.g_EsoCpData !== 'undefined') {
       Object.keys(window.g_EsoCpData).forEach(function (nodeId) {
         var node = window.g_EsoCpData[nodeId];
@@ -239,7 +239,7 @@
       });
     }
 
-    // expectedStats — stats calculados pelo UESP para comparação
+    // expectedStats — stats calculated by UESP for comparison
     if (typeof window.g_EsoComputedStats !== 'undefined') {
       var expected = {};
       Object.keys(window.g_EsoComputedStats).forEach(function (statId) {
@@ -257,16 +257,16 @@
       ? ((build.skillBars.bar1 || []).length + (build.skillBars.bar2 || []).length)
       : 0;
 
-    console.log('[UESP Export] ✅ Build exportado!');
-    console.log('  Regras      : ' + rulesVersion);
-    console.log('  Raça/Classe : ' + build.character.race + ' ' + build.character.class);
-    console.log('  Itens       : ' + Object.keys(build.items).length + ' slots');
-    console.log('  Passivas    : ' + (build.passiveSkills ? build.passiveSkills.length : 0));
+    console.log('[UESP Export] ✅ Build exported!');
+    console.log('  Rules       : ' + rulesVersion);
+    console.log('  Race/Class  : ' + build.character.race + ' ' + build.character.class);
+    console.log('  Items       : ' + Object.keys(build.items).length + ' slots');
+    console.log('  Passives    : ' + (build.passiveSkills ? build.passiveSkills.length : 0));
     console.log('  Skills      : ' + barCount);
     console.log('  Buffs       : ' + build.activeBuffs.length);
     console.log('  Toggles     : ' + build.toggleSkills.length);
     console.log('  CP nodes    : ' + Object.keys(build.championPointNodes).length);
-    console.log('  → Agora rode: npm run test:build ~/Downloads/uesp-build-export.json');
+    console.log('  → Now run: npm run test:build ~/Downloads/uesp-build-export.json');
   }
 
   function downloadJSON(obj, filename) {
@@ -282,7 +282,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // ─── inicialização ──────────────────────────────────────────────────────────
+  // ─── initialization ─────────────────────────────────────────────────────────
 
   waitForEngine(createButton);
 })();
