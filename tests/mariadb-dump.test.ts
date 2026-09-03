@@ -131,7 +131,7 @@ describe('findDumpFile', () => {
   });
 });
 
-describe('buildUespGameData (skipApi — fixtures de dump)', () => {
+describe('buildUespGameData (skipApi — dump fixtures)', () => {
   beforeAll(() => {
     writeGzip(
       'buildEditor50.sql.gz',
