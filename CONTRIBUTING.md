@@ -77,7 +77,19 @@ vendor/
 - All tests must pass (`npm test`)
 - Lint and format must pass (`npm run lint && npm run format:check`)
 - Add or update tests for any behaviour change
-- Title follows Conventional Commits (`feat:`, `fix:`, `chore:`, …) — it feeds the
-  automated CHANGELOG
-- CI runs on every PR and is required to merge into `main` — see
-  `docs/CI-PIPELINE.md` for the full pipeline (jobs, coverage, package validation)
+- Title follows Conventional Commits (`feat:`, `fix:`, `chore:`, …) — it feeds the CHANGELOG
+- CI runs on every PR and is required to merge into `main` — see `docs/CI-PIPELINE.md` for the full pipeline (jobs, coverage, package validation)
+- Changelog hygiene:
+  - `feat:`, `fix:`, `perf:` and `feat!`/`BREAKING CHANGE` appear in the changelog; `chore:`, `ci:`, `test:`, `docs:` are omitted unless the commit body contains `[release-note]`
+  - To exclude a PR from the changelog, add `[skip changelog]` to the PR body or the `skip changelog` label
+
+## Release
+
+Releases are **manual** — you decide when. Two GitHub Actions (both `workflow_dispatch`):
+
+1. **Prepare release:** Actions → `Prepare release` → Run workflow (`version: auto` bumps from Conventional Commits, or `vX.Y.Z` explicit). It runs `scripts/prepare-release.mjs` and opens a PR `release/vX.Y.Z` with `package.json` + `CHANGELOG.md`.
+2. **Publish release:** after the release PR is merged to `main`, Actions → `Publish release` → Run workflow (`ref: main`). It creates the git tag, GitHub Release (from `CHANGELOG.md`), and publishes to npm (`--provenance`, gated by `vars.NPM_PUBLISH_ENABLED` + `secrets.NPM_TOKEN`).
+
+Local alternative (without Actions): `node scripts/prepare-release.mjs auto --dry-run` to preview, then `node scripts/prepare-release.mjs auto` + `git commit -m "chore: release vX.Y.Z"` + `gh pr create`.
+
+See `docs/CI-PIPELINE.md §8` for the full design and `scripts/prepare-release.mjs` for the filter implementation. Internal release tracking details are not part of the public contributor flow.

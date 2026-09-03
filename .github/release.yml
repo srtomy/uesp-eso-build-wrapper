@@ -1,0 +1,30 @@
+# Fallback auto-generated release notes categories (used when GitHub generates notes)
+# The publish-release workflow uses CHANGELOG.md excerpt as the primary notes;
+# these categories only apply when "Generate release notes" is triggered manually.
+changelog:
+  exclude:
+    labels:
+      - skip changelog
+      - skip-changelog
+    authors:
+      - renovate[bot]
+      - dependabot[bot]
+  categories:
+    - title: Added
+      labels:
+        - feature
+        - feat
+        - enhancement
+    - title: Fixed
+      labels:
+        - fix
+        - bug
+        - perf
+    - title: Changed
+      labels:
+        - refactor
+        - change
+        - breaking
+    - title: Other
+      labels:
+        - "*"
