@@ -10,11 +10,11 @@
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="buffdata"></a> `buffData?` | `Record`\<`string`, `unknown`\> | Dados de buffs iniciais |
-| <a id="buildrules"></a> `buildRules?` | `Record`\<`string`, `unknown`\> | Regras gerais da build |
-| <a id="computedstats"></a> `computedStats` | `Record`\<`string`, `unknown`\> | Fórmulas de cálculo dos stats (a "inteligência" do motor) |
-| <a id="cpdata"></a> `cpData?` | `Record`\<`string`, `unknown`\> | Dados de Champion Points iniciais |
-| <a id="cpskilldescdata"></a> `cpSkillDescData?` | `Record`\<`string`, `Record`\<`string`, `string`\>\> | Descrições dos nodes CP2 por nível de pontos: cpSkillDescData[nodeId][points] |
-| <a id="cpskillsdata"></a> `cpSkillsData?` | `Record`\<`string`, `unknown`\> | Metadados dos nodes CP2: nome, disciplina, cluster, posição no grafo |
-| <a id="setskillsdata"></a> `setSkillsData?` | `Record`\<`string`, `unknown`\> | Dados de skills de sets |
-| <a id="skillsdata"></a> `skillsData?` | `Record`\<`string`, `unknown`\> | Banco completo de skills da UESP (race/class passivos, activos, set skills). Capturado de window.g_SkillsData após a página en.uesp.net/wiki/Special:EsoBuildEditor carregar. Necessário para que GetEsoSkillDescription interpole coeficientes nos textos. |
+| <a id="buffdata"></a> `buffData?` | `Record`\<`string`, `unknown`\> | Initial buff data |
+| <a id="buildrules"></a> `buildRules?` | `Record`\<`string`, `unknown`\> | General build rules |
+| <a id="computedstats"></a> `computedStats` | `Record`\<`string`, `unknown`\> | Stat calculation formulas (the engine's "brains") |
+| <a id="cpdata"></a> `cpData?` | `Record`\<`string`, `unknown`\> | Initial Champion Points data |
+| <a id="cpskilldescdata"></a> `cpSkillDescData?` | `Record`\<`string`, `Record`\<`string`, `string`\>\> | CP2 node descriptions by points level: cpSkillDescData[nodeId][points] |
+| <a id="cpskillsdata"></a> `cpSkillsData?` | `Record`\<`string`, `unknown`\> | CP2 node metadata: name, discipline, cluster, graph position |
+| <a id="setskillsdata"></a> `setSkillsData?` | `Record`\<`string`, `unknown`\> | Set skill data |
+| <a id="skillsdata"></a> `skillsData?` | `Record`\<`string`, `unknown`\> | Complete UESP skill database (race/class passives, actives, set skills). Captured from window.g_SkillsData after en.uesp.net/wiki/Special:EsoBuildEditor loads. Required for GetEsoSkillDescription to interpolate coefficients into texts. |

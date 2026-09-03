@@ -12,7 +12,7 @@ One Champion Point node in BuildInput.championPointNodes.
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="currentbonus"></a> `currentBonus?` | `string` \| `number` | Valor numérico ou percentual do bônus atual. Formato legado para quando buildRules.cp não estiver disponível. Ex: 1000 ou "10%" |
-| <a id="description"></a> `description?` | `string` | Override da descrição do node (opcional). Se não fornecido, a descrição é resolvida automaticamente via g_EsoCpSkillDesc. Ex: "Grants 1 Max Magicka per stage. Current bonus: 1000" |
-| <a id="isunlocked"></a> `isUnlocked?` | `boolean` | Se o node está ativo/slotado no UESP. false = node tem pontos mas não está equipado (nós slotáveis não ativados). Quando ausente (fixtures antigos), assume true para compatibilidade. |
-| <a id="points"></a> `points?` | `number` | Pontos investidos neste node. Usado para resolver automaticamente a descrição via g_EsoCpSkillDesc[nodeId][points]. Obrigatório no caminho novo (quando buildRules.cp estiver carregado). |
+| <a id="currentbonus"></a> `currentBonus?` | `string` \| `number` | Numeric or percentage value of the current bonus. Legacy format for when buildRules.cp is unavailable. Ex: 1000 or "10%" |
+| <a id="description"></a> `description?` | `string` | Node description override (optional). If not provided, the description is auto-resolved via g_EsoCpSkillDesc. Ex: "Grants 1 Max Magicka per stage. Current bonus: 1000" |
+| <a id="isunlocked"></a> `isUnlocked?` | `boolean` | Whether the node is active/slotted in UESP. false = node has points but is not slotted (unslotted slottable nodes). When absent (old fixtures), assumed true for compatibility. |
+| <a id="points"></a> `points?` | `number` | Points invested in this node. Used to auto-resolve the description via g_EsoCpSkillDesc[nodeId][points]. Required on the new path (when buildRules.cp is loaded). |

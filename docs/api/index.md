@@ -8,8 +8,8 @@
 
 | Interface | Description |
 | ------ | ------ |
-| [BuffEffect](interfaces/BuffEffect.md) | Efeito individual de um buff sobre um stat. |
-| [BuffInfo](interfaces/BuffInfo.md) | Informações de um buff disponível no catálogo do motor. |
+| [BuffEffect](interfaces/BuffEffect.md) | A single buff effect on a stat. |
+| [BuffInfo](interfaces/BuffInfo.md) | Info about a buff available in the engine catalog. |
 | [BuildDebugCpNode](interfaces/BuildDebugCpNode.md) | State of a single Champion Point node during the calculation. |
 | [BuildDebugInfo](interfaces/BuildDebugInfo.md) | - |
 | [BuildDebugInputValues](interfaces/BuildDebugInputValues.md) | Per-category input values captured during the calculation (non-zero only). |
@@ -28,7 +28,7 @@
 
 | Type Alias | Description |
 | ------ | ------ |
-| [BuffGroup](type-aliases/BuffGroup.md) | Grupo do buff, corresponde às abas da UI da UESP. |
+| [BuffGroup](type-aliases/BuffGroup.md) | Buff group, matching the UESP UI tabs. |
 | [EquipSlot](type-aliases/EquipSlot.md) | Equipment slots accepted by BuildInput.items. |
 
 ## Functions

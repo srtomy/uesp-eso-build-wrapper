@@ -8,4 +8,4 @@
 
 > **BuffGroup** = `"Major"` \| `"Minor"` \| `"Set"` \| `"Target"` \| `"Skill"` \| `"Potion"` \| `"Poison"` \| `"Cyrodiil"` \| `"Other"` \| `string` & `object`
 
-Grupo do buff, corresponde às abas da UI da UESP.
+Buff group, matching the UESP UI tabs.

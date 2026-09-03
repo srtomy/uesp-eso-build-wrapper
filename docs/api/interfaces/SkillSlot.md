@@ -12,6 +12,6 @@ One skill slotted on an action bar (BuildInput.skillBars).
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="morphindex"></a> `morphIndex?` | `0` \| `2` \| `1` | Índice do morph: 0 = base, 1 = primeiro morph, 2 = segundo morph. **Default** `0` |
-| <a id="morphskillid"></a> `morphSkillId?` | `number` | Ability ID do morph atual (rank específico). Usado como chave em g_SkillsData e em GetEsoSkillDescription para obter a descrição correta com os bônus do morph equipado. Se ausente, o engine usa skillId (para skills sem morph). |
-| <a id="skillid"></a> `skillId` | `number` | Chave de lookup em g_EsoSkillActiveData — corresponde a origSkillId no DOM do Build Editor (ID do skill base/sem morph). Para skills sem morph, é igual a morphSkillId. |
+| <a id="morphindex"></a> `morphIndex?` | `0` \| `2` \| `1` | Morph index: 0 = base, 1 = first morph, 2 = second morph. **Default** `0` |
+| <a id="morphskillid"></a> `morphSkillId?` | `number` | Ability ID of the current morph (specific rank). Used as a key into g_SkillsData and in GetEsoSkillDescription to get the correct description with the slotted morph's bonuses. If absent, the engine uses skillId (for morph-less skills). |
+| <a id="skillid"></a> `skillId` | `number` | Lookup key in g_EsoSkillActiveData — matches origSkillId in the Build Editor DOM (base/unmorphed skill ID). For morph-less skills it equals morphSkillId. |
