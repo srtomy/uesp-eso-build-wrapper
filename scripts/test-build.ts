@@ -1,14 +1,14 @@
 /**
- * Calcula e imprime os stats de um build exportado do UESP Build Editor.
+ * Calculates and prints the stats of a build exported from the UESP Build Editor.
  *
- * USO:
- *   npm run test:build <caminho-do-build.json>
+ * USAGE:
+ *   npm run test:build <path-to-build.json>
  *
- * Fluxo:
- *   1. Configure um build no UESP Build Editor
- *   2. Rode scripts/browser-export-build.js no DevTools Console → baixa o JSON
- *   3. Rode este script passando o caminho do JSON
- *   4. Compare os stats impressos com os que o site exibe
+ * Flow:
+ *   1. Configure a build in the UESP Build Editor
+ *   2. Run scripts/browser-export-build.js in the DevTools Console → downloads the JSON
+ *   3. Run this script passing the JSON path
+ *   4. Compare the printed stats with the ones shown on the site
  */
 
 import path from 'path';
@@ -18,14 +18,14 @@ import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-eng
 
 const jsonPath = process.argv[2];
 if (!jsonPath) {
-  console.error('Uso: npm run test:build <caminho-do-build.json>');
-  console.error('Ex:  npm run test:build tests/fixtures/meu-build.json');
+  console.error('Usage: npm run test:build <path-to-build.json>');
+  console.error('E.g.:  npm run test:build tests/fixtures/my-build.json');
   process.exit(1);
 }
 
 const resolved = path.resolve(jsonPath);
 if (!fs.existsSync(resolved)) {
-  console.error(`Arquivo não encontrado: ${resolved}`);
+  console.error(`File not found: ${resolved}`);
   process.exit(1);
 }
 
@@ -37,21 +37,21 @@ const gameData = JSON.parse(
 initEsoEngineFromData({ initData: gameData });
 
 // ---------------------------------------------------------------------------
-// Cabeçalho — info do build
+// Header — build info
 // ---------------------------------------------------------------------------
 const { race, class: cls, level, attributes, championPoints, mundusStone, vampireStage, werewolfStage } = build.character;
 const LINE = '─'.repeat(64);
 
 console.log(`\n${LINE}`);
-console.log(`  ${race} ${cls} — Nível ${level}`);
-console.log(`  Atrib: Health ${attributes.health} | Magicka ${attributes.magicka} | Stamina ${attributes.stamina}`);
+console.log(`  ${race} ${cls} — Level ${level}`);
+console.log(`  Attrs: Health ${attributes.health} | Magicka ${attributes.magicka} | Stamina ${attributes.stamina}`);
 if (mundusStone)     console.log(`  Mundus: ${mundusStone}`);
 if (championPoints)  console.log(`  CP: ${championPoints}`);
-if (vampireStage)    console.log(`  Vampiro: estágio ${vampireStage}`);
-if (werewolfStage)   console.log(`  Lobisomem: estágio ${werewolfStage}`);
+if (vampireStage)    console.log(`  Vampire: stage ${vampireStage}`);
+if (werewolfStage)   console.log(`  Werewolf: stage ${werewolfStage}`);
 
 if (build.items && Object.keys(build.items).length > 0) {
-  console.log(`  Itens equipados:`);
+  console.log(`  Equipped items:`);
   for (const [slot, item] of Object.entries(build.items)) {
     const name = item.name ?? `itemId ${item.itemId}`;
     const set  = item.setName ? ` [${item.setName}]` : '';
@@ -62,15 +62,15 @@ if (build.items && Object.keys(build.items).length > 0) {
 if (build.skillBars) {
   const b1 = build.skillBars.bar1?.length ?? 0;
   const b2 = build.skillBars.bar2?.length ?? 0;
-  console.log(`  Barras: bar1 (${b1} skills) | bar2 (${b2} skills)`);
+  console.log(`  Bars: bar1 (${b1} skills) | bar2 (${b2} skills)`);
 }
 if (build.activeBuffs?.length)  console.log(`  Buffs: ${build.activeBuffs.join(', ')}`);
 if (build.toggleSkills?.length) console.log(`  Toggles: ${build.toggleSkills.join(', ')}`);
 if (build.championPointNodes && Object.keys(build.championPointNodes).length > 0)
-  console.log(`  CP nodes: ${Object.keys(build.championPointNodes).length} alocados`);
+  console.log(`  CP nodes: ${Object.keys(build.championPointNodes).length} allocated`);
 
 // ---------------------------------------------------------------------------
-// Cálculo
+// Calculation
 // ---------------------------------------------------------------------------
 const result: ComputedStats = calculateBuild(build);
 const raw = result.raw as Record<string, number>;
@@ -86,10 +86,10 @@ const pct = (label: string, val: number) =>
   console.log(`    ${label.padEnd(36)} ${(val * 100).toFixed(2).padStart(8)} %`);
 
 // ---------------------------------------------------------------------------
-// Atributos
+// Attributes
 // ---------------------------------------------------------------------------
 console.log(`\n${LINE}`);
-section('ATRIBUTOS & REGENERAÇÃO');
+section('ATTRIBUTES & REGENERATION');
 row('Health',              result.Health);
 row('Magicka',             result.Magicka);
 row('Stamina',             result.Stamina);
@@ -98,9 +98,9 @@ row('Magicka Regen',       result.MagickaRegen);
 row('Stamina Regen',       result.StaminaRegen);
 
 // ---------------------------------------------------------------------------
-// Ofensivo
+// Offensive
 // ---------------------------------------------------------------------------
-section('OFENSIVO');
+section('OFFENSE');
 row('Spell Damage',            result.SpellDamage);
 row('Weapon Damage',           result.WeaponDamage);
 pct('Spell Crit',              result.SpellCrit);
@@ -114,9 +114,9 @@ row('Effective Weapon Power',  result.EffectiveWeaponPower);
 row('Effective Power',         result.EffectivePower);
 
 // ---------------------------------------------------------------------------
-// Defensivo
+// Defensive
 // ---------------------------------------------------------------------------
-section('DEFENSIVO');
+section('DEFENSE');
 row('Physical Resist',              result.PhysicalResist);
 row('Spell Resist',                 result.SpellResist);
 row('Crit Resist',                  result.CritResist);
@@ -126,16 +126,16 @@ pct('Atk Physical Mitigation',      result.AttackPhysicalMitigation);
 pct('Atk Spell Mitigation',         result.AttackSpellMitigation);
 
 // ---------------------------------------------------------------------------
-// Cura & movimento
+// Healing & movement
 // ---------------------------------------------------------------------------
-section('CURA & MOVIMENTO');
+section('HEALING & MOVEMENT');
 pct('Healing Done',    result.HealingDone);
 pct('Healing Taken',   result.HealingTaken);
 row('Run Speed',       result.RunSpeed,     ' m/s');
 row('Sprint Speed',    result.SprintSpeed,  ' m/s');
 
 // ---------------------------------------------------------------------------
-// Todos os outros stats do raw que não apareceram acima
+// All other raw stats not shown above
 // ---------------------------------------------------------------------------
 const SHOWN = new Set([
   'Health','Magicka','Stamina',
@@ -156,7 +156,7 @@ const extras = Object.entries(raw)
   .sort(([a], [b]) => a.localeCompare(b));
 
 if (extras.length > 0) {
-  section('OUTROS STATS (não-zero)');
+  section('OTHER STATS (non-zero)');
   for (const [k, val] of extras) {
     row(k, val);
   }
@@ -165,6 +165,6 @@ if (extras.length > 0) {
 console.log(`\n${LINE}\n`);
 
 if ((build as any).expectedStats) {
-  console.log(`  Para validar contra o UESP: coloque o arquivo em tests/fixtures/ e rode npm test`);
+  console.log(`  To validate against UESP: put the file in tests/fixtures/ and run npm test`);
   console.log(`\n${LINE}\n`);
 }
