@@ -10,7 +10,7 @@
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="computedstats"></a> `computedStats` | `Record`\<`string`, `number`\> | Todos os computed stats calculados (mesmo que raw em ComputedStats). |
-| <a id="cpnodes"></a> `cpNodes` | `Record`\<`string`, [`BuildDebugCpNode`](BuildDebugCpNode.md)\> | Estado dos CP nodes: quais estavam ativos (isUnlocked) e com quantos pontos. |
-| <a id="inputvalues"></a> `inputValues` | [`BuildDebugInputValues`](BuildDebugInputValues.md) | Valores de entrada por categoria, filtrados para não-zero (exceto SkillBonus/SkillLine). |
-| <a id="statsources"></a> `statSources` | `Record`\<`string`, [`BuildDebugStatSource`](BuildDebugStatSource.md)[]\> | Fontes de cada input stat: registradas pelo engine durante GetEsoInputValues. Útil para rastrear de onde vem um valor inesperado (ex: qual passivo setou SkillBonusSpellDmg.Flame). |
+| <a id="computedstats"></a> `computedStats` | `Record`\<`string`, `number`\> | All computed stats (same as raw in ComputedStats). |
+| <a id="cpnodes"></a> `cpNodes` | `Record`\<`string`, [`BuildDebugCpNode`](BuildDebugCpNode.md)\> | CP node state: which were active (isUnlocked) and with how many points. |
+| <a id="inputvalues"></a> `inputValues` | [`BuildDebugInputValues`](BuildDebugInputValues.md) | Input values by category, filtered to non-zero (except SkillBonus/SkillLine). |
+| <a id="statsources"></a> `statSources` | `Record`\<`string`, [`BuildDebugStatSource`](BuildDebugStatSource.md)[]\> | Sources of each input stat: recorded by the engine during GetEsoInputValues. Useful for tracing where an unexpected value comes from (e.g. which passive set SkillBonusSpellDmg.Flame). |
