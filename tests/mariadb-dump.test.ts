@@ -244,4 +244,46 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
       fetchMock.mockRestore();
     }
   });
+
+  it('fails when the dump directory has no matching dump files', async () => {
+    const emptyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'uesp-seed-empty-'));
+    try {
+      await expect(buildUespGameData({ dumpDir: emptyDir, skipApi: true })).rejects.toThrowError(
+        /no 'buildEditor\*\.sql\.gz' file in/,
+      );
+    } finally {
+      fs.rmSync(emptyDir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails after retry when the UESP API keeps returning HTTP errors', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async () => new Response('boom', { status: 500 }));
+
+    try {
+      await expect(buildUespGameData({ dumpDir: tmpDir })).rejects.toThrow(
+        /HTTP 500 while fetching/,
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it('fails when the UESP API response misses the table field', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(
+        async () => new Response(JSON.stringify({ unrelated: 1 }), { status: 200 }),
+      );
+
+    try {
+      await expect(buildUespGameData({ dumpDir: tmpDir })).rejects.toThrow(
+        /missing in the UESP API response/,
+      );
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
 });
