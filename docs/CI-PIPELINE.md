@@ -1,8 +1,6 @@
 # CI Pipeline (merge gate) & Release Automation
 
-Design for the complete CI pipeline and automated release flow. Implementation is
-tracked on Trello: card **#33 — CI completo como gate de merge na main** and
-card **#34 — Release automatizado na main**.
+Design for the complete CI pipeline and automated release flow.
 
 Goal: a PR may only be merged into `main` when the full pipeline passes. CI is a
 **gate**, not a notification.
@@ -11,7 +9,7 @@ Goal: a PR may only be merged into `main` when the full pipeline passes. CI is a
 
 ## 1. Current state (`ci.yml`)
 
-Runs on `push` (main/develop) and `pull_request` → main/develop, Node 24.x
+Runs on `push` (main) and `pull_request` → main, Node 24.x
 (latest LTS — Node 20 hit EOL 2026-04; policy: test the newest LTS line and
 keep `engines` in sync):
 
@@ -116,25 +114,28 @@ TypeScript) and the `type` field was missing.
   SHA, never a mutable tag (SonarCloud S7637)
 - PR template mirroring the `CONTRIBUTING.md` checklist
 
-## 8. Release automation (phase 2, Trello #34)
+## 8. Release automation (B+ manual dispatch)
 
-Depends on #33: releases only happen from a green `main`.
+Depends on CI gate: releases only happen from a green `main`. **Branch `develop` was removed; all work branches from `main`**.
+
+Design mirrors `abhinav/git-spice` (Changie + `prepare-release.yml`/`publish-release.yml` with `workflow_dispatch`) and `securo-finance/securo` (bump multi-artefato antes da tag, `release.yml` on tag): **manual dispatch, two-phase, no auto-publish on push**.
 
 Options considered:
 
 | Tool | Model | Verdict |
 |---|---|---|
-| **release-please** (Google) | Opens a "Release PR" with SemVer bump + CHANGELOG; merging it tags + publishes | **Recommended** — CHANGELOG is reviewed in a PR before publishing, fits Keep a Changelog |
-| semantic-release | Publishes directly on every push to main | More automatic, less control |
-| changesets | PR-based changesets, multi-package | Overkill for a single-package repo |
+| **B+ commit-based + prepare/publish dispatch** (chosen) | `workflow_dispatch: Prepare release` collects `git log vX.Y.Z..HEAD`, filters B+ (`feat/fix/perf` → changelog, `chore/ci/test/docs` omitted unless `[release-note]`/`BREAKING CHANGE`), bumps SemVer + CHANGELOG in PR `release/vX.Y.Z`; `workflow_dispatch: Publish release` tags + GitHub Release + `npm publish --provenance` | **Recommended** — you decide *when*, changelog reviewed in PR, fits Keep a Changelog, no fragment tax per PR |
+| release-please (Google) | Opens a "Release PR" on every push to main | More automatic, but publishes on push — not desired (manual decision) |
+| Changie fragments (git-spice) | `.changes/unreleased/*.yaml` per PR, `changelog-check` gate | Overkill for this size; B+ accepts optional fragments as override without mandating them |
+| semantic-release / changesets | Publishes directly on push / multi-package | Overkill / less control |
 
 Scope:
 
-- `release.yml` workflow: `on: push: branches: [main]` → release-please →
-  `npm publish` with `NPM_TOKEN` secret and `--provenance`
-- git tag + GitHub Release with notes generated from Conventional Commits
-- publish only when all CI checks pass on main
-- document the flow in `CONTRIBUTING.md`
+- `prepare-release.yml`: `on: workflow_dispatch` (`version: auto|vX.Y.Z`) → `scripts/prepare-release.mjs` (B+ filter) → PR `release/vX.Y.Z` (`prepare-release` label, `chore: release vX.Y.Z`, `CHANGELOG.md` + `package.json` bump). **CI is 100% deterministic — no LLM.**
+- `publish-release.yml`: `on: workflow_dispatch` (`ref: main`, `version: auto`) → verifies `CHANGELOG.md`, builds, extracts release notes, `git tag vX.Y.Z && git push`, `softprops/action-gh-release` + `npm publish --provenance` (gated by `vars.NPM_PUBLISH_ENABLED` + `secrets.NPM_TOKEN`).
+- `.github/release.yml`: fallback categories for GitHub auto-generated notes (labels `skip changelog` excluded).
+- Document the flow in `CONTRIBUTING.md`.
+- **AI (optional, local-only):** `changelog-polish` agent runs on the developer machine via `opencode` after the prepare PR is created, reading commit/PR bodies and rewriting bullets to user-facing language. Never in CI; the PR is the review gate.
 
 ---
 

@@ -1,0 +1,130 @@
+name: Publish release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. v0.4.0). Leave empty to use version from package.json on ref.'
+        required: false
+        default: ''
+        type: string
+      ref:
+        description: 'Git ref to release from (branch, tag or SHA). Default: main'
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Tag + GitHub Release + npm publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout ref
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            RAW="${{ inputs.version }}"
+            VER="${RAW#v}"
+            echo "version=$VER" >> "$GITHUB_OUTPUT"
+            echo "tag=v$VER" >> "$GITHUB_OUTPUT"
+          else
+            VER=$(node -p "require('./package.json').version")
+            echo "version=$VER" >> "$GITHUB_OUTPUT"
+            echo "tag=v$VER" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Resolved version: $VER (tag: v$VER)"
+
+      - name: Verify CHANGELOG
+        run: |
+          if ! grep -q "## \[${{ steps.version.outputs.version }}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md missing entry for v${{ steps.version.outputs.version }}"
+            exit 1
+          fi
+          echo "CHANGELOG entry found."
+
+      - name: Verify tag does not exist
+        run: |
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "::error::Tag ${{ steps.version.outputs.tag }} already exists"
+            exit 1
+          fi
+          # Also check remote
+          if git ls-remote --tags origin "${{ steps.version.outputs.tag }}" | grep -q "${{ steps.version.outputs.tag }}"; then
+            echo "::error::Remote tag ${{ steps.version.outputs.tag }} already exists"
+            exit 1
+          fi
+
+      - name: Build
+        run: npm run build
+
+      - name: Extract release notes
+        run: |
+          VER="${{ steps.version.outputs.version }}"
+          # Extract section for this version (between ## [VER] and next ## [)
+          awk -v ver="$VER" '
+            $0 ~ "^## \\[" ver "\\]" {flag=1; next}
+            flag && /^## \[/ {exit}
+            flag {print}
+          ' CHANGELOG.md > /tmp/release-notes.md
+          echo "--- Release notes ---"
+          cat /tmp/release-notes.md
+          if [ ! -s /tmp/release-notes.md ]; then
+            echo "::error::Empty release notes"
+            exit 1
+          fi
+
+      - name: Create and push tag
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "$TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: /tmp/release-notes.md
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm
+        if: vars.NPM_PUBLISH_ENABLED == 'true'
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Post-publish hint
+        if: vars.NPM_PUBLISH_ENABLED != 'true'
+        run: |
+          echo "NPM_PUBLISH_ENABLED != 'true' — skipping npm publish."
+          echo "To enable, set repository variable NPM_PUBLISH_ENABLED=true and add secret NPM_TOKEN."
+          echo "Then re-run this workflow or publish manually: npm publish --provenance --access public"
