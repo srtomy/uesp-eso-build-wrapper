@@ -1,13 +1,13 @@
 /**
- * Gera vendor/uesp-data/uesp-game-data.json diretamente dos dumps MariaDB da
- * UESP + API esolog — sem precisar do eso-build-editor nem de banco persistido.
+ * Generates vendor/uesp-data/uesp-game-data.json directly from UESP MariaDB dumps
+ * + esolog API — without needing eso-build-editor or a persisted database.
  *
- * Uso:
- *   npm run db:seed -- --dir /caminho/para/dumps [--version 50] [--skip-api] [--yes]
+ * Usage:
+ *   npm run db:seed -- --dir /path/to/dumps [--version 50] [--skip-api] [--yes]
  *
- * Fluxo interno: `src/lib/uesp-data` parseia os dumps em streaming, busca as
- * tabelas de skills via API e roda o mesmo `extractGameData` do
- * `generate-data` — o JSON de saída é drop-in equivalente.
+ * Internal flow: `src/lib/uesp-data` parses the dumps in streaming fashion, fetches the
+ * skill tables via API and runs the same `extractGameData` as
+ * `generate-data` — the output JSON is a drop-in equivalent.
  */
 
 import * as fs from 'fs';
@@ -16,7 +16,7 @@ import * as readline from 'readline';
 import { buildUespGameData } from '../src/lib/uesp-data/index.js';
 
 // ---------------------------------------------------------------------------
-// ANSI / log (mesmo estilo do generate-data.ts)
+// ANSI / log (same style as generate-data.ts)
 // ---------------------------------------------------------------------------
 
 const ansi = (code: number) => (s: string) => `\x1b[${code}m${s}\x1b[0m`;
@@ -57,8 +57,8 @@ function getArg(name: string): string | undefined {
 const hasFlag = (name: string) => args.includes(`--${name}`) || args.includes(`-${name[0]}`);
 
 /**
- * Existência via statSync em try/catch (e não fs.existsSync) — o par
- * existsSync + escrita posterior é sinalizado pelo CodeQL como TOCTOU
+ * Existence check via statSync in try/catch (not fs.existsSync) — the
+ * existsSync + later-write pair is flagged by CodeQL as TOCTOU
  * (js/file-system-race).
  */
 function fileExists(p: string): boolean {
@@ -77,19 +77,19 @@ const yesFlag = hasFlag('yes');
 const OUT_PATH = path.resolve(getArg('out') ?? path.join(import.meta.dirname, '../vendor/uesp-data/uesp-game-data.json'));
 
 if (!dirArg) {
-  log.err('Uso: npm run db:seed -- --dir /caminho/para/dumps [--version 50] [--skip-api] [--yes]');
+  log.err('Usage: npm run db:seed -- --dir /path/to/dumps [--version 50] [--skip-api] [--yes]');
   process.exit(1);
 }
 
 const DUMP_DIR = path.resolve(dirArg.replace(/^~/, process.env.HOME ?? ''));
 
 if (!fs.existsSync(DUMP_DIR)) {
-  log.err('Diretório de dumps não encontrado: %s', c.bold(DUMP_DIR));
+  log.err('Dumps directory not found: %s', c.bold(DUMP_DIR));
   process.exit(1);
 }
 
 // ---------------------------------------------------------------------------
-// Confirm (sobrescreve o JSON commitado)
+// Confirm (overwrites the committed JSON)
 // ---------------------------------------------------------------------------
 
 async function confirm(question: string): Promise<boolean> {
@@ -110,15 +110,15 @@ async function confirm(question: string): Promise<boolean> {
 async function main(): Promise<void> {
   console.log();
   log.info('Dumps: %s', c.bold(DUMP_DIR));
-  log.info('Saída: %s', c.bold(OUT_PATH));
-  if (skipApi) log.warn('%s', c.yellow('--skip-api: skillsData sairá vazio'));
+  log.info('Output: %s', c.bold(OUT_PATH));
+  if (skipApi) log.warn('%s', c.yellow('--skip-api: skillsData will be empty'));
 
   if (fileExists(OUT_PATH) && !yesFlag) {
     const proceed = await confirm(
-      `${c.yellow('?')} Sobrescrever ${c.bold(path.basename(OUT_PATH))}? [y/N]: `,
+      `${c.yellow('?')} Overwrite ${c.bold(path.basename(OUT_PATH))}? [y/N]: `,
     );
     if (!proceed) {
-      console.log(c.dim('Cancelado.'));
+      console.log(c.dim('Cancelled.'));
       process.exit(0);
     }
   }
@@ -134,13 +134,13 @@ async function main(): Promise<void> {
           console.log(`\n${c.bold(c.cyan('→'))} ${c.bold(event.table)} ${c.dim(`(${event.detail})`)}`);
           break;
         case 'rows':
-          process.stdout.write(`\r  ${c.dim(`inseridas ${event.rows} linhas...`)}`);
+          process.stdout.write(`\r  ${c.dim(`inserted ${event.rows} rows...`)}`);
           break;
         case 'done':
-          process.stdout.write(`\r  ${ok} ${c.bold(String(event.rows))} linhas${' '.repeat(12)}\n`);
+          process.stdout.write(`\r  ${ok} ${c.bold(String(event.rows))} rows${' '.repeat(12)}\n`);
           break;
         case 'skip':
-          console.log(`\n${c.yellow('⚠')} ${c.bold(event.table)} ${c.dim('— pulado (--skip-api)')}`);
+          console.log(`\n${c.yellow('⚠')} ${c.bold(event.table)} ${c.dim('— skipped (--skip-api)')}`);
           break;
       }
     },
@@ -162,7 +162,7 @@ async function main(): Promise<void> {
   const sizeKb = Math.round(fs.statSync(OUT_PATH).size / 1024);
 
   console.log();
-  log.ok('Dados gerados em %s', c.dim(elapsed + 'ms'));
+  log.ok('Data generated in %s', c.dim(elapsed + 'ms'));
   console.log('   %s  %d', c.blue('computedStats'), Object.keys(initData.computedStats).length);
   const rulesTypes = Object.keys(initData.buildRules ?? {});
   const rulesCount = Object.values(initData.buildRules ?? {}).reduce<number>(
@@ -173,21 +173,21 @@ async function main(): Promise<void> {
     '   %s  %d %s',
     c.blue('buildRules   '),
     rulesCount,
-    c.dim('(' + rulesTypes.length + ' tipos)'),
+    c.dim('(' + rulesTypes.length + ' types)'),
   );
   console.log('   %s  %d', c.blue('cpSkillsData '), Object.keys(initData.cpSkillsData ?? {}).length);
   console.log('   %s  %d', c.blue('skillsData   '), Object.keys(initData.skillsData ?? {}).length);
-  console.log('   Versão das regras: %s', c.cyan(c.bold(version)));
-  console.log('   Tamanho: %s', c.dim(sizeKb + ' KB'));
+  console.log('   Rules version: %s', c.cyan(c.bold(version)));
+  console.log('   Size: %s', c.dim(sizeKb + ' KB'));
 
   console.log();
   log.ok('%s', c.green(c.bold(OUT_PATH)));
   console.log();
-  log.warn('Próximo passo: %s', c.bold('git add vendor/uesp-data/uesp-game-data.json'));
+  log.warn('Next step: %s', c.bold('git add vendor/uesp-data/uesp-game-data.json'));
   console.log();
 }
 
 main().catch((err) => {
-  console.error(`\n${c.red('✗ db:seed falhou:')}`, err);
+  console.error(`\n${c.red('✗ db:seed failed:')}`, err);
   process.exit(1);
 });

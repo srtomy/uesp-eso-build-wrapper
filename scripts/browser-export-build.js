@@ -1,13 +1,13 @@
 /**
- * UESP ESO Build Exporter — rode no DevTools Console do Build Editor
+ * UESP ESO Build Exporter — run in the Build Editor DevTools Console
  *
- * COMO USAR:
- *   1. Abra https://en.uesp.net/wiki/Special:EsoBuildEditor  (mesma URL do browser-extract.js)
- *   2. Configure o seu build (raça, classe, itens, buffs, CP, etc.)
- *   3. Abra DevTools (F12) → aba Console
- *   4. Cole todo o conteúdo deste arquivo e pressione Enter
- *   5. Um arquivo "uesp-build-export.json" será baixado automaticamente
- *   6. Use-o com: npm run test:build caminho/para/uesp-build-export.json
+ * HOW TO USE:
+ *   1. Open https://en.uesp.net/wiki/Special:EsoBuildEditor  (same URL as browser-extract.js)
+ *   2. Configure your build (race, class, items, buffs, CP, etc.)
+ *   3. Open DevTools (F12) → Console tab
+ *   4. Paste the entire contents of this file and press Enter
+ *   5. A "uesp-build-export.json" file will be downloaded automatically
+ *   6. Use it with: npm run test:build path/to/uesp-build-export.json
  */
 (function exportUespBuild() {
   var rulesVersion = $('#esotbRulesVersion').val() || 'Live';
@@ -33,7 +33,7 @@
     championPointNodes: {},
   };
 
-  // campos opcionais do personagem
+  // optional character fields
   var mundus = $('#esotbMundus').val();
   if (mundus) build.character.mundusStone = mundus;
 
@@ -49,7 +49,7 @@
   var cp = parseInt($('#esotbCPTotalPoints').val()) || 0;
   if (cp > 0) build.character.championPoints = cp;
 
-  // itens equipados por slot (Head, Chest, MainHand1, Food, etc.)
+  // equipped items by slot (Head, Chest, MainHand1, Food, etc.)
   if (typeof g_EsoBuildItemData !== 'undefined') {
     Object.keys(g_EsoBuildItemData).forEach(function (slot) {
       var item = g_EsoBuildItemData[slot];
@@ -57,10 +57,10 @@
     });
   }
 
-  // encantamentos customizados: g_EsoBuildItemData tem o enchant padrão do banco de dados;
-  // g_EsoBuildEnchantData tem o glyph que o usuário selecionou explicitamente no editor.
-  // Exportamos separado para que o calculator possa popular g_EsoBuildEnchantData
-  // corretamente (isDefaultEnchant=false), aplicando o fator 0.4044 para slots pequenos.
+  // custom enchants: g_EsoBuildItemData holds the default DB enchant;
+  // g_EsoBuildEnchantData holds the glyph the user explicitly selected in the editor.
+  // Exported separately so the calculator can populate g_EsoBuildEnchantData
+  // correctly (isDefaultEnchant=false), applying the 0.4044 factor for small slots.
   if (typeof g_EsoBuildEnchantData !== 'undefined') {
     build.enchantOverrides = {};
     Object.keys(g_EsoBuildEnchantData).forEach(function (slot) {
@@ -74,7 +74,7 @@
     if (Object.keys(build.enchantOverrides).length === 0) delete build.enchantOverrides;
   }
 
-  // buffs ativos (ex: "Minor Slayer", "Major Prophecy")
+  // active buffs (e.g. "Minor Slayer", "Major Prophecy")
   if (typeof g_EsoBuildBuffData !== 'undefined') {
     Object.keys(g_EsoBuildBuffData).forEach(function (name) {
       if (g_EsoBuildBuffData[name] && g_EsoBuildBuffData[name].enabled)
@@ -82,9 +82,9 @@
     });
   }
 
-  // barras de skills (necessário para passivos que escalam com skills na barra,
-  // ex: Magicka Controller, Expert Mage, Penetrating Magic, Inner Light, etc.)
-  // Garante que g_EsoSkillBarData esteja atualizado a partir do DOM antes de ler.
+  // skill bars (needed for passives that scale with slotted skills,
+  // e.g. Magicka Controller, Expert Mage, Penetrating Magic, Inner Light, etc.)
+  // Ensures g_EsoSkillBarData is up to date from the DOM before reading.
   if (typeof UpdateEsoSkillBarData !== 'undefined') {
     try { UpdateEsoSkillBarData(); } catch(e) {}
   }
@@ -94,8 +94,8 @@
       return bar
         .filter(function (slot) { return slot && slot.origSkillId && parseInt(slot.origSkillId) > 0; })
         .map(function (slot) {
-          // skillId = origSkillId (chave base, usada como índice em g_EsoSkillActiveData)
-          // morphSkillId = skillId do morph atual (usado em GetEsoSkillDescription para a desc correta)
+          // skillId = origSkillId (base key, used as index into g_EsoSkillActiveData)
+          // morphSkillId = current morph skillId (used in GetEsoSkillDescription for the correct desc)
           var origId = parseInt(slot.origSkillId);
           var morphId = slot.skillId ? parseInt(slot.skillId) : origId;
           var s = { skillId: origId };
@@ -111,12 +111,12 @@
       if (bar1.length > 0) build.skillBars.bar1 = bar1;
       if (bar2.length > 0) build.skillBars.bar2 = bar2;
     }
-    // barra ativa (1 ou 2)
+    // active bar (1 or 2)
     if (typeof g_EsoBuildActiveAbilityBar !== 'undefined' && g_EsoBuildActiveAbilityBar > 0)
       build.activeWeaponBar = g_EsoBuildActiveAbilityBar;
   }
 
-  // passivas ativas (raciais, de classe, etc.) — g_EsoSkillPassiveData[key].abilityId
+  // active passives (racial, class, etc.) — g_EsoSkillPassiveData[key].abilityId
   if (typeof g_EsoSkillPassiveData !== 'undefined') {
     var passiveIds = [];
     Object.keys(g_EsoSkillPassiveData).forEach(function (key) {
@@ -126,10 +126,10 @@
     if (passiveIds.length > 0) build.passiveSkills = passiveIds;
   }
 
-  // se "Auto Purchase Racial Passives" estiver marcado, seta autoPassives também
+  // if "Auto Purchase Racial Passives" is checked, set autoPassives too
   if ($('#esotbEnableRaceAutoPurchase').prop('checked')) build.autoPassives = true;
 
-  // toggle skills ativas (ex: "War Horn", "Emperor")
+  // active toggle skills (e.g. "War Horn", "Emperor")
   if (typeof g_EsoBuildToggledSkillData !== 'undefined') {
     Object.keys(g_EsoBuildToggledSkillData).forEach(function (name) {
       if (g_EsoBuildToggledSkillData[name] && g_EsoBuildToggledSkillData[name].enabled)
@@ -137,8 +137,8 @@
     });
   }
 
-  // toggle set bonuses habilitados pelo usuário no editor
-  // (ex: Ansuul's Torment +7% DamageDone = 41316, Merciless Charge +20% = 41089)
+  // toggle set bonuses enabled by the user in the editor
+  // (e.g. Ansuul's Torment +7% DamageDone = 41316, Merciless Charge +20% = 41089)
   if (typeof g_EsoBuildToggledSetData !== 'undefined') {
     var toggledSetBonuses = [];
     Object.keys(g_EsoBuildToggledSetData).forEach(function (id) {
@@ -148,7 +148,7 @@
     if (toggledSetBonuses.length > 0) build.toggledSetBonuses = toggledSetBonuses;
   }
 
-  // CP nodes com pontos alocados
+  // CP nodes with allocated points
   if (typeof g_EsoCpData !== 'undefined') {
     Object.keys(g_EsoCpData).forEach(function (nodeId) {
       var node = g_EsoCpData[nodeId];
@@ -157,8 +157,8 @@
     });
   }
 
-  // stats calculados pelo UESP — exportados para comparação com o wrapper
-  // Captura g_EsoComputedStats[statId].value de todos os stats não-zero.
+  // stats calculated by UESP — exported for comparison with the wrapper
+  // Captures g_EsoComputedStats[statId].value for all non-zero stats.
   if (typeof g_EsoComputedStats !== 'undefined') {
     var expected = {};
     Object.keys(g_EsoComputedStats).forEach(function (statId) {
@@ -170,7 +170,7 @@
     if (Object.keys(expected).length > 0) build.expectedStats = expected;
   }
 
-  // download do JSON
+  // JSON download
   var json = JSON.stringify(build, null, 2);
   var blob = new Blob([json], { type: 'application/json' });
   var url = URL.createObjectURL(blob);
@@ -183,14 +183,14 @@
   URL.revokeObjectURL(url);
 
   var barCount = (build.skillBars ? ((build.skillBars.bar1 || []).length + (build.skillBars.bar2 || []).length) : 0);
-  console.log('[UESP Export] Build exportado com sucesso!');
-  console.log('  Regras: ' + rulesVersion);
-  console.log('  Raça/Classe: ' + build.character.race + ' ' + build.character.class);
-  console.log('  Slots com item: ' + Object.keys(build.items).length);
-  console.log('  Passivas: ' + (build.passiveSkills ? build.passiveSkills.length : 0));
-  console.log('  Barras de skill: ' + barCount + ' skills');
-  console.log('  Buffs ativos: ' + build.activeBuffs.length);
+  console.log('[UESP Export] Build exported successfully!');
+  console.log('  Rules: ' + rulesVersion);
+  console.log('  Race/Class: ' + build.character.race + ' ' + build.character.class);
+  console.log('  Slots with item: ' + Object.keys(build.items).length);
+  console.log('  Passives: ' + (build.passiveSkills ? build.passiveSkills.length : 0));
+  console.log('  Skill bars: ' + barCount + ' skills');
+  console.log('  Active buffs: ' + build.activeBuffs.length);
   console.log('  Toggle skills: ' + build.toggleSkills.length);
   console.log('  CP nodes: ' + Object.keys(build.championPointNodes).length);
-  console.log('  Agora rode: npm run test:build uesp-build-export.json');
+  console.log('  Now run: npm run test:build uesp-build-export.json');
 })();

@@ -1,11 +1,11 @@
 /**
- * Gera vendor/uesp-data/uesp-game-data.json a partir de um banco SQLite da UESP.
+ * Generates vendor/uesp-data/uesp-game-data.json from a UESP SQLite database.
  *
- * Uso:
- *   npm run generate-data -- --db /caminho/para/local.db [--version 49]
+ * Usage:
+ *   npm run generate-data -- --db /path/to/local.db [--version 49]
  *
- * O arquivo gerado é commitado no repo e publicado no pacote npm como
- * dado de jogo pré-extraído. Usuários passam o objeto para initEsoEngineFromData:
+ * The generated file is committed to the repo and published in the npm package as
+ * pre-extracted game data. Users pass the object to initEsoEngineFromData:
  *
  *   import data from 'uesp-eso-build-wrapper/uesp-game-data.json';
  *   initEsoEngineFromData({ initData: data });
@@ -55,12 +55,12 @@ const dbPath = getArg('db');
 const versionArg = getArg('version') ?? null;
 
 if (!dbPath) {
-  log.err('Uso: npm run generate-data -- --db /caminho/para/local.db [--version 49]');
+  log.err('Usage: npm run generate-data -- --db /path/to/local.db [--version 49]');
   process.exit(1);
 }
 
 if (!fs.existsSync(dbPath)) {
-  log.err('Banco não encontrado: %s', c.bold(dbPath));
+  log.err('Database not found: %s', c.bold(dbPath));
   process.exit(1);
 }
 
@@ -75,7 +75,7 @@ const OUT_PATH = path.resolve(import.meta.dirname, '../vendor/uesp-data/uesp-gam
 // ---------------------------------------------------------------------------
 
 console.log();
-log.info('Banco: %s', c.bold(dbPath));
+log.info('Database: %s', c.bold(dbPath));
 
 const db = new DatabaseSync(dbPath);
 
@@ -88,7 +88,7 @@ const version: string =
     return String(row.v);
   })();
 
-log.info('Versão das regras: %s', c.cyan(c.bold(version)));
+log.info('Rules version: %s', c.cyan(c.bold(version)));
 
 const t0 = Date.now();
 const initData = extractGameData(db, version);
@@ -105,9 +105,9 @@ const cpCount = Object.keys(initData.cpSkillsData ?? {}).length;
 const skillCount = Object.keys(initData.skillsData ?? {}).length;
 
 console.log();
-log.ok('Dados carregados em %s', c.dim(elapsed + 'ms'));
+log.ok('Data loaded in %s', c.dim(elapsed + 'ms'));
 console.log('   %s  %d', c.blue('computedStats'), csCount);
-console.log('   %s  %d %s', c.blue('buildRules   '), rulesCount, c.dim('(' + rulesTypes.length + ' tipos)'));
+console.log('   %s  %d %s', c.blue('buildRules   '), rulesCount, c.dim('(' + rulesTypes.length + ' types)'));
 console.log('   %s  %d', c.blue('cpSkillsData '), cpCount);
 console.log('   %s  %d', c.blue('skillsData   '), skillCount);
 
@@ -126,7 +126,7 @@ fs.writeFileSync(OUT_PATH, JSON.stringify(output));
 const sizeKb = Math.round(fs.statSync(OUT_PATH).size / 1024);
 console.log();
 log.ok('%s', c.green(c.bold(OUT_PATH)));
-console.log('   Tamanho: %s', c.dim(sizeKb + ' KB'));
+console.log('   Size: %s', c.dim(sizeKb + ' KB'));
 console.log();
-log.warn('Próximo passo: %s', c.bold('git add vendor/uesp-data/uesp-game-data.json'));
+log.warn('Next step: %s', c.bold('git add vendor/uesp-data/uesp-game-data.json'));
 console.log();
