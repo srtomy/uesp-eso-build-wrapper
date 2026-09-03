@@ -375,7 +375,7 @@ describe('calculateBuild', () => {
   });
 });
 
-describe('calculateBuild with itens', () => {
+describe('calculateBuild with items', () => {
   // resource test
   describe('baseline — High Elf Sorcerer lv50, 64 Magicka pts', () => {
     let stats: ReturnType<typeof calculateBuild>;
@@ -397,21 +397,21 @@ describe('calculateBuild with itens', () => {
       expect(stats.Stamina).toBe(12868);
     });
 
-    it('MagickaRegen = 514  [baseline — enchants de Max Magicka/Stamina não afetam regen]', () => {
+    it('MagickaRegen = 514  [baseline — Max Magicka/Stamina enchants do not affect regen]', () => {
       expect(stats.MagickaRegen).toBe(514);
     });
 
-    it('StaminaRegen = 514  [baseline — sem enchant de regen]', () => {
+    it('StaminaRegen = 514  [baseline — no regen enchant]', () => {
       expect(stats.StaminaRegen).toBe(514);
     });
 
-    it('HealthRegen = 309  [baseline — sem enchant de regen]', () => {
+    it('HealthRegen = 309  [baseline — no regen enchant]', () => {
       expect(stats.HealthRegen).toBe(309);
     });
   });
 
   // ── Armor section ─────────────────────────────────────────────────────────────
-  describe('armor rating — head médio Ansuul (1823) empilhado com chest leve Jerkin (1220)', () => {
+  describe('armor rating — medium Ansuul head (1823) stacked with light Jerkin chest (1220)', () => {
     let basePhysicalResist: number;
     let baseSpellResist: number;
     let withHeadPhysicalResist: number;
@@ -437,50 +437,50 @@ describe('calculateBuild with itens', () => {
       withBothPhysicalResist = withBoth.raw['PhysicalResist'] ?? 0;
     });
 
-    it('PhysicalResist gain = 1823  [formula: armorRating do head médio Ansuul]', () => {
+    it('PhysicalResist gain = 1823  [formula: armorRating of the medium Ansuul head]', () => {
       expect(withHeadPhysicalResist - basePhysicalResist).toBe(1823);
     });
 
-    it('SpellResist gain = 1823  [armor concede ambas as resistências igualmente]', () => {
+    it('SpellResist gain = 1823  [armor grants both resistances equally]', () => {
       expect(withHeadSpellResist - baseSpellResist).toBe(1823);
     });
 
-    it('PhysicalResist empilhado = 3043  [formula: 1220 chest leve + 1823 head médio]', () => {
+    it('PhysicalResist stacked = 3043  [formula: 1220 light chest + 1823 medium head]', () => {
       expect(withBothPhysicalResist - basePhysicalResist).toBe(3043);
     });
   });
 
   // ── Critical section ──────────────────────────────────────────────────────────
-  describe('critical — SpellCrit base, crit damage e CritResist', () => {
+  describe('critical — base SpellCrit, crit damage and CritResist', () => {
     let stats: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
       stats = calculateBuild({ character: HIGH_ELF_SORC_64MAG });
     });
 
-    it('SpellCrit = 0.1  [base 10% — High Elf Sorcerer sem CP adicional]', () => {
+    it('SpellCrit = 0.1  [base 10% — High Elf Sorcerer with no extra CP]', () => {
       expect(stats.SpellCrit).toBe(0.1);
     });
 
-    it('WeaponCrit = 0.1  [base 10% — sem CP adicional]', () => {
+    it('WeaponCrit = 0.1  [base 10% — no extra CP]', () => {
       expect(stats.WeaponCrit).toBe(0.1);
     });
 
-    it('SpellCritDamage = 0.5  [base 50% multiplicador de dano crítico]', () => {
+    it('SpellCritDamage = 0.5  [base 50% critical damage multiplier]', () => {
       expect(stats.SpellCritDamage).toBe(0.5);
     });
 
-    it('WeaponCritDamage = 0.5  [base 50% multiplicador de dano crítico]', () => {
+    it('WeaponCritDamage = 0.5  [base 50% critical damage multiplier]', () => {
       expect(stats.WeaponCritDamage).toBe(0.5);
     });
 
-    it('CritResist = 1320  [base de raça/classe — sem itens de resistência a crítico adicionais]', () => {
+    it('CritResist = 1320  [race/class base — no extra crit-resistance items]', () => {
       expect(stats.CritResist).toBe(1320);
     });
   });
 
   // ── Mundus Stone section ──────────────────────────────────────────────────────
-  describe('mundus stone — The Apprentice (spell dmg) e The Tower (stamina)', () => {
+  describe('mundus stone — The Apprentice (spell dmg) and The Tower (stamina)', () => {
     let statsNoMundus: ReturnType<typeof calculateBuild>;
     let statsApprentice: ReturnType<typeof calculateBuild>;
     let statsApprenticeDivines: ReturnType<typeof calculateBuild>;
@@ -500,23 +500,23 @@ describe('calculateBuild with itens', () => {
       });
     });
 
-    it('The Apprentice: SpellDamage = 1238  [base 1000 + bônus de mundus de magia]', () => {
+    it('The Apprentice: SpellDamage = 1238  [base 1000 + magicka mundus bonus]', () => {
       expect(statsApprentice.SpellDamage).toBe(1238);
     });
 
-    it('The Apprentice: WeaponDamage = 1000  [mundus mágico não afeta weapon damage]', () => {
+    it('The Apprentice: WeaponDamage = 1000  [magicka mundus does not affect weapon damage]', () => {
       expect(statsApprentice.WeaponDamage).toBe(statsNoMundus.WeaponDamage);
     });
 
-    it('The Apprentice + Divines chest: SpellDamage = 1250  [Divines (5.1%) amplifica efeito do mundus]', () => {
+    it('The Apprentice + Divines chest: SpellDamage = 1250  [Divines (5.1%) amplifies the mundus effect]', () => {
       expect(statsApprenticeDivines.SpellDamage).toBe(1250);
     });
 
-    it('The Tower: Nord DK Stamina = 14023  [base 12000 + bônus de mundus de stamina]', () => {
+    it('The Tower: Nord DK Stamina = 14023  [base 12000 + stamina mundus bonus]', () => {
       expect(statsTowerNord.Stamina).toBe(14023);
     });
 
-    it('mundus stone reseta entre chamadas  [sem bleed-through de chamada anterior]', () => {
+    it('mundus stone resets between calls  [no bleed-through from the previous call]', () => {
       calculateBuild({ character: { ...HIGH_ELF_SORC_64MAG, mundusStone: 'The Apprentice' } });
       const clean = calculateBuild({ character: HIGH_ELF_SORC_64MAG });
       expect(clean.SpellDamage).toBe(statsNoMundus.SpellDamage);
@@ -923,7 +923,7 @@ const DUBIOUS_CAMORAN_THRONE: UespItemApiData = {
 };
 
 /**
- * Bare items (sem enchant, sem set) para isolar deltas de Undaunted Mettle por tipo de armadura.
+ * Bare items (no enchant, no set) to isolate Undaunted Mettle deltas per armor type.
  * equipType '3'=Chest, '1'=Head, '4'=Shoulders.
  */
 const BARE_LIGHT_CHEST: UespItemApiData = {
@@ -1021,9 +1021,9 @@ const HIGH_ELF_SORC_CP160 = {
   championPoints: 160,
 } as const;
 
-describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () => {
+describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
   // ── Items only (no CP2 injected) ──────────────────────────────────────────────
-  describe('itens sem CP2 — enchants, armadura, arma e SpellCrit de trait', () => {
+  describe('items without CP2 — enchants, armor, weapon and trait SpellCrit', () => {
     let base: ReturnType<typeof calculateBuild>;
     let withItems: ReturnType<typeof calculateBuild>;
 
@@ -1033,22 +1033,22 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Magicka enchants: Chest 868 + Hands 351 + Legs 868 + Waist 351 + Feet 351 = 2789
-    it('Magicka delta = +2789  [enchants de Magicka nos 5 slots de armadura]', () => {
+    it('Magicka delta = +2789  [Magicka enchants on the 5 armor slots]', () => {
       expect(withItems.Magicka - base.Magicka).toBe(2789);
     });
 
     // Head enchant is +868 Stamina (Slimecraw) → goes to Stamina, not Magicka
-    it('Stamina delta = +868  [enchant de Stamina no capacete Slimecraw]', () => {
+    it('Stamina delta = +868  [Stamina enchant on the Slimecraw helmet]', () => {
       expect(withItems.Stamina - base.Stamina).toBe(868);
     });
 
     // Armor ratings: 1823 (head) + 1823 (shoulders) + 1396 (chest) + 698 (hands) +
     //                1221 (legs) + 523 (waist) + 1221 (feet) = 8705
-    it('PhysicalResist delta = +8705  [soma das armaduras dos 7 slots de equipamento]', () => {
+    it('PhysicalResist delta = +8705  [sum of armor across the 7 equipment slots]', () => {
       expect(withItems.PhysicalResist - base.PhysicalResist).toBe(8705);
     });
 
-    it('SpellResist delta = +8705  [armor concede ambas as resistências igualmente]', () => {
+    it('SpellResist delta = +8705  [armor grants both resistances equally]', () => {
       expect(withItems.SpellResist - base.SpellResist).toBe(8705);
     });
 
@@ -1067,25 +1067,25 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // No Magicka/Stamina regen enchants → regen unchanged
-    it('MagickaRegen inalterado  [nenhum enchant de regen no build]', () => {
+    it('MagickaRegen unchanged  [no regen enchant in the build]', () => {
       expect(withItems.MagickaRegen).toBe(base.MagickaRegen);
     });
 
     // EffectivePower increases with items (weapon power + SpellCrit from trait)
-    it('EffectivePower > base  [arma e trait aumentam poder efetivo]', () => {
+    it('EffectivePower > base  [weapon and trait raise effective power]', () => {
       expect(withItems.EffectivePower).toBeGreaterThan(base.EffectivePower);
     });
   });
 
-  // ── Stats finais absolutos com 12 itens ───────────────────────────────────────
+  // ── Final absolute stats with 12 items ──────────────────────────────────────
   //
-  // Valores calculados pelo motor da UESP com os 12 itens reais + The Thief CP160.
-  // Set bonuses e named buffs SÃO aplicados (buildRules.set/buff carregados via JSON).
+  // Values calculated by the UESP engine with the 12 real items + The Thief CP160.
+  // Set bonuses and named buffs ARE applied (buildRules.set/buff loaded via JSON).
   //
   // SpellCrit breakdown:
   //   base 0.10 + The Thief (1333×1.637/21912 ≈ 0.0996) + Precise (+0.072)
   //   + set bonuses (Order's Wrath 2pc+4pc+5pc, Slimecraw 1pc, etc.)
-  describe('stats finais — valores absolutos com 12 itens, sem CP2', () => {
+  describe('final stats — absolute values with 12 items, no CP2', () => {
     let stats: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
@@ -1096,11 +1096,11 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(stats.Magicka).toBe(21893);
     });
 
-    it('Stamina = 12868  [base 12000 + 868 enchant no capacete Slimecraw]', () => {
+    it('Stamina = 12868  [base 12000 + 868 enchant on the Slimecraw helmet]', () => {
       expect(stats.Stamina).toBe(12868);
     });
 
-    it('Health = 16000  [base — 0 pontos de Health atribuídos]', () => {
+    it('Health = 16000  [base — 0 Health points assigned]', () => {
       expect(stats.Health).toBe(16000);
     });
 
@@ -1116,11 +1116,11 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(stats.SpellCritDamage).toBe(0.58);
     });
 
-    it('MagickaRegen = 514  [nenhum enchant de regen no build]', () => {
+    it('MagickaRegen = 514  [no regen enchant in the build]', () => {
       expect(stats.MagickaRegen).toBe(514);
     });
 
-    it('EffectiveSpellPower = 4513  [fórmula UESP com set bonuses aplicados]', () => {
+    it('EffectiveSpellPower = 4513  [UESP formula with set bonuses applied]', () => {
       expect(stats.EffectiveSpellPower).toBe(4513);
     });
 
@@ -1130,7 +1130,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
   });
 
   // ── CP2 node injection — delta tests ─────────────────────────────────────────
-  describe('CP2 node injection — delta por nó', () => {
+  describe('CP2 node injection — delta per node', () => {
     let withItems: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
@@ -1138,7 +1138,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Rule 38750 — Grants N Max Magicka per stage
-    it('node 141744 (Magicka +1000 via regra 38750): Magicka delta = +1000', () => {
+    it('node 141744 (Magicka +1000 via rule 38750): Magicka delta = +1000', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1150,7 +1150,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Rule 39209 — Increases Max Magicka by N per stage
-    it('node 149305 (Magicka +500 via regra 39209): Magicka delta = +500', () => {
+    it('node 149305 (Magicka +500 via rule 39209): Magicka delta = +500', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1162,7 +1162,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Rule 39152 — CritDamage + CritHealing (display:"%", valor /100)
-    it('node 141899 (CritDamage 10% via regra 39152): SpellCritDamage delta ≈ +0.1', () => {
+    it('node 141899 (CritDamage 10% via rule 39152): SpellCritDamage delta ≈ +0.1', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1177,7 +1177,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Rule 39165 — Grants N.N Armor per stage → SpellResist + PhysicalResist
-    it('node 142035 (SpellResist+PhysResist +1000 via regra 39165): ambas as resistências sobem +1000', () => {
+    it('node 142035 (SpellResist+PhysResist +1000 via rule 39165): both resistances rise +1000', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1190,7 +1190,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Rule 39171 — Grants N Offensive Penetration per stage
-    it('node 141895 (Penetração +800 via regra 39171): SpellPenetration delta = +800', () => {
+    it('node 141895 (Penetration +800 via rule 39171): SpellPenetration delta = +800', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1202,7 +1202,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Two nodes injected simultaneously
-    it('dois nós simultâneos (141744 +1000 e 149305 +500): Magicka delta = +1500', () => {
+    it('two simultaneous nodes (141744 +1000 and 149305 +500): Magicka delta = +1500', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1215,7 +1215,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // CP2 injection resets between calls — no bleed-through
-    it('CP2 reseta entre chamadas  [sem bleed-through para chamada sem CP2]', () => {
+    it('CP2 resets between calls  [no bleed-through into a call without CP2]', () => {
       calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1228,16 +1228,16 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
   });
 
-  // ── CP nodes — regras do buildRules.cp (ESO_CPEFFECT_MATCHES) ────────────────
-  describe('CP nodes — regras do buildRules.cp (ESO_CPEFFECT_MATCHES)', () => {
+  // ── CP nodes — buildRules.cp rules (ESO_CPEFFECT_MATCHES) ─────────────────
+  describe('CP nodes — buildRules.cp rules (ESO_CPEFFECT_MATCHES)', () => {
     let base: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
       base = calculateBuild({ character: HIGH_ELF_SORC_CP160, items: FULL_BUILD_ITEMS });
     });
 
-    // Regra 38750: Grants N Max Magicka per stage → Magicka (Item)
-    it('regra 38750 (Magicka +1000): Magicka delta = +1000', () => {
+    // Rule 38750: Grants N Max Magicka per stage → Magicka (Item)
+    it('rule 38750 (Magicka +1000): Magicka delta = +1000', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1248,8 +1248,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.Magicka - base.Magicka).toBe(1000);
     });
 
-    // Regra 39163: Grants N Max Health per stage → Health (Item)
-    it('regra 39163 (Health +500): Health delta = +500', () => {
+    // Rule 39163: Grants N Max Health per stage → Health (Item)
+    it('rule 39163 (Health +500): Health delta = +500', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1260,8 +1260,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.Health - base.Health).toBe(500);
     });
 
-    // Regra 39150: Increases your Max Stamina by N per stage → Stamina (Item)
-    it('regra 39150 (Stamina +800): Stamina delta = +800', () => {
+    // Rule 39150: Increases your Max Stamina by N per stage → Stamina (Item)
+    it('rule 39150 (Stamina +800): Stamina delta = +800', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1272,9 +1272,9 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.Stamina - base.Stamina).toBe(800);
     });
 
-    // Regra 39173: Grants N Critical Chance per stage → SpellCrit + WeaponCrit (CP)
-    // A fórmula de SpellCrit: delta = bonus / (2 × EL × (100+EL)), EL=66 → divisor=21912
-    it('regra 39173 (CritChance +657): SpellCrit delta ≈ +657/21912', () => {
+    // Rule 39173: Grants N Critical Chance per stage → SpellCrit + WeaponCrit (CP)
+    // The SpellCrit formula: delta = bonus / (2 × EL × (100+EL)), EL=66 → divisor=21912
+    it('rule 39173 (CritChance +657): SpellCrit delta ≈ +657/21912', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1287,8 +1287,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.WeaponCrit - base.WeaponCrit).toBeCloseTo(expectedDelta, 5);
     });
 
-    // Regra 39193: Increases your Weapon and Spell Damage by N per stage → WeaponDamage + SpellDamage (CP)
-    it('regra 39193 (SpellDmg+WeapDmg +129): ambos sobem +129', () => {
+    // Rule 39193: Increases your Weapon and Spell Damage by N per stage → WeaponDamage + SpellDamage (CP)
+    it('rule 39193 (SpellDmg+WeapDmg +129): both rise +129', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1303,8 +1303,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.WeaponDamage - base.WeaponDamage).toBe(129);
     });
 
-    // Regra 39171: Grants N Offensive Penetration per stage → SpellPenetration + PhysicalPenetration (CP)
-    it('regra 39171 (Penetração +800): SpellPenetration e PhysicalPenetration sobem +800', () => {
+    // Rule 39171: Grants N Offensive Penetration per stage → SpellPenetration + PhysicalPenetration (CP)
+    it('rule 39171 (Penetration +800): SpellPenetration and PhysicalPenetration rise +800', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1316,8 +1316,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.PhysicalPenetration - base.PhysicalPenetration).toBe(800);
     });
 
-    // Regra 39165: Grants N.N Armor per stage → SpellResist + PhysicalResist (CP)
-    it('regra 39165 (Armor +1000): SpellResist e PhysicalResist sobem +1000', () => {
+    // Rule 39165: Grants N.N Armor per stage → SpellResist + PhysicalResist (CP)
+    it('rule 39165 (Armor +1000): SpellResist and PhysicalResist rise +1000', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1329,8 +1329,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.PhysicalResist - base.PhysicalResist).toBe(1000);
     });
 
-    // Regra 39152: CritDamage + CritHealing done by N% → display:"%", valor /100
-    it('regra 39152 (CritDamage 10%): SpellCritDamage delta ≈ +0.1', () => {
+    // Rule 39152: CritDamage + CritHealing done by N% → display:"%", value /100
+    it('rule 39152 (CritDamage 10%): SpellCritDamage delta ≈ +0.1', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1344,8 +1344,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.SpellCritDamage - base.SpellCritDamage).toBeCloseTo(0.1, 10);
     });
 
-    // Dois nodes simultâneos de regras diferentes
-    it('regras 38750+39163 simultâneas: Magicka +1000 e Health +500 independentes', () => {
+    // Two simultaneous nodes from different rules
+    it('rules 38750+39163 simultaneous: Magicka +1000 and Health +500 independent', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1358,8 +1358,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.Health - base.Health).toBe(500);
     });
 
-    // Dois nodes simultâneos de regras diferentes
-    it('regras: base 19972 + 1300 cp', () => {
+    // Two simultaneous nodes from different rules
+    it('rules: base 19972 + 1300 cp', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: { Chest: WHORL_ROBE },
@@ -1372,8 +1372,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCP.Health).toBe(17400);
     });
 
-    // Sem bleed-through entre chamadas com CP e sem CP
-    it('CP nodes resetam entre chamadas  [sem bleed-through]', () => {
+    // No bleed-through between calls with and without CP
+    it('CP nodes reset between calls  [no bleed-through]', () => {
       calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
@@ -1385,17 +1385,17 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(clean.Magicka).toBe(base.Magicka);
     });
   });
-  // ── Set bonuses — integração ─────────────────────────────────────────────────
+  // ── Set bonuses — integration ────────────────────────────────────────────────
   //
-  // buildRules.set (367 regras) + UpdateEsoItemSets() aplicam set bonuses automaticamente
-  // via g_EsoBuildSetData quando items com setName/setBonusDescN são injetados.
-  describe("set bonus — Order's Wrath 5 peças (2pc+3pc+4pc+5pc)", () => {
+  // buildRules.set (367 rules) + UpdateEsoItemSets() apply set bonuses automatically
+  // via g_EsoBuildSetData when items with setName/setBonusDescN are injected.
+  describe("set bonus — Order's Wrath 5 pieces (2pc+3pc+4pc+5pc)", () => {
     let base: ReturnType<typeof calculateBuild>;
     let stats: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
       base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
-      // 5 peças idênticas com todos os setBonusDesc preenchidos
+      // 5 identical pieces with all setBonusDesc filled in
       const ow = (id: string, equipType: string): UespItemApiData => ({
         itemId: id,
         armorRating: '1823',
@@ -1433,20 +1433,20 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       });
     });
 
-    it('SpellCrit aumenta +0.103003 (2pc+4pc+5pc: 657+657+943 = 2257 Crit)', () => {
+    it('SpellCrit rises +0.103003 (2pc+4pc+5pc: 657+657+943 = 2257 Crit)', () => {
       expect(stats.SpellCrit - base.SpellCrit).toBeCloseTo(0.103003, 5);
     });
 
-    it('SpellDamage aumenta +129 (3pc: +129 Weapon and Spell Damage)', () => {
+    it('SpellDamage rises +129 (3pc: +129 Weapon and Spell Damage)', () => {
       expect(stats.SpellDamage - base.SpellDamage).toBe(129);
     });
 
-    it('SpellCritDamage aumenta +0.08 (5pc: +8% Critical Damage)', () => {
+    it('SpellCritDamage rises +0.08 (5pc: +8% Critical Damage)', () => {
       expect(stats.SpellCritDamage - base.SpellCritDamage).toBeCloseTo(0.08, 10);
     });
   });
 
-  describe('set bonus — Whorl of the Depths 4 peças (2pc+4pc)', () => {
+  describe('set bonus — Whorl of the Depths 4 pieces (2pc+4pc)', () => {
     let base: ReturnType<typeof calculateBuild>;
     let stats: ReturnType<typeof calculateBuild>;
 
@@ -1488,27 +1488,27 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       });
     });
 
-    it('SpellDamage aumenta +258 (2pc+4pc: 2×+129 Weapon and Spell Damage)', () => {
+    it('SpellDamage rises +258 (2pc+4pc: 2×+129 Weapon and Spell Damage)', () => {
       expect(stats.SpellDamage - base.SpellDamage).toBe(258);
     });
   });
 
-  describe('set bonus — Slimecraw 1 peça (1pc: +657 Crit + Divines boost ao The Thief)', () => {
-    it('SpellCrit aumenta +0.035506 (657 Crit + Divines 9.1% sobre The Thief)', () => {
+  describe('set bonus — Slimecraw 1 piece (1pc: +657 Crit + Divines boost to The Thief)', () => {
+    it('SpellCrit rises +0.035506 (657 Crit + Divines 9.1% on The Thief)', () => {
       const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       const stats = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         items: { Head: SLIMECRAW_MASK },
       });
-      // Delta inclui: 657 Critical Chance + boost do trait Divines (9.1%) sobre The Thief mundus
+      // Delta includes: 657 Critical Chance + Divines trait boost (9.1%) on the The Thief mundus
       expect(stats.SpellCrit - base.SpellCrit).toBeCloseTo(0.035506, 5);
     });
   });
 
   // ── Food buff — items.Food ───────────────────────────────────────────────────
   //
-  // Comida funciona via slot items.Food: injeta abilityDesc no g_EsoBuildItemData['Food'].
-  // O motor usa buildRules.abilitydesc (17 regras) para extrair os valores:
+  // Food works via the items.Food slot: injects abilityDesc into g_EsoBuildItemData['Food'].
+  // The engine uses buildRules.abilitydesc (17 rules) to extract the values:
   //   "Max Health by N" → Health; "Max Magicka by N" → Magicka; "Magicka Recovery by N" → MagickaRegen
   describe("food buff — items.Food (Witchmother's Potent Brew)", () => {
     let base: ReturnType<typeof calculateBuild>;
@@ -1522,19 +1522,19 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       });
     });
 
-    it('Magicka aumenta +2856', () => {
+    it('Magicka rises +2856', () => {
       expect(stats.Magicka - base.Magicka).toBe(2856);
     });
 
-    it('Health aumenta +3094', () => {
+    it('Health rises +3094', () => {
       expect(stats.Health - base.Health).toBe(3094);
     });
 
-    it('MagickaRegen aumenta +315', () => {
+    it('MagickaRegen rises +315', () => {
       expect(stats.MagickaRegen - base.MagickaRegen).toBe(315);
     });
 
-    it('sem bleed-through — chamada sem Food não mantém bonus', () => {
+    it('no bleed-through — call without Food keeps no bonus', () => {
       const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       expect(clean.Magicka).toBe(base.Magicka);
     });
@@ -1553,23 +1553,23 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       });
     });
 
-    it('Stamina aumenta +3576', () => {
+    it('Stamina rises +3576', () => {
       expect(stats.Stamina - base.Stamina).toBe(3576);
     });
 
-    it('Health aumenta +3576', () => {
+    it('Health rises +3576', () => {
       expect(stats.Health - base.Health).toBe(3576);
     });
 
-    it('StaminaRegen aumenta +313', () => {
+    it('StaminaRegen rises +313', () => {
       expect(stats.StaminaRegen - base.StaminaRegen).toBe(313);
     });
 
-    it('Magicka não é afetada', () => {
+    it('Magicka is not affected', () => {
       expect(stats.Magicka).toBe(base.Magicka);
     });
 
-    it('sem bleed-through — chamada sem drink não mantém bônus', () => {
+    it('no bleed-through — call without drink keeps no bonus', () => {
       const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       expect(clean.Stamina).toBe(base.Stamina);
     });
@@ -1577,14 +1577,14 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
   // ── Toggle skills Cyrodiil — efeito real ─────────────────────────────────────
   //
-  // Toggle skills PvP (Emperor, Authority, Domination, Tactician, Combat Medic,
-  // Continuous Attack) requerem:
+  // PvP toggle skills (Emperor, Authority, Domination, Tactician, Combat Medic,
+  // Continuous Attack) require:
   //   1. character.cyrodiil: true       — statRequireId: 'Cyrodiil' = 1
-  //   2. passiveSkills: [baseSkillId]   — motor precisa do passivo para processar descrição
-  //   3. toggleSkills: ['NomeDoskill']  — habilita valid=true + enabled=true
+  //   2. passiveSkills: [baseSkillId]   — engine needs the passive to process the description
+  //   3. toggleSkills: ['SkillName']    — enables valid=true + enabled=true
   //
-  // baseSkillIds obtidos via listAvailableToggleSkills().find(t => t.name === X).baseSkillId
-  describe('toggle skills Cyrodiil — deltas de stats', () => {
+  // baseSkillIds obtained via listAvailableToggleSkills().find(t => t.name === X).baseSkillId
+  describe('Cyrodiil toggle skills — stat deltas', () => {
     let base: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
@@ -1603,7 +1603,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Domination: regen recovery while in campaign
-    it('Domination: MagickaRegen aumenta em modo Cyrodiil', () => {
+    it('Domination: MagickaRegen rises in Cyrodiil mode', () => {
       const withDomination = calculateBuild({
         character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
         passiveSkills: [39644],
@@ -1613,7 +1613,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Combat Medic: HealingDone boost
-    it('Combat Medic: HealingDone aumenta em modo Cyrodiil', () => {
+    it('Combat Medic: HealingDone rises in Cyrodiil mode', () => {
       const withMedic = calculateBuild({
         character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
         passiveSkills: [39259],
@@ -1623,7 +1623,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
 
     // Continuous Attack: regen boost
-    it('Continuous Attack: MagickaRegen aumenta em modo Cyrodiil', () => {
+    it('Continuous Attack: MagickaRegen rises in Cyrodiil mode', () => {
       const withCA = calculateBuild({
         character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
         passiveSkills: [39248],
@@ -1632,8 +1632,8 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withCA.MagickaRegen).toBeGreaterThan(base.MagickaRegen);
     });
 
-    it('toggle Cyrodiil sem cyrodiil:true não aplica efeito', () => {
-      // Sem cyrodiil: true, statRequireId check falha, valid=false
+    it('Cyrodiil toggle without cyrodiil:true applies no effect', () => {
+      // Without cyrodiil: true, the statRequireId check fails, valid=false
       const withoutCyrodiil = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         passiveSkills: [39641],
@@ -1642,7 +1642,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withoutCyrodiil.Magicka).toBe(base.Magicka);
     });
 
-    it('toggle skills resetam entre chamadas  [sem bleed-through]', () => {
+    it('toggle skills reset between calls  [no bleed-through]', () => {
       calculateBuild({
         character: { ...HIGH_ELF_SORC_CP160, cyrodiil: true },
         passiveSkills: [39641],
@@ -1653,23 +1653,23 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
   });
 
-  // ── Toggle skills não-Cyrodiil ────────────────────────────────────────────────
+  // ── Non-Cyrodiil toggle skills ─────────────────────────────────────────────
   //
-  // Toggle skills isPassive=true sem restrição de Cyrodiil: precisam de
-  //   passiveSkills: [baseSkillId]  — para o motor processar a descrição
-  //   toggleSkills: ['NomeDaSkill'] — para marcar valid=true + enabled=true
+  // Toggle skills with isPassive=true and no Cyrodiil restriction: they need
+  //   passiveSkills: [baseSkillId]  — for the engine to process the description
+  //   toggleSkills: ['SkillName']   — to mark valid=true + enabled=true
   //
   // Aegis of the Unseen (Arcanist, skill 184918):
   //   "While a beneficial Soldier of Apocrypha ability is active on you,
   //    increase your Physical and Spell Resistance by 1636."
-  describe('toggle skills não-Cyrodiil — deltas de stats', () => {
+  describe('non-Cyrodiil toggle skills — stat deltas', () => {
     let base: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
       base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
     });
 
-    it('Aegis of the Unseen: PhysicalResist +1636 e SpellResist +1636', () => {
+    it('Aegis of the Unseen: PhysicalResist +1636 and SpellResist +1636', () => {
       const withAegis = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         passiveSkills: [184918],
@@ -1679,7 +1679,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withAegis.SpellResist - base.SpellResist).toBe(1636);
     });
 
-    it('toggle não-Cyrodiil sem passiveSkills não aplica efeito', () => {
+    it('non-Cyrodiil toggle without passiveSkills applies no effect', () => {
       const withoutPassive = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         toggleSkills: ['Aegis of the Unseen'],
@@ -1687,7 +1687,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withoutPassive.PhysicalResist).toBe(base.PhysicalResist);
     });
 
-    it('toggle não-Cyrodiil reseta entre chamadas  [sem bleed-through]', () => {
+    it('non-Cyrodiil toggle resets between calls  [no bleed-through]', () => {
       calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         passiveSkills: [184918],
@@ -1700,12 +1700,12 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
   // ── Active skills na barra — efeito de buff condicional ───────────────────────
   //
-  // Skills slotados na barra ativa podem conceder buffs via descrição:
-  //   "While slotted, you gain Major Prophecy" → ativa buff Major Prophecy → +SpellCrit
+  // Skills slotted on the active bar can grant buffs via their description:
+  //   "While slotted, you gain Major Prophecy" → enables the Major Prophecy buff → +SpellCrit
   //
-  // ESO_ACTIVEEFFECT_MATCHES (36 regras) faz match na descrição do skill na barra
+  // ESO_ACTIVEEFFECT_MATCHES (36 rules) matches the description of the skill on the bar
   // e dispara o efeito (buffId → buff rule → stat delta).
-  describe('skillBars — efeitos de active skills na barra', () => {
+  describe('skillBars — active-skill-on-bar effects', () => {
     let base: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
@@ -1714,7 +1714,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
     // Inferno (28967) — Destruction Staff: "While slotted, you gain Major Prophecy"
     // Major Prophecy: +2629 SpellCrit rating → delta = 2629/21912 ≈ 0.11998
-    it('Inferno na barra ativa concede Major Prophecy (+SpellCrit)', () => {
+    it('Inferno on the active bar grants Major Prophecy (+SpellCrit)', () => {
       const withInferno = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         skillBars: { bar1: [{ skillId: 28967 }] },
@@ -1722,14 +1722,14 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withInferno.SpellCrit - base.SpellCrit).toBeCloseTo(2629 / 21912, 5);
     });
 
-    it('skill na barra reseta entre chamadas  [sem bleed-through]', () => {
+    it('skill on the bar resets between calls  [no bleed-through]', () => {
       calculateBuild({ character: HIGH_ELF_SORC_CP160, skillBars: { bar1: [{ skillId: 28967 }] } });
       const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       expect(clean.SpellCrit).toBeCloseTo(base.SpellCrit, 5);
     });
 
-    it('activeBuffs + skillBar acumulam (não duplicam) Major Prophecy', () => {
-      // Major Prophecy aparece 1× máximo — não duplica ao combinar activeBuffs + skillBar
+    it('activeBuffs + skillBar stack (do not duplicate) Major Prophecy', () => {
+      // Major Prophecy applies at most 1× — no duplication when combining activeBuffs + skillBar
       const withBoth = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         skillBars: { bar1: [{ skillId: 28967 }] },
@@ -1739,32 +1739,32 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
         character: HIGH_ELF_SORC_CP160,
         activeBuffs: ['Major Prophecy'],
       });
-      // Ambos devem ter o mesmo SpellCrit (Major Prophecy aplica 1×)
+      // Both must have the same SpellCrit (Major Prophecy applies 1×)
       expect(withBoth.SpellCrit).toBeCloseTo(withBuffOnly.SpellCrit, 5);
     });
   });
 
   // ── listAvailableBuffs ────────────────────────────────────────────────────────
   //
-  // Retorna o catálogo de buffs do motor (164 entradas de buildRules.buff).
-  // Sem chamada de rede — lê apenas g_EsoBuildBuffData já carregado.
-  describe('listAvailableBuffs — catálogo de buffs', () => {
-    it('retorna > 0 buffs sem filtro', () => {
+  // Returns the engine buff catalog (164 buildRules.buff entries).
+  // No network calls — reads only the already-loaded g_EsoBuildBuffData.
+  describe('listAvailableBuffs — buff catalog', () => {
+    it('returns > 0 buffs without a filter', () => {
       expect(listAvailableBuffs().length).toBeGreaterThan(0);
     });
 
-    it('filtra por grupo "Major" — retorna 25 buffs', () => {
+    it('filters by "Major" group — returns 25 buffs', () => {
       const major = listAvailableBuffs('Major');
       expect(major).toHaveLength(25);
       expect(major.every((b) => b.group === 'Major')).toBe(true);
     });
 
-    it('filtra por grupo "Minor" — retorna 29 buffs', () => {
+    it('filters by "Minor" group — returns 29 buffs', () => {
       const minor = listAvailableBuffs('Minor');
       expect(minor).toHaveLength(29);
     });
 
-    it('cada BuffInfo tem name, group, effects', () => {
+    it('each BuffInfo has name, group, effects', () => {
       const buffs = listAvailableBuffs('Major');
       for (const b of buffs) {
         expect(typeof b.name).toBe('string');
@@ -1774,7 +1774,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       }
     });
 
-    it('Major Prophecy tem efeito SpellCrit +2629', () => {
+    it('Major Prophecy has a SpellCrit +2629 effect', () => {
       const prophecy = listAvailableBuffs('Major').find((b) => b.name === 'Major Prophecy');
       expect(prophecy).toBeDefined();
       expect(prophecy!.effects).toContainEqual(
@@ -1783,15 +1783,15 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
   });
 
-  // ── activeBuffs — efeito no cálculo ──────────────────────────────────────────
-  describe('activeBuffs — efeito sobre stats calculados', () => {
+  // ── activeBuffs — effect on calculation ─────────────────────────────────────
+  describe('activeBuffs — effect on calculated stats', () => {
     let base: ReturnType<typeof calculateBuild>;
 
     beforeAll(() => {
       base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
     });
 
-    it('Major Prophecy aumenta SpellCrit em +2629/21912 ≈ +0.11998', () => {
+    it('Major Prophecy raises SpellCrit by +2629/21912 ≈ +0.11998', () => {
       const withBuff = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         activeBuffs: ['Major Prophecy'],
@@ -1799,7 +1799,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withBuff.SpellCrit - base.SpellCrit).toBeCloseTo(2629 / 21912, 5);
     });
 
-    it('Minor Force aumenta SpellCritDamage em +0.10', () => {
+    it('Minor Force raises SpellCritDamage by +0.10', () => {
       const withBuff = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         activeBuffs: ['Minor Force'],
@@ -1807,7 +1807,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withBuff.SpellCritDamage - base.SpellCritDamage).toBeCloseTo(0.1, 5);
     });
 
-    it('Major Force aumenta SpellCritDamage em +0.20', () => {
+    it('Major Force raises SpellCritDamage by +0.20', () => {
       const withBuff = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         activeBuffs: ['Major Force'],
@@ -1815,7 +1815,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withBuff.SpellCritDamage - base.SpellCritDamage).toBeCloseTo(0.2, 5);
     });
 
-    it('Major Sorcery aumenta SpellDamage em +20%', () => {
+    it('Major Sorcery raises SpellDamage by +20%', () => {
       const withBuff = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         activeBuffs: ['Major Sorcery'],
@@ -1823,7 +1823,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withBuff.SpellDamage).toBeGreaterThan(base.SpellDamage);
     });
 
-    it('buffs resetam entre chamadas — sem bleed-through', () => {
+    it('buffs reset between calls — no bleed-through', () => {
       calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         activeBuffs: ['Major Prophecy', 'Major Force'],
@@ -1833,7 +1833,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(clean.SpellCritDamage).toBeCloseTo(base.SpellCritDamage, 5);
     });
 
-    it('múltiplos buffs acumulam corretamente', () => {
+    it('multiple buffs stack correctly', () => {
       const withBoth = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         activeBuffs: ['Major Prophecy', 'Minor Prophecy'],
@@ -1844,12 +1844,12 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
   });
 
   // ── listRacialPassives ────────────────────────────────────────────────────────
-  describe('listRacialPassives — catálogo de passivos raciais', () => {
-    it('retorna 10 entradas para High Elf (5 passivos × até 3 ranks)', () => {
+  describe('listRacialPassives — racial passive catalog', () => {
+    it('returns 10 entries for High Elf (5 passives × up to 3 ranks)', () => {
       expect(listRacialPassives('High Elf')).toHaveLength(10);
     });
 
-    it('cada entrada tem abilityId numérico, rank e baseName', () => {
+    it('each entry has a numeric abilityId, rank and baseName', () => {
       for (const p of listRacialPassives('High Elf')) {
         expect(typeof p.abilityId).toBe('number');
         expect(p.abilityId).toBeGreaterThan(0);
@@ -1859,7 +1859,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       }
     });
 
-    it('retorna passivos de todas as 10 raças', () => {
+    it('returns passives for all 10 races', () => {
       const races = [
         'Argonian',
         'Breton',
@@ -1877,11 +1877,11 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       }
     });
 
-    it('raça inválida retorna array vazio', () => {
+    it('invalid race returns an empty array', () => {
       expect(listRacialPassives('Argonian2')).toEqual([]);
     });
 
-    it("High Elf inclui Syrabane's Boon em 3 ranks", () => {
+    it("High Elf includes Syrabane's Boon in 3 ranks", () => {
       const boons = listRacialPassives('High Elf').filter((p) => p.baseName === "Syrabane's Boon");
       expect(boons).toHaveLength(3);
       expect(boons.map((p) => p.rank).sort()).toEqual([1, 2, 3]);
@@ -1889,19 +1889,19 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
   });
 
   // ── listClassPassives ─────────────────────────────────────────────────────────
-  describe('listClassPassives — catálogo de passivos de classe', () => {
-    it('retorna ao menos 24 entradas para Sorcerer', () => {
+  describe('listClassPassives — class passive catalog', () => {
+    it('returns at least 24 entries for Sorcerer', () => {
       expect(listClassPassives('Sorcerer').length).toBeGreaterThanOrEqual(24);
     });
 
-    it('Sorcerer tem passivos nas 3 skill lines principais', () => {
+    it('Sorcerer has passives in the 3 main skill lines', () => {
       const lines = [...new Set(listClassPassives('Sorcerer').map((p) => p.skillLine))];
       expect(lines).toEqual(
         expect.arrayContaining(['Daedric Summoning', 'Dark Magic', 'Storm Calling']),
       );
     });
 
-    it('retorna passivos para todas as 7 classes', () => {
+    it('returns passives for all 7 classes', () => {
       const classes = [
         'Arcanist',
         'Dragonknight',
@@ -1916,18 +1916,18 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       }
     });
 
-    it('classe inválida retorna array vazio', () => {
+    it('invalid class returns an empty array', () => {
       expect(listClassPassives('NotAClass')).toEqual([]);
     });
   });
 
   // ── listAvailableToggleSkills ─────────────────────────────────────────────────
-  describe('listAvailableToggleSkills — catálogo de toggle skills', () => {
-    it('retorna 105 toggle skills (1 entrada anônima filtrada)', () => {
+  describe('listAvailableToggleSkills — toggle skill catalog', () => {
+    it('returns 105 toggle skills (1 anonymous entry filtered out)', () => {
       expect(listAvailableToggleSkills()).toHaveLength(105);
     });
 
-    it('cada entrada tem name, isPassive e effects', () => {
+    it('each entry has name, isPassive and effects', () => {
       for (const t of listAvailableToggleSkills()) {
         expect(typeof t.name).toBe('string');
         expect(t.name.length).toBeGreaterThan(0);
@@ -1936,19 +1936,19 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       }
     });
 
-    it('Emperor é Cyrodiil-restricted com baseSkillId', () => {
+    it('Emperor is Cyrodiil-restricted with baseSkillId', () => {
       const emperor = listAvailableToggleSkills().find((t) => t.name === 'Emperor');
       expect(emperor).toBeDefined();
       expect(emperor!.requiresCyrodiil).toBe(true);
       expect(emperor!.baseSkillId).toBeTruthy();
     });
 
-    it('6 toggles requerem Cyrodiil', () => {
+    it('6 toggles require Cyrodiil', () => {
       const cyrodiil = listAvailableToggleSkills().filter((t) => t.requiresCyrodiil);
       expect(cyrodiil).toHaveLength(6);
     });
 
-    it('War Horn é toggle de active skill (isPassive = false)', () => {
+    it('War Horn is an active-skill toggle (isPassive = false)', () => {
       const warHorn = listAvailableToggleSkills().find((t) => t.name === 'War Horn');
       expect(warHorn).toBeDefined();
       expect(warHorn!.isPassive).toBe(false);
@@ -1957,24 +1957,24 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
 
   // ── autoPassives ──────────────────────────────────────────────────────────────
   //
-  // autoPassives: true injeta o rank mais alto dos passivos raciais e de classe.
-  // Os passivos cujas descrições têm regra em buildRules.passive geram stats.
-  // Highborn não gera SpellCrit pois a descrição no g_SkillsData (patch antigo)
-  // é sobre XP gain — data issue, não bug de código.
-  describe('autoPassives — aplicação automática de passivos raciais e de classe', () => {
-    it('High Elf + autoPassives aumenta Magicka vs base', () => {
+  // autoPassives: true injects the highest rank of racial and class passives.
+  // Passives whose descriptions have a rule in buildRules.passive generate stats.
+  // Highborn does not generate SpellCrit because the description in g_SkillsData (old patch)
+  // is about XP gain — data issue, not a code bug.
+  describe('autoPassives — automatic application of racial and class passives', () => {
+    it('High Elf + autoPassives raises Magicka vs base', () => {
       const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       const withAuto = calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true });
       expect(withAuto.Magicka).toBeGreaterThan(base.Magicka);
     });
 
-    it('High Elf + autoPassives aumenta SpellDamage vs base (Spell Recharge)', () => {
+    it('High Elf + autoPassives raises SpellDamage vs base (Spell Recharge)', () => {
       const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       const withAuto = calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true });
       expect(withAuto.SpellDamage).toBeGreaterThan(base.SpellDamage);
     });
 
-    it('Nord + autoPassives aumenta Stamina vs base', () => {
+    it('Nord + autoPassives raises Stamina vs base', () => {
       const nordChar = {
         race: 'Nord',
         class: 'Sorcerer',
@@ -1987,7 +1987,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withAuto.Stamina).toBeGreaterThan(base.Stamina);
     });
 
-    it('raças diferentes têm deltas diferentes com autoPassives', () => {
+    it('different races have different deltas with autoPassives', () => {
       const highElfChar = {
         race: 'High Elf',
         class: 'Sorcerer',
@@ -2002,14 +2002,14 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(highElf.Magicka).toBeGreaterThan(nord.Magicka);
     });
 
-    it('autoPassives não afeta chamadas sem autoPassives  [sem bleed-through]', () => {
+    it('autoPassives does not affect calls without autoPassives  [no bleed-through]', () => {
       const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       calculateBuild({ character: HIGH_ELF_SORC_CP160, autoPassives: true });
       const after = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       expect(after.Magicka).toBe(base.Magicka);
     });
 
-    it('autoPassives + passiveSkills explícito não duplica efeito', () => {
+    it('autoPassives + explicit passiveSkills does not duplicate the effect', () => {
       // Terminal rank abilityIds for High Elf (nextSkill = -1)
       const terminalIds = listRacialPassives('High Elf')
         .filter((p) => p.rank === p.maxRank)
@@ -2026,12 +2026,12 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
   });
 
   // ── listPassivesBySkillLine ───────────────────────────────────────────────────
-  describe('listPassivesBySkillLine — catálogo de passivos por skill line', () => {
-    it('listAvailableSkillLines retorna pelo menos 30 skill lines', () => {
+  describe('listPassivesBySkillLine — passive catalog by skill line', () => {
+    it('listAvailableSkillLines returns at least 30 skill lines', () => {
       expect(listAvailableSkillLines().length).toBeGreaterThanOrEqual(30);
     });
 
-    it('listAvailableSkillLines inclui linhas de armadura, arma e guilda', () => {
+    it('listAvailableSkillLines includes armor, weapon and guild lines', () => {
       const lines = listAvailableSkillLines();
       expect(lines).toContain('Light Armor');
       expect(lines).toContain('Heavy Armor');
@@ -2042,17 +2042,17 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(lines).toContain('Fighters Guild');
     });
 
-    it('Undaunted retorna 4 passivos (Mettle r1/r2 + Command r1/r2)', () => {
+    it('Undaunted returns 4 passives (Mettle r1/r2 + Command r1/r2)', () => {
       expect(listPassivesBySkillLine('Undaunted')).toHaveLength(4);
     });
 
-    it('Light Armor inclui Concentration e Prodigy', () => {
+    it('Light Armor includes Concentration and Prodigy', () => {
       const la = listPassivesBySkillLine('Light Armor');
       expect(la.some((p) => p.baseName === 'Concentration')).toBe(true);
       expect(la.some((p) => p.baseName === 'Prodigy')).toBe(true);
     });
 
-    it('cada entrada tem abilityId, rank e skillLine corretos', () => {
+    it('each entry has the correct abilityId, rank and skillLine', () => {
       for (const p of listPassivesBySkillLine('Heavy Armor')) {
         expect(typeof p.abilityId).toBe('number');
         expect(p.abilityId).toBeGreaterThan(0);
@@ -2061,24 +2061,24 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       }
     });
 
-    it('skill line inválida retorna array vazio', () => {
+    it('invalid skill line returns an empty array', () => {
       expect(listPassivesBySkillLine('NotASkillLine')).toEqual([]);
     });
   });
 
-  // ── Undaunted Mettle com itens ────────────────────────────────────────────────
+  // ── Undaunted Mettle with items ─────────────────────────────────────────────
   //
-  // Undaunted Mettle (55386) — +2% Max Magicka/Health/Stamina por tipo de armadura
-  // equipado (Light, Medium ou Heavy). Máximo 3 tipos = +6%.
-  describe('Undaunted Mettle — passivo dependente de tipos de armadura equipados', () => {
-    it('Mettle sem itens: sem delta (0 tipos de armadura)', () => {
+  // Undaunted Mettle (55386) — +2% Max Magicka/Health/Stamina per equipped armor type
+  // (Light, Medium or Heavy). Max 3 types = +6%.
+  describe('Undaunted Mettle — passive depending on equipped armor types', () => {
+    it('Mettle without items: no delta (0 armor types)', () => {
       const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       const withMettle = calculateBuild({ character: HIGH_ELF_SORC_CP160, passiveSkills: [55386] });
       expect(withMettle.Magicka).toBe(base.Magicka);
     });
 
-    it('Mettle com 1 tipo de armadura: delta = +2% Magicka', () => {
-      // 1 tipo de armadura (light) → +2% × 1 = 2% de Magicka base (19104 × 0.02 ≈ 382)
+    it('Mettle with 1 armor type: delta = +2% Magicka', () => {
+      // 1 armor type (light) → +2% × 1 = 2% of base Magicka (19104 × 0.02 ≈ 382)
       const base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       const withMettleAndItems = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
@@ -2086,12 +2086,12 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
         items: { Chest: JERKIN_OF_THE_DEPTHS }, // 1 Light Armor piece
       });
       const delta = withMettleAndItems.Magicka - base.Magicka;
-      // delta inclui enchant (868) + Mettle bonus (~382); Mettle ≈ 2% of base Magicka
-      expect(delta).toBeGreaterThan(868); // maior que só o enchant
+      // delta includes enchant (868) + Mettle bonus (~382); Mettle ≈ 2% of base Magicka
+      expect(delta).toBeGreaterThan(868); // greater than the enchant alone
     });
 
-    it('Mettle com 2 tipos de armadura: delta = +764 Magicka (4% de 19104)', () => {
-      // Bare items (sem enchant) para isolar exatamente o delta de Mettle
+    it('Mettle with 2 armor types: delta = +764 Magicka (4% of 19104)', () => {
+      // Bare items (no enchant) to isolate exactly the Mettle delta
       const items = { Chest: BARE_LIGHT_CHEST, Head: BARE_HEAVY_HEAD };
       const without = calculateBuild({ character: HIGH_ELF_SORC_CP160, items });
       const withMettle = calculateBuild({
@@ -2102,7 +2102,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(withMettle.Magicka - without.Magicka).toBe(764);
     });
 
-    it('Mettle com 3 tipos de armadura: delta = +1146 Magicka (6% de 19104)', () => {
+    it('Mettle with 3 armor types: delta = +1146 Magicka (6% of 19104)', () => {
       const items = {
         Chest: BARE_LIGHT_CHEST,
         Shoulders: BARE_MEDIUM_SHOULDERS,
@@ -2118,11 +2118,11 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
     });
   });
 
-  // ── Segunda Pedra de Mundus (mundusStone2) ────────────────────────────────────
+  // ── Second Mundus Stone (mundusStone2) ─────────────────────────────────────
   //
-  // HIGH_ELF_SORC_CP160 já tem mundusStone: 'The Thief'.
-  // Usamos um personagem sem Mundus como referência base.
-  describe('mundusStone2 — segunda Pedra de Mundus (Twice-Born Star)', () => {
+  // HIGH_ELF_SORC_CP160 already has mundusStone: 'The Thief'.
+  // We use a character without Mundus as the base reference.
+  describe('mundusStone2 — second Mundus Stone (Twice-Born Star)', () => {
     const BASE_CHAR = {
       race: 'High Elf',
       class: 'Sorcerer',
@@ -2138,7 +2138,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       oneThief = calculateBuild({ character: { ...BASE_CHAR, mundusStone: 'The Thief' } });
     });
 
-    it('mundusStone2 = The Thief dobra o bônus de SpellCrit', () => {
+    it('mundusStone2 = The Thief doubles the SpellCrit bonus', () => {
       const twoThief = calculateBuild({
         character: { ...BASE_CHAR, mundusStone: 'The Thief', mundusStone2: 'The Thief' },
       });
@@ -2147,7 +2147,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(delta2).toBeCloseTo(delta1 * 2, 4);
     });
 
-    it('mundusStone + mundusStone2 diferentes aplicam ambos os efeitos', () => {
+    it('different mundusStone + mundusStone2 apply both effects', () => {
       const dualMundus = calculateBuild({
         character: { ...BASE_CHAR, mundusStone: 'The Thief', mundusStone2: 'The Apprentice' },
       });
@@ -2156,7 +2156,7 @@ describe('build completa — High Elf Sorcerer CP160, 12 itens, The Thief', () =
       expect(dualMundus.SpellDamage).toBeGreaterThan(noMundus.SpellDamage);
     });
 
-    it('sem mundusStone2 não há bleed-through', () => {
+    it('no bleed-through without mundusStone2', () => {
       calculateBuild({
         character: { ...BASE_CHAR, mundusStone: 'The Thief', mundusStone2: 'The Thief' },
       });
