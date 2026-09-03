@@ -13,8 +13,8 @@
 
 import path from 'path';
 import fs from 'fs';
-import { initEsoEngineFromData, calculateBuild } from '../src/lib/eso-engine';
-import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-engine';
+import { initEsoEngineFromData, calculateBuild } from '../src/lib/eso-engine/index.js';
+import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-engine/index.js';
 
 const jsonPath = process.argv[2];
 if (!jsonPath) {
@@ -32,7 +32,7 @@ if (!fs.existsSync(resolved)) {
 const build: BuildInput = JSON.parse(fs.readFileSync(resolved, 'utf-8'));
 
 const gameData = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json'), 'utf-8'),
+  fs.readFileSync(path.resolve(import.meta.dirname, '../vendor/uesp-data/uesp-game-data.json'), 'utf-8'),
 ) as UespInitData;
 initEsoEngineFromData({ initData: gameData });
 

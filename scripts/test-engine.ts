@@ -7,14 +7,14 @@
 
 import fs from 'fs';
 import path from 'path';
-import { initEsoEngineFromData, calculateBuild } from '../src/lib/eso-engine';
-import type { BuildInput, UespInitData, UespItemApiData } from '../src/lib/eso-engine';
+import { initEsoEngineFromData, calculateBuild } from '../src/lib/eso-engine/index.js';
+import type { BuildInput, UespInitData, UespItemApiData } from '../src/lib/eso-engine/index.js';
 
 // ---------------------------------------------------------------------------
 // Inicializa o motor (uma vez por processo)
 // ---------------------------------------------------------------------------
 const gameData = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json'), 'utf-8'),
+  fs.readFileSync(path.resolve(import.meta.dirname, '../vendor/uesp-data/uesp-game-data.json'), 'utf-8'),
 ) as UespInitData;
 initEsoEngineFromData({ initData: gameData });
 

@@ -15,8 +15,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vm from 'vm';
-import type { UespInitData } from './types';
-import { buildInputStats } from './input-stats';
+import type { UespInitData } from './types.js';
+import { buildInputStats } from './input-stats.js';
 
 let engineLoaded = false;
 
@@ -24,9 +24,9 @@ let engineLoaded = false;
  * Carrega e inicializa o motor da UESP.
  *
  * @param uespResourcesPath - Caminho para a pasta resources/ do fork da UESP.
- *   Ex: path.resolve(__dirname, '../../../vendor/uesp-esochardata/resources')
+ *   Ex: path.resolve(import.meta.dirname, '../../../vendor/uesp-esochardata/resources')
  * @param initData
- *   Ex: path.resolve(__dirname, '../../../vendor/uesp-data/uesp-init-data.json')
+ *   Ex: path.resolve(import.meta.dirname, '../../../vendor/uesp-data/uesp-init-data.json')
  */
 export function loadUespEngine(uespResourcesPath: string, initData: string | UespInitData): void {
   if (engineLoaded) return; // singleton — carrega apenas uma vez por processo
