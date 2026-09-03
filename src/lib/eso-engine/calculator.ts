@@ -1,21 +1,21 @@
 /**
- * Motor de cálculo de builds do ESO.
+ * ESO build calculation engine.
  *
- * Implementa a ideia central da arquitetura:
+ * Implements the core architecture idea:
  *
- *   1. Injetar dados do personagem nos elementos mock do DOM
- *      (jQuery vai ler via $("#esotbRace").val(), etc.)
+ *   1. Inject character data into the mock DOM elements
+ *      (jQuery will read via $("#esotbRace").val(), etc.)
  *
- *   2. Injetar dados dos itens DIRETAMENTE em g_EsoBuildItemData[slot]
- *      — sem precisar mockar jQuery para cada campo de item.
- *      Os campos vêm exatamente no formato da API pública da UESP:
+ *   2. Inject item data DIRECTLY into g_EsoBuildItemData[slot]
+ *      — no need to mock jQuery for each item field.
+ *      Fields come exactly in the UESP public API format:
  *      GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>
  *
- *   3. Chamar UpdateEsoComputedStatsList_Real(null, true)
- *      — o parâmetro `noUpdate=true` faz o motor calcular tudo mas pular
- *      as atualizações de DOM (DisplayEsoAllComputedStats, UpdateReadOnlyStats, etc.)
+ *   3. Call UpdateEsoComputedStatsList_Real(null, true)
+ *      — the `noUpdate=true` parameter makes the engine compute everything but skip
+ *      the DOM updates (DisplayEsoAllComputedStats, UpdateReadOnlyStats, etc.)
  *
- *   4. Ler os resultados de g_EsoComputedStats[statId].value
+ *   4. Read the results from g_EsoComputedStats[statId].value
  */
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup.js';
@@ -33,8 +33,8 @@ import type {
   UespItemApiData,
 } from './types.js';
 
-// Cache dos objetos de stat — populado uma vez após initEsoEngineFromData.
-// Evita Object.keys/values a cada calculateBuild; ~200 objetos.
+// Stat object cache — populated once after initEsoEngineFromData.
+// Avoids Object.keys/values on every calculateBuild; ~200 objects.
 let _statObjects: EngineStatEntry[] | null = null;
 
 export function cacheStatObjects(): void {
@@ -66,9 +66,9 @@ const ALL_SLOTS: EquipSlot[] = [
 ];
 
 /**
- * Normaliza os dados de um item garantindo que todos os campos opcionais
- * existam com defaults seguros. Sem isso, o motor lança TypeError ao tentar
- * chamar .includes() em campos de set bonus undefined (setBonusDesc5..12).
+ * Normalizes an item's data ensuring all optional fields
+ * exist with safe defaults. Without this, the engine throws a TypeError when trying
+ * to call .includes() on undefined set bonus fields (setBonusDesc5..12).
  */
 function normalizeItemData(item: UespItemApiData): UespItemApiData {
   const defaults: Record<string, string> = {};
@@ -121,16 +121,16 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     toggledSetBonuses,
   } = input;
 
-  // ─── RESET DE ESTADO GLOBAL ───────────────────────────────────────────────
-  // Todos os resets em um lugar só — facilita identificar vazamentos entre chamadas.
+  // ─── GLOBAL STATE RESET ───────────────────────────────────────────────────
+  // All resets in one place — makes leaks between calls easier to spot.
 
-  // g_EsoComputedStats: zera value/preCapValue antes de calcular.
-  // No browser todos partem de 0 a cada load; na wrapper o objeto persiste entre
-  // chamadas e stats de um build anterior contaminam o próximo. O deferred loop
-  // (esoEditBuild.js:4397) copia g_EsoComputedStats[name].value de volta para
-  // inputValues[name] a cada passo j, então um valor remanescente corrompe stats
-  // computados cedo (ex: BashDamage). _statObjects é populado uma vez no init,
-  // evitando Object.keys a cada chamada.
+  // g_EsoComputedStats: zero value/preCapValue before computing.
+  // In the browser they all start at 0 on every load; in the wrapper the object persists
+  // across calls and stats from a previous build contaminate the next one. The deferred loop
+  // (esoEditBuild.js:4397) copies g_EsoComputedStats[name].value back into
+  // inputValues[name] at each step j, so a leftover value corrupts early-computed
+  // stats (e.g. BashDamage). _statObjects is populated once at init,
+  // avoiding Object.keys on every call.
   if (_statObjects) {
     for (const stat of _statObjects) {
       stat.value = 0;
@@ -153,7 +153,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
       slotIndex: i,
     }));
 
-  // Itens e encantamentos
+  // Items and enchantments
   for (const slot of ALL_SLOTS) {
     itemData[slot] = {};
     if (enchantData) enchantData[slot] = {};
@@ -162,7 +162,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // Champion Points
   g.g_EsoCpData = {};
 
-  // Buffs: zera flags de ativação e contadores (evita bleed de stacks como Crux de Arcanist)
+  // Buffs: zero activation flags and counters (avoids stack bleed like Arcanist Crux)
   if (buffData && typeof buffData === 'object') {
     for (const key of Object.keys(buffData)) {
       const b = buffData[key];
@@ -176,7 +176,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     }
   }
 
-  // Toggle skills: zera enabled E valid (valid ficava true de chamadas anteriores)
+  // Toggle skills: zero enabled AND valid (valid stayed true from previous calls)
   if (toggleSkillData && typeof toggleSkillData === 'object') {
     for (const key of Object.keys(toggleSkillData)) {
       const s = toggleSkillData[key];
@@ -188,16 +188,16 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     }
   }
 
-  // Skill bars e passivos/ativos
+  // Skill bars and passives/actives
   g.g_EsoSkillBarData = [emptyBar(), emptyBar()];
   g.g_EsoSkillPassiveData = {};
   g.g_EsoSkillActiveData = {};
 
-  // ─── INJEÇÃO DE DADOS ────────────────────────────────────────────────────
+  // ─── DATA INJECTION ───────────────────────────────────────────────────────
 
   // -------------------------------------------------------------------------
-  // PASSO 1: Injeta stats do personagem nos elementos mock do DOM.
-  // O motor lê esses valores via jQuery: $("#esotbRace").val(), etc.
+  // STEP 1: Inject character stats into the mock DOM elements.
+  // The engine reads these values via jQuery: $("#esotbRace").val(), etc.
   // -------------------------------------------------------------------------
   resetDomValues();
 
@@ -208,13 +208,13 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   setDomValue('esotbAttrMag', String(character.attributes.magicka ?? 0));
   setDomValue('esotbAttrSta', String(character.attributes.stamina ?? 0));
 
-  // Mundus Stone (pedra de Mundus)
+  // Mundus Stone
   if (character.mundusStone) {
     setDomValue('esotbMundus', character.mundusStone);
   }
-  // Segunda Pedra de Mundus (requer set Twice-Born Star ou será ativada diretamente).
-  // IsTwiceBornStarEnabled() lê a flag _esoWrapperTwiceBornOverride (patch em loader.ts)
-  // quando o set não está equipado mas mundusStone2 é fornecido explicitamente.
+  // Second Mundus Stone (requires the Twice-Born Star set or it is enabled directly).
+  // IsTwiceBornStarEnabled() reads the _esoWrapperTwiceBornOverride flag (patch in loader.ts)
+  // when the set is not equipped but mundusStone2 is provided explicitly.
   g._esoWrapperTwiceBornOverride = !!character.mundusStone2;
   if (character.mundusStone2) {
     setDomValue('esotbMundus2', character.mundusStone2);
@@ -222,30 +222,30 @@ export function calculateBuild(input: BuildInput): ComputedStats {
 
   // PvP Cyrodiil (Battle Spirit)
   if (character.cyrodiil) {
-    setDomValue('esotbCyrodiil', 'true'); // prop("checked") retorna true quando valor é "true"
+    setDomValue('esotbCyrodiil', 'true'); // prop("checked") returns true when the value is "true"
   }
 
-  // Vampiro / Lobisomem
+  // Vampire / Werewolf
   if (character.vampireStage != null)
     setDomValue('esotbVampireStage', String(character.vampireStage));
   if (character.werewolfStage != null)
     setDomValue('esotbWerewolfStage', String(character.werewolfStage));
 
-  // Champion Points (default 0 — garante que SpellCrit e WeaponCrit sejam numéricos)
+  // Champion Points (default 0 — ensures SpellCrit and WeaponCrit stay numeric)
   setDomValue('esotbCPTotalPoints', String(character.championPoints ?? 0));
 
-  // Versão das regras (padrão: Live)
+  // Rules version (default: Live)
   setDomValue('esotbRulesVersion', character.rulesVersion ?? 'Live');
 
-  // Campos obrigatórios com defaults seguros
+  // Required fields with safe defaults
   setDomValue('esotbMountSpeedBonus', '0');
   setDomValue('esotbBaseWalkSpeed', '3.0');
   setDomValue('esotbBuildDescription', '');
   setDomValue('esotbUsePtsRules', 'false');
   setDomValue('esotbEnableRaceAutoPurchase', 'false');
 
-  // Configuração do alvo (target) — necessária para AttackSpellMitigation e EffectivePower.
-  // Target.EffectiveLevel = 0 causa divisão por zero na fórmula; padrão 50 é o nível máximo.
+  // Target configuration — required for AttackSpellMitigation and EffectivePower.
+  // Target.EffectiveLevel = 0 causes a division by zero in the formula; 50 is the max level default.
   setDomValue('esotbTargetResistance', '18200'); // UESP default: CP160 enemy base resistance
   setDomValue('esotbTargetEffectiveLevel', '66'); // UESP default: 66 = CP160 (endgame content)
   setDomValue('esotbTargetCritResistFlat', '0');
@@ -258,15 +258,15 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   setDomValue('esotbTargetPercentHealth', '100');
 
   // -------------------------------------------------------------------------
-  // PASSO 2: Injeta dados de itens DIRETAMENTE em g_EsoBuildItemData[slot].
+  // STEP 2: Inject item data DIRECTLY into g_EsoBuildItemData[slot].
   //
-  // Esta é a ideia central: em vez de mockar jQuery para cada campo de item,
-  // populamos a variável global que o motor lê nativamente.
-  // Os dados vêm exatamente no formato da API pública da UESP — sem adaptação.
+  // This is the core idea: instead of mocking jQuery for each item field,
+  // we populate the global variable the engine reads natively.
+  // Data comes exactly in the UESP public API format — no adaptation.
   // -------------------------------------------------------------------------
 
-  // Encantamentos customizados: faz GetEsoEnchantData() usar o caminho isDefaultEnchant=false,
-  // aplicando o fator 0.4044 para slots pequenos (Hands/Waist/Feet/Shoulders).
+  // Custom enchantments: make GetEsoEnchantData() take the isDefaultEnchant=false path,
+  // applying the 0.4044 factor for small slots (Hands/Waist/Feet/Shoulders).
   if (enchantData && enchantOverrides) {
     for (const slot of ALL_SLOTS) {
       const override = enchantOverrides[slot];
@@ -276,7 +276,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
 
   const cpDataGlobal = g.g_EsoCpData;
 
-  // Injeta os itens fornecidos (normalizados com defaults seguros)
+  // Inject the provided items (normalized with safe defaults)
   if (items) {
     for (const [slot, item] of Object.entries(items) as [
       EquipSlot,
@@ -289,16 +289,16 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3a: Injeta nodes do Champion Points 2.
+  // STEP 3a: Inject Champion Points 2 nodes.
   //
-  // Dois caminhos dependendo se buildRules.cp está carregado:
+  // Two paths depending on whether buildRules.cp is loaded:
   //
-  // Novo (preferido): quando g_EsoBuildRules['cp'] existe, o motor usa o caminho
-  //   GetEsoBuildCpRuleValues que lê cpData.description e faz match contra
-  //   ESO_CPEFFECT_MATCHES. Populamos g_EsoCpData[nodeId] com a description completa.
+  // New (preferred): when g_EsoBuildRules['cp'] exists, the engine uses the
+  //   GetEsoBuildCpRuleValues path which reads cpData.description and matches against
+  //   ESO_CPEFFECT_MATCHES. We populate g_EsoCpData[nodeId] with the full description.
   //
-  // Legado: sem cp rules, o motor usa ParseEsoCP2Value com injeção DOM via
-  //   $("#skill_<id>").attr("unlocked") e $("#descskill_<id>").text().
+  // Legacy: without cp rules, the engine uses ParseEsoCP2Value with DOM injection via
+  //   $("#skill_<id>").attr("unlocked") and $("#descskill_<id>").text().
   // -------------------------------------------------------------------------
   if (championPointNodes && Object.keys(championPointNodes).length > 0) {
     setDomValue('esotbEnableCP', 'true');
@@ -327,14 +327,14 @@ export function calculateBuild(input: BuildInput): ComputedStats {
 
     for (const [nodeId, nodeData] of resolvedNodes) {
       if (hasCpRules) {
-        // Resolve o nome a partir dos metadados capturados do browser.
+        // Resolve the name from the metadata captured from the browser.
         const name = cpSkills[nodeId]?.name ?? `CP_${nodeId}`;
 
-        // Resolve a descrição dinamicamente:
-        //   1. Override explícito do chamador
-        //   2. Lookup exato por nodeData.points em g_EsoCpSkillDesc[nodeId]
-        //   3. Floor lookup: maior chave disponível ≤ points
-        //   4. Fallback: chave 0 ou primeira disponível
+        // Resolve the description dynamically:
+        //   1. Explicit caller override
+        //   2. Exact lookup by nodeData.points in g_EsoCpSkillDesc[nodeId]
+        //   3. Floor lookup: largest available key ≤ points
+        //   4. Fallback: key 0 or first available
         let desc: string | undefined = nodeData.description;
         if (!desc && cpSkillDesc[nodeId]) {
           const nodeDescMap: Record<string, string> = cpSkillDesc[nodeId];
@@ -362,9 +362,9 @@ export function calculateBuild(input: BuildInput): ComputedStats {
           const isUnlocked = nodeData.isUnlocked !== undefined ? nodeData.isUnlocked : true;
           cpDataGlobal[nodeId] = { type: 'skill', isUnlocked, description: plainDesc, name };
         }
-        // sem descrição resolvível → node ignorado (sem efeito no motor)
+        // no resolvable description → node ignored (no engine effect)
       } else {
-        // caminho legado: injeção DOM para ParseEsoCP2Value
+        // legacy path: DOM injection for ParseEsoCP2Value
         const bonus = nodeData.currentBonus;
         const bonusStr =
           typeof bonus === 'string' && bonus.endsWith('%')
@@ -378,11 +378,11 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3b: Habilita buffs ativos.
+  // STEP 3b: Enable active buffs.
   //
-  // g_EsoBuildBuffData é um Proxy que auto-cria entradas.
-  // Setar .enabled = true é suficiente para IsEsoBuffEnabled() retornar true.
-  // (reset já feito no bloco de reset global acima)
+  // g_EsoBuildBuffData is a Proxy that auto-creates entries.
+  // Setting .enabled = true is enough for IsEsoBuffEnabled() to return true.
+  // (reset already done in the global reset block above)
   // -------------------------------------------------------------------------
   if (activeBuffs) {
     for (const buffName of activeBuffs) {
@@ -398,10 +398,10 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3c: Habilita toggle skills.
+  // STEP 3c: Enable toggle skills.
   //
-  // IsEsoBuildToggledSkillEnabled() verifica: skillData.valid && skillData.enabled
-  // (reset de enabled, combatEnabled e valid já feito no bloco de reset global acima)
+  // IsEsoBuildToggledSkillEnabled() checks: skillData.valid && skillData.enabled
+  // (reset of enabled, combatEnabled and valid already done in the global reset block above)
   // -------------------------------------------------------------------------
   if (toggleSkills) {
     for (const skillName of toggleSkills) {
@@ -414,16 +414,16 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3d: Injeta skill bars em g_EsoSkillBarData.
+  // STEP 3d: Inject skill bars into g_EsoSkillBarData.
   //
-  // O motor usa g_EsoSkillBarData para detectar skill lines ativas e aplicar
-  // passivos condicionais (ex: passivos de Destruction Staff, set bonuses que
-  // afetam "Class abilities", etc.).
+  // The engine uses g_EsoSkillBarData to detect active skill lines and apply
+  // conditional passives (e.g. Destruction Staff passives, set bonuses affecting
+  // "Class abilities", etc.).
   //
-  // LIMITAÇÃO ATUAL: sem g_SkillsData no uesp-init-data.json, os skill IDs são
-  // injetados mas os passivos de skill line não geram stats. Será funcional
-  // quando g_SkillsData for adicionado ao JSON de extração.
-  // (g_EsoSkillBarData já inicializado com barras vazias no bloco de reset acima)
+  // CURRENT LIMITATION: without g_SkillsData in uesp-init-data.json, skill IDs are
+  // injected but skill line passives produce no stats. It becomes functional
+  // once g_SkillsData is added to the extraction JSON.
+  // (g_EsoSkillBarData already initialized with empty bars in the reset block above)
   // -------------------------------------------------------------------------
   if (skillBars) {
     const barMap: [SkillSlot[] | undefined, 0 | 1][] = [
@@ -444,15 +444,15 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3d-2: Popula g_EsoSkillPassiveData com os passivos do personagem.
+  // STEP 3d-2: Populate g_EsoSkillPassiveData with the character's passives.
   //
-  // O engine itera g_EsoSkillPassiveData em GetEsoInputSkillPassives e aplica
-  // cada passivo via regex no texto da descrição (ESO_PASSIVEEFFECT_MATCHES).
-  // Requer g_SkillsData + GetEsoSkillDescription (de esoskills.js).
+  // The engine iterates g_EsoSkillPassiveData in GetEsoInputSkillPassives and applies
+  // each passive via regex on the description text (ESO_PASSIVEEFFECT_MATCHES).
+  // Requires g_SkillsData + GetEsoSkillDescription (from esoskills.js).
   //
-  // Cada entrada: { abilityId } — o engine busca g_SkillsData[abilityId] para
-  // obter coeficientes e gerar a descrição do passivo.
-  // (g_EsoSkillPassiveData já zerado no bloco de reset acima)
+  // Each entry: { abilityId } — the engine looks up g_SkillsData[abilityId] to
+  // get coefficients and generate the passive description.
+  // (g_EsoSkillPassiveData already zeroed in the reset block above)
   // -------------------------------------------------------------------------
   const allPassiveIds = new Set<number>(passiveSkills ?? []);
   if (autoPassives) {
@@ -476,12 +476,12 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3d-3: Popula g_EsoSkillActiveData a partir das skill bars.
+  // STEP 3d-3: Populate g_EsoSkillActiveData from the skill bars.
   //
-  // GetEsoInputSkillActiveBar lê g_EsoSkillBarData[barra][slot].origSkillId e
-  // busca g_EsoSkillActiveData[origSkillId].abilityId para obter a descrição.
-  // Populamos automaticamente para todos os slots não-vazios das barras.
-  // (g_EsoSkillActiveData já zerado no bloco de reset acima)
+  // GetEsoInputSkillActiveBar reads g_EsoSkillBarData[bar][slot].origSkillId and
+  // looks up g_EsoSkillActiveData[origSkillId].abilityId for the description.
+  // We populate automatically for every non-empty bar slot.
+  // (g_EsoSkillActiveData already zeroed in the reset block above)
   // -------------------------------------------------------------------------
   if (skillBars) {
     const activeData: Record<string, { abilityId: number }> = {};
@@ -500,30 +500,30 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 3e: Define qual barra de armas/skills está ativa.
+  // STEP 3e: Set which weapon/skill bar is active.
   //
-  // g_EsoBuildActiveWeapon  — slots MainHand/OffHand ativos para set bonuses.
-  // g_EsoBuildActiveAbilityBar — índice 1-based lido por CountEsoBarSkillsWithSkillLine/Type
-  //   para passivos que escalam com skills na barra (Expert Mage, Magicka Controller, etc.).
-  // Ambos precisam ser sincronizados; usar valores distintos resulta em passivos errados.
+  // g_EsoBuildActiveWeapon  — active MainHand/OffHand slots for set bonuses.
+  // g_EsoBuildActiveAbilityBar — 1-based index read by CountEsoBarSkillsWithSkillLine/Type
+  //   for passives scaling with slotted skills (Expert Mage, Magicka Controller, etc.).
+  // Both must be kept in sync; distinct values produce wrong passives.
   // -------------------------------------------------------------------------
   const activeBar = activeWeaponBar ?? 1;
   g.g_EsoBuildActiveWeapon = activeBar;
   g.g_EsoBuildActiveAbilityBar = activeBar;
 
   // -------------------------------------------------------------------------
-  // PASSO 4: Executa o cálculo.
+  // STEP 4: Run the calculation.
   //
   // UpdateEsoComputedStatsList_Real(keepSaveResults, noUpdate)
-  //   - keepSaveResults = null  → reseta os resultados salvos (comportamento padrão)
-  //   - noUpdate = true         → pula DisplayEsoAllComputedStats e UpdateReadOnlyStats
-  //                               (operações de DOM que não precisamos)
+  //   - keepSaveResults = null  → resets saved results (default behavior)
+  //   - noUpdate = true         → skips DisplayEsoAllComputedStats and UpdateReadOnlyStats
+  //                               (DOM operations we don't need)
   // -------------------------------------------------------------------------
   const updateFn = g.UpdateEsoComputedStatsList_Real;
   if (typeof updateFn !== 'function') {
     throw new Error(
-      '[eso-engine] UpdateEsoComputedStatsList_Real não está disponível. ' +
-        'Certifique-se de chamar initEsoEngineFromData() antes de calculateBuild().',
+      '[eso-engine] UpdateEsoComputedStatsList_Real is not available. ' +
+        'Make sure to call initEsoEngineFromData() before calculateBuild().',
     );
   }
 
@@ -552,7 +552,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   // -------------------------------------------------------------------------
-  // PASSO 5: Lê os resultados de g_EsoComputedStats[statId].value
+  // STEP 5: Read the results from g_EsoComputedStats[statId].value
   // -------------------------------------------------------------------------
   const computedStats = g.g_EsoComputedStats ?? {};
   const raw: Record<string, number> = {};
@@ -565,49 +565,49 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   }
 
   return {
-    // Atributos máximos
+    // Max attributes
     Health: raw['Health'] ?? 0,
     Magicka: raw['Magicka'] ?? 0,
     Stamina: raw['Stamina'] ?? 0,
 
-    // Regeneração
+    // Regeneration
     HealthRegen: raw['HealthRegen'] ?? 0,
     MagickaRegen: raw['MagickaRegen'] ?? 0,
     StaminaRegen: raw['StaminaRegen'] ?? 0,
 
-    // Dano
+    // Damage
     WeaponDamage: raw['WeaponDamage'] ?? 0,
     SpellDamage: raw['SpellDamage'] ?? 0,
 
-    // Crítico
+    // Critical
     WeaponCrit: raw['WeaponCrit'] ?? 0,
     SpellCrit: raw['SpellCrit'] ?? 0,
     SpellCritDamage: raw['SpellCritDamage'] ?? 0,
     WeaponCritDamage: raw['WeaponCritDamage'] ?? 0,
 
-    // Resistências
+    // Resistances
     PhysicalResist: raw['PhysicalResist'] ?? 0,
     SpellResist: raw['SpellResist'] ?? 0,
     CritResist: raw['CritResist'] ?? 0,
 
-    // Penetração
+    // Penetration
     PhysicalPenetration: raw['PhysicalPenetration'] ?? 0,
     SpellPenetration: raw['SpellPenetration'] ?? 0,
 
-    // Poder efetivo
+    // Effective power
     EffectiveSpellPower: raw['EffectiveSpellPower'] ?? 0,
     EffectiveWeaponPower: raw['EffectiveWeaponPower'] ?? 0,
     EffectivePower: raw['EffectivePower'] ?? 0,
 
-    // Cura
+    // Healing
     HealingDone: raw['HealingDone'] ?? 0,
     HealingTaken: raw['HealingTaken'] ?? 0,
 
-    // Velocidade
+    // Speed
     RunSpeed: raw['RunSpeed'] ?? 0,
     SprintSpeed: raw['SprintSpeed'] ?? 0,
 
-    // Mitigação
+    // Mitigation
     AttackSpellMitigation: raw['AttackSpellMitigation'] ?? 0,
     AttackPhysicalMitigation: raw['AttackPhysicalMitigation'] ?? 0,
     DefenseSpellMitigation: raw['DefenseSpellMitigation'] ?? 0,
