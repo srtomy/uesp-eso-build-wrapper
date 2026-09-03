@@ -1,15 +1,15 @@
 /**
- * Carrega os scripts da UESP no contexto global do Node.js via vm.runInThisContext.
+ * Loads the UESP scripts into the Node.js global context via vm.runInThisContext.
  *
- * Por que vm.runInThisContext e não require()?
- * - Os scripts da UESP não exportam módulos: definem funções e variáveis em window.*.
- * - require() registra o módulo no cache e isola o escopo — as funções UESP não
- *   ficariam visíveis como globais.
- * - vm.runInThisContext executa o código JS no contexto global REAL do processo Node,
- *   garantindo que window.GetEsoInputValues, window.UpdateEsoComputedStatsList_Real, etc.,
- *   fiquem disponíveis como globais acessíveis por qualquer módulo.
+ * Why vm.runInThisContext and not require()?
+ * - The UESP scripts don't export modules: they define functions and variables on window.*.
+ * - require() registers the module in the cache and isolates the scope — the UESP
+ *   functions would not become visible as globals.
+ * - vm.runInThisContext runs the JS code in the process's REAL global Node context,
+ *   ensuring window.GetEsoInputValues, window.UpdateEsoComputedStatsList_Real, etc.
+ *   are available as globals accessible from any module.
  *
- * IMPORTANTE: setupNodeEnvironment() deve ser chamado ANTES desta função.
+ * IMPORTANT: setupNodeEnvironment() must be called BEFORE this function.
  */
 
 import * as fs from 'fs';
@@ -21,24 +21,24 @@ import { buildInputStats } from './input-stats.js';
 let engineLoaded = false;
 
 /**
- * Carrega e inicializa o motor da UESP.
+ * Loads and initializes the UESP engine.
  *
- * @param uespResourcesPath - Caminho para a pasta resources/ do fork da UESP.
- *   Ex: path.resolve(import.meta.dirname, '../../../vendor/uesp-esochardata/resources')
+ * @param uespResourcesPath - Path to the UESP fork's resources/ folder.
+ *   E.g. path.resolve(import.meta.dirname, '../../../vendor/uesp-esochardata/resources')
  * @param initData
- *   Ex: path.resolve(import.meta.dirname, '../../../vendor/uesp-data/uesp-init-data.json')
+ *   E.g. path.resolve(import.meta.dirname, '../../../vendor/uesp-data/uesp-init-data.json')
  */
 export function loadUespEngine(uespResourcesPath: string, initData: string | UespInitData): void {
-  if (engineLoaded) return; // singleton — carrega apenas uma vez por processo
+  if (engineLoaded) return; // singleton — loads only once per process
 
-  // 1. Resolve o JSON de inicialização — caminho de arquivo ou objeto já parseado.
+  // 1. Resolve the init JSON — file path or already-parsed object.
   let data: UespInitData;
   if (typeof initData === 'string') {
     if (!fs.existsSync(initData)) {
       throw new Error(
-        `[eso-engine] Arquivo de inicialização não encontrado: ${initData}\n` +
-          `Execute o script de extração no browser e salve o resultado neste caminho.\n` +
-          `Consulte: vendor/uesp-data/browser-extract.js`,
+        `[eso-engine] Initialization file not found: ${initData}\n` +
+          `Run the browser extraction script and save the result to this path.\n` +
+          `See: vendor/uesp-data/browser-extract.js`,
       );
     }
     data = JSON.parse(fs.readFileSync(initData, 'utf-8')) as UespInitData;
@@ -46,11 +46,11 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     data = initData;
   }
 
-  // 2. Injeta os dados de fórmulas como globais ANTES de carregar o script.
-  //    O script da UESP referencia g_EsoComputedStats, g_EsoInputStats, etc. como globais.
-  //    A ordem de inserção do JSON deve ser preservada: o UESP processa deferredStats em
-  //    ordem de inserção, e stats como BashDamage (JSON pos 51) devem vir antes de
-  //    DirectDamageDone (JSON pos 71) para replicar o comportamento do browser.
+  // 2. Inject the formula data as globals BEFORE loading the script.
+  //    The UESP script references g_EsoComputedStats, g_EsoInputStats, etc. as globals.
+  //    The JSON insertion order must be preserved: UESP processes deferredStats in
+  //    insertion order, and stats like BashDamage (JSON pos 51) must come before
+  //    DirectDamageDone (JSON pos 71) to replicate browser behavior.
   (global as any).g_EsoComputedStats = data.computedStats ?? {};
   (global as any).g_EsoInputStats = buildInputStats();
   (global as any).g_EsoInitialBuffData = data.buffData ?? {};
@@ -60,19 +60,19 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
   (global as any).g_EsoBuildLiveVersion = 'Live';
   (global as any).g_EsoBuildPtsVersion = 'PTS';
 
-  // Metadados dos nodes CP2 — injetados como globais para que calculator.ts
-  // possa resolver nomes e descrições dinamicamente sem hardcoding.
+  // CP2 node metadata — injected as globals so calculator.ts
+  // can resolve names and descriptions dynamically without hardcoding.
   (global as any).g_EsoCpSkills = data.cpSkillsData ?? {};
   (global as any).g_EsoCpSkillDesc = data.cpSkillDescData ?? {};
 
-  // Globals que vêm do PHP/DB — inicializados como objetos vazios para que
-  // loops "for (var id in g_SkillsData)" não quebrem
+  // Globals coming from PHP/DB — initialized as empty objects so that
+  // loops like "for (var id in g_SkillsData)" don't break
   (global as any).g_SkillsData = data.skillsData ?? {};
   (global as any).g_SetSkillsData = data.setSkillsData ?? {};
   (global as any).g_LastSkillInputValues = {};
 
-  // Globals de estado da build — injetados pelo PHP, precisam de defaults seguros
-  (global as any).g_EsoBuildActiveWeapon = 1; // 1=barra de armas principal
+  // Build state globals — injected by PHP, need safe defaults
+  (global as any).g_EsoBuildActiveWeapon = 1; // 1=main weapon bar
   (global as any).g_EsoBuildActiveAbilityBar = 1;
   (global as any).g_EsoBuildAlternateVersion = '';
   (global as any).g_EsoBuildCp = {};
@@ -80,28 +80,28 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
   (global as any).g_EsoBuildLastSetIndex = 0;
   (global as any).g_EsoBuildSetNames = {};
 
-  // Barra de habilidades — array de 2 barras (principal + offbar), cada uma com 6 slots.
-  // O script acessa g_EsoSkillBarData[0][5].origSkillId diretamente (linha 10239).
+  // Skill bars — array of 2 bars (main + offbar), each with 6 slots.
+  // The script accesses g_EsoSkillBarData[0][5].origSkillId directly (line 10239).
   const emptySkillSlot = () => ({ skillId: 0, origSkillId: 0, morphIndex: 0, slotIndex: 0 });
   const emptySkillBar = () => Array.from({ length: 6 }, emptySkillSlot);
   (global as any).g_EsoSkillBarData = [emptySkillBar(), emptySkillBar()];
   (global as any).g_EsoSkillActiveData = {};
   (global as any).g_EsoSkillPassiveData = {};
 
-  // Objetos que precisam ser {} para que acessos do tipo obj[key] retornem undefined
-  // ao invés de lançar TypeError ("Cannot read properties of undefined")
+  // Objects that must be {} so accesses like obj[key] return undefined
+  // instead of throwing TypeError ("Cannot read properties of undefined")
   (global as any).g_EsoCpData = {};
   (global as any).g_EsoBuildEnchantData = {};
   (global as any).g_EsoBuildItemData = {};
   (global as any).g_EsoBuildSetData = {};
   (global as any).g_EsoBuildAllSetData = {};
-  // g_EsoBuildRules já foi injetado acima a partir de data.buildRules — não sobrescrever aqui.
+  // g_EsoBuildRules was already injected above from data.buildRules — don't overwrite here.
   (global as any).g_EsoInitialItemData = {};
 
-  // 3. Pré-declara todos os g_* globais como undefined no contexto Node.js.
-  //    No browser, variáveis globais não declaradas retornam undefined quando lidas.
-  //    No Node.js com vm.runInThisContext elas lançam ReferenceError.
-  //    Pre-declarar garante comportamento compatível com o browser.
+  // 3. Pre-declare all g_* globals as undefined in the Node.js context.
+  //    In the browser, undeclared globals return undefined when read.
+  //    In Node.js with vm.runInThisContext they throw ReferenceError.
+  //    Pre-declaring ensures browser-compatible behavior.
   const ALL_GLOBALS = [
     'g_EsoBuildActiveAbilityBar',
     'g_EsoBuildActiveWeapon',
@@ -181,7 +181,7 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     'g_SkillsData',
     'g_EsoCpSkills',
     'g_EsoCpSkillDesc',
-    // Globais lidos por esoskills.js mas definidos externamente (PHP/backend)
+    // Globals read by esoskills.js but defined externally (PHP/backend)
     'g_EsoCraftedScripts',
     'g_EsoSkillElfBaneSkills',
     'g_EsoSkillFlameAOESkills',
@@ -198,13 +198,13 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     }
   }
 
-  // 4. Carrega os scripts da UESP via vm.runInThisContext.
-  //    Ordem: esoskills.js (descrições) → esobuilddata.js (dados estáticos) → esoEditBuild.js (motor)
-  //    esoEditBuild.js sobrescreve GetEsoSkillInputValues na inicialização, por isso esoskills.js
-  //    precisa ser carregado primeiro.
+  // 4. Load the UESP scripts via vm.runInThisContext.
+  //    Order: esoskills.js (descriptions) → esobuilddata.js (static data) → esoEditBuild.js (engine)
+  //    esoEditBuild.js overrides GetEsoSkillInputValues on init, so esoskills.js
+  //    must be loaded first.
   //
-  //    esoskills.js está em vendor/uesp-esolog/resources/esoskills.js (submodule uesp/uesp-esolog).
-  //    Se o arquivo não existir, o motor funciona sem cálculo de skill passivos/ativos.
+  //    esoskills.js lives in vendor/uesp-esolog/resources/esoskills.js (uesp/uesp-esolog submodule).
+  //    If the file doesn't exist, the engine works without passive/active skill calculation.
   const esoskillsPath = path.join(
     path.dirname(path.dirname(uespResourcesPath)),
     'uesp-esolog',
@@ -212,15 +212,15 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     'esoskills.js',
   );
   if (fs.existsSync(esoskillsPath)) {
-    // USE_V2_TOOLTIPS=true é setado no esoskills.js, mas GetEsoSkillDescription2 não existe no
-    // nosso ambiente — a verificação tripla (USE_V2_TOOLTIPS && g_EsoSkillHasV2Tooltips && GetEsoSkillDescription2)
-    // falhará em g_EsoSkillHasV2Tooltips, caindo no caminho V1 automaticamente.
+    // USE_V2_TOOLTIPS=true is set in esoskills.js, but GetEsoSkillDescription2 doesn't exist in
+    // our environment — the triple check (USE_V2_TOOLTIPS && g_EsoSkillHasV2Tooltips && GetEsoSkillDescription2)
+    // fails on g_EsoSkillHasV2Tooltips, falling back to the V1 path automatically.
     (global as any).g_EsoSkillHasV2Tooltips = false;
     vm.runInThisContext(fs.readFileSync(esoskillsPath, 'utf-8'), { filename: esoskillsPath });
   } else {
-    console.warn('[eso-engine] esoskills.js não encontrado — skill passivos/ativos desabilitados.');
+    console.warn('[eso-engine] esoskills.js not found — skill passives/actives disabled.');
     console.warn(
-      '[eso-engine] Execute: git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog',
+      '[eso-engine] Run: git submodule add git@github.com:uesp/uesp-esolog.git vendor/uesp-esolog',
     );
   }
 
@@ -236,21 +236,21 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
 
   const scriptPath = path.join(uespResourcesPath, 'esoEditBuild.js');
   if (!fs.existsSync(scriptPath)) {
-    throw new Error(`[eso-engine] Script da UESP não encontrado: ${scriptPath}`);
+    throw new Error(`[eso-engine] UESP script not found: ${scriptPath}`);
   }
 
   const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
   vm.runInThisContext(scriptContent, { filename: scriptPath });
 
-  // 5. Pós-carregamento: envolve g_EsoBuildBuffData em um Proxy de segurança.
-  //    O motor acessa g_EsoBuildBuffData['Battle Spirit'].visible, etc.
-  //    Se os dados reais de buff não foram extraídos do browser, o objeto está vazio
-  //    e o acesso quebraria. O Proxy auto-cria uma entrada segura para qualquer chave.
+  // 5. Post-load: wrap g_EsoBuildBuffData in a safety Proxy.
+  //    The engine accesses g_EsoBuildBuffData['Battle Spirit'].visible, etc.
+  //    If the real buff data wasn't extracted from the browser, the object is empty
+  //    and access would break. The Proxy auto-creates a safe entry for any key.
   //
-  //    Também patchamos `.name` em entradas existentes que só têm `.nameId`:
-  //    EsoBuildCreateBuffDataFromRules() (linha 14337 do motor) popula g_EsoBuildBuffData
-  //    com 164+ entradas contendo .nameId mas sem .name. CountEsoMajorMinorBuffs (linha 3283)
-  //    chama .name.startsWith("Major ") em todas as entradas → TypeError sem esse patch.
+  //    We also patch `.name` on existing entries that only have `.nameId`:
+  //    EsoBuildCreateBuffDataFromRules() (engine line 14337) populates g_EsoBuildBuffData
+  //    with 164+ entries containing .nameId but no .name. CountEsoMajorMinorBuffs (line 3283)
+  //    calls .name.startsWith("Major ") on every entry → TypeError without this patch.
   const rawBuffData = (global as any).g_EsoBuildBuffData ?? {};
   for (const [key, entry] of Object.entries(rawBuffData) as [string, any][]) {
     if (entry && typeof entry === 'object' && !entry.name) {
@@ -273,12 +273,12 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     },
   });
 
-  // 6. Patch IsTwiceBornStarEnabled para suportar character.mundusStone2.
+  // 6. Patch IsTwiceBornStarEnabled to support character.mundusStone2.
   //
-  //     A função original checa g_EsoInputStatSources.TwiceBornStar, que só é
-  //     populado quando os 5 itens do set "Twice-Born Star" estão equipados.
-  //     Adicionamos uma saída rápida que verifica a flag _esoWrapperTwiceBornOverride
-  //     (setada por calculator.ts quando character.mundusStone2 está presente).
+  //     The original function checks g_EsoInputStatSources.TwiceBornStar, which is only
+  //     populated when all 5 "Twice-Born Star" set pieces are equipped.
+  //     We add a fast path checking the _esoWrapperTwiceBornOverride flag
+  //     (set by calculator.ts when character.mundusStone2 is present).
   const _origIsTwiceBorn = (global as any).IsTwiceBornStarEnabled;
   if (typeof _origIsTwiceBorn === 'function') {
     (global as any).IsTwiceBornStarEnabled = function () {
@@ -287,16 +287,16 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     };
   }
 
-  // 7. Patch UpdateEsoBuildToggledSkillData para preservar o estado enabled.
+  // 7. Patch UpdateEsoBuildToggledSkillData to preserve the enabled state.
   //
-  //    O motor usa $("#esotbToggledSkillInfo").find(...).is(":checked") para ler
-  //    checkboxes de toggle skills. No Node.js o mock jQuery não tem DOM real, então
-  //    checkElement.length = 1 (mock) e .is(":checked") retorna um proxy chain.
-  //    Isso faz SetEsoBuildToggledSkillEnable(skillId, falsyValue) sobrescrever o
-  //    enabled=true que calculator.ts setou antes do cálculo.
+  //    The engine uses $("#esotbToggledSkillInfo").find(...).is(":checked") to read
+  //    toggle skill checkboxes. In Node.js the jQuery mock has no real DOM, so
+  //    checkElement.length = 1 (mock) and .is(":checked") returns a chain proxy.
+  //    This makes SetEsoBuildToggledSkillEnable(skillId, falsyValue) overwrite the
+  //    enabled=true that calculator.ts set before the calculation.
   //
-  //    Fix: salva enabled[] antes da chamada original e restaura depois — preserva
-  //    o estado programático sem afetar a lógica de validação (.valid) do motor.
+  //    Fix: save enabled[] before the original call and restore afterwards — preserves
+  //    the programmatic state without affecting the engine's validation (.valid) logic.
   const _origUpdateToggledSkill = (global as any).UpdateEsoBuildToggledSkillData;
   if (typeof _origUpdateToggledSkill === 'function') {
     (global as any).UpdateEsoBuildToggledSkillData = function (inputValues: any) {
@@ -312,27 +312,27 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     };
   }
 
-  // 8. (sem patch em RemoveEsoDescriptionFormats)
+  // 8. (no patch on RemoveEsoDescriptionFormats)
   //
-  //    ComputeEsoInputSkillValue já faz replaceAll("\n", " ") internamente,
-  //    convertendo \n\n → "  " (dois espaços) antes do match das regexes.
-  //    Regras que usam [\r\n ]{2,} dependem desses dois espaços para distinguir
-  //    fins de item de lista (ex: "5%  Reduces" em Medium Armor Bonuses).
-  //    Um patch aqui que converte \n → " " (espaço simples) colapsa \n\n → "  " → " "
-  //    dentro de ComputeEsoInputSkillValue, quebrando essas regras.
-  //    Regras com [\s\S]* (ex: Emperor) já lidam com \n nativamente.
+  //    ComputeEsoInputSkillValue already does replaceAll("\n", " ") internally,
+  //    converting \n\n → "  " (two spaces) before the regex matches.
+  //    Rules using [\r\n ]{2,} depend on those two spaces to tell list-item
+  //    ends apart (e.g. "5%  Reduces" in Medium Armor Bonuses).
+  //    A patch here converting \n → " " (single space) collapses \n\n → "  " → " "
+  //    inside ComputeEsoInputSkillValue, breaking those rules.
+  //    Rules with [\s\S]* (e.g. Emperor) already handle \n natively.
 
-  // 9. Snapshot dos passivos raciais e de classe ANTES de qualquer cálculo.
-  //    O motor muta g_SkillsData[id].raceType durante cálculos (p.ex., ao processar
-  //    a raça do personagem, ele reatribui raceType em skills de outras raças).
-  //    Snapshotamos aqui, com os dados limpos do JSON de inicialização, para que
-  //    listRacialPassives/listClassPassives/autoPassives sejam sempre corretos.
+  // 9. Snapshot of racial and class passives BEFORE any calculation.
+  //    The engine mutates g_SkillsData[id].raceType during calculations (e.g. when processing
+  //    the character's race, it reassigns raceType on other races' skills).
+  //    We snapshot here, with the clean init JSON data, so that
+  //    listRacialPassives/listClassPassives/autoPassives are always correct.
   const passiveSnapshot: Record<string, any> = {};
   const rawSkillsData = (global as any).g_SkillsData ?? {};
   for (const [id, skill] of Object.entries(rawSkillsData) as [string, any][]) {
     if (!skill || skill.isPassive !== '1') continue;
-    // Inclui racial, classe e skill lines nomeadas (armadura, armas, guildas, etc.)
-    // Exclui passivos sem agrupamento útil (sem raceType, classType nem skillLine).
+    // Include racial, class and named skill lines (armor, weapons, guilds, etc.)
+    // Exclude passives without a useful grouping (no raceType, classType or skillLine).
     if (!skill.raceType && !skill.classType && !skill.skillLine) continue;
     passiveSnapshot[id] = {
       abilityId: skill.abilityId ?? Number(id),
@@ -353,7 +353,7 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
   engineLoaded = true;
 }
 
-/** Permite recarregar o motor (útil em testes) */
+/** Allows reloading the engine (useful in tests) */
 export function resetEngineLoader(): void {
   engineLoaded = false;
 }

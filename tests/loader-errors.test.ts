@@ -22,7 +22,7 @@ afterEach(() => {
 describe('loadUespEngine error handling', () => {
   it('rejects a missing init data file with an actionable error', () => {
     expect(() => loadUespEngine(makeTempDir(), path.join(makeTempDir(), 'missing.json'))).toThrow(
-      /Arquivo de inicialização não encontrado/,
+      /Initialization file not found/,
     );
   });
 
@@ -36,7 +36,7 @@ describe('loadUespEngine error handling', () => {
     const resources = makeTempDir();
     fs.writeFileSync(path.join(resources, 'esobuilddata.js'), '');
 
-    expect(() => loadUespEngine(resources, initData)).toThrow(/Script da UESP não encontrado/);
+    expect(() => loadUespEngine(resources, initData)).toThrow(/UESP script not found/);
   });
 
   it('warns and continues past a missing esoskills.js', () => {
@@ -44,8 +44,8 @@ describe('loadUespEngine error handling', () => {
     fs.writeFileSync(path.join(resources, 'esobuilddata.js'), '');
     const warning = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    expect(() => loadUespEngine(resources, initData)).toThrow(/Script da UESP não encontrado/);
-    expect(warning).toHaveBeenCalledWith(expect.stringContaining('esoskills.js não encontrado'));
+    expect(() => loadUespEngine(resources, initData)).toThrow(/UESP script not found/);
+    expect(warning).toHaveBeenCalledWith(expect.stringContaining('esoskills.js not found'));
     warning.mockRestore();
   });
 });

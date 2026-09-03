@@ -1,45 +1,45 @@
 /**
- * Configura o ambiente global do Node.js para simular o browser.
+ * Sets up the Node.js global environment to simulate the browser.
  *
- * O motor da UESP (esoEditBuild.js) foi escrito para rodar no browser e usa:
- *   - window.* — para variáveis e funções globais
- *   - document.getElementById / $ — para ler/escrever valores do DOM
- *   - navigator — verificação de agente
+ * The UESP engine (esoEditBuild.js) was written to run in the browser and uses:
+ *   - window.* — for global variables and functions
+ *   - document.getElementById / $ — to read/write DOM values
+ *   - navigator — agent check
  *
- * Esta camada cria mocks controlados desses objetos ANTES de carregar
- * o script da UESP, de forma que:
- *   1. O script inicia sem erros (jQuery mock chainável)
- *   2. Nosso código pode injetar valores de entrada (race, class, level, etc.)
- *      via setDomValue() antes de chamar o cálculo
- *   3. O motor lê esses valores normalmente via $("#elementId").val()
+ * This layer creates controlled mocks of these objects BEFORE loading
+ * the UESP script, so that:
+ *   1. The script starts without errors (chainable jQuery mock)
+ *   2. Our code can inject input values (race, class, level, etc.)
+ *      via setDomValue() before calling the calculation
+ *   3. The engine reads these values normally via $("#elementId").val()
  */
 
-/** Armazena os valores que o jQuery vai "ler" como se fossem campos HTML */
+/** Stores the values jQuery will "read" as if they were HTML fields */
 const domValueStore = new Map<string, string>();
 
-/** Armazena atributos HTML de elementos mock (ex: unlocked="50" nos nodes CP2) */
+/** Stores mock element HTML attributes (e.g. unlocked="50" on CP2 nodes) */
 const domAttrStore = new Map<string, Map<string, string>>();
 
-/** Armazena o textContent de elementos mock (ex: "Current bonus: 1500" nos nodes CP2) */
+/** Stores mock element textContent (e.g. "Current bonus: 1500" on CP2 nodes) */
 const domTextStore = new Map<string, string>();
 
-/** Define o valor de um elemento mock (equivale a preencher um campo HTML) */
+/** Sets a mock element's value (equivalent to filling in an HTML field) */
 export function setDomValue(id: string, value: string): void {
   domValueStore.set(id, value);
 }
 
-/** Define um atributo HTML de um elemento mock */
+/** Sets a mock element's HTML attribute */
 export function setDomAttr(id: string, attr: string, value: string): void {
   if (!domAttrStore.has(id)) domAttrStore.set(id, new Map());
   domAttrStore.get(id)!.set(attr, value);
 }
 
-/** Define o textContent de um elemento mock */
+/** Sets a mock element's textContent */
 export function setDomTextContent(id: string, text: string): void {
   domTextStore.set(id, text);
 }
 
-/** Reseta todos os valores do DOM mock */
+/** Resets all mock DOM values */
 export function resetDomValues(): void {
   domValueStore.clear();
   domAttrStore.clear();
@@ -47,20 +47,20 @@ export function resetDomValues(): void {
 }
 
 // ---------------------------------------------------------------------------
-// Mock do jQuery ($)
-// O motor usa: $("#id").val(), .prop("checked"), .find(), .children(),
+// jQuery ($) mock
+// The engine uses: $("#id").val(), .prop("checked"), .find(), .children(),
 // .text(), .html(), .each(), .on(), .length
-// Precisamos que .length >= 1 para que UpdateEsoComputedStat não retorne
-// prematuramente no check: if (element.length == 0) return false;
+// We need .length >= 1 so UpdateEsoComputedStat does not return
+// early on the check: if (element.length == 0) return false;
 // ---------------------------------------------------------------------------
 
 function createChainMock(id?: string): any {
-  // Proxy que retorna `chain` para qualquer método desconhecido, evitando "not a function"
+  // Proxy returning `chain` for any unknown method, avoiding "not a function"
   const handler: ProxyHandler<any> = {
     get(target, prop) {
       if (prop in target) return target[prop];
       if (typeof prop === 'string' && prop !== 'then') {
-        // Retorna função encadeável genérica para qualquer método jQuery desconhecido
+        // Return a generic chainable function for any unknown jQuery method
         return (..._args: any[]) => new Proxy(chain, handler);
       }
       return undefined;
@@ -68,7 +68,7 @@ function createChainMock(id?: string): any {
   };
 
   const chain: any = {
-    length: 1, // CRÍTICO: deve ser >= 1 para o motor não abortar o cálculo
+    length: 1, // CRITICAL: must be >= 1 so the engine does not abort the calculation
     val: (v?: string) => {
       if (v !== undefined) {
         if (id) domValueStore.set(id, String(v));
@@ -78,7 +78,7 @@ function createChainMock(id?: string): any {
     },
     prop: (name: string, v?: any) => {
       if (v !== undefined) return chain;
-      // checkbox — retorna false por padrão (PvP, Stealth, etc. desabilitados)
+      // checkbox — returns false by default (PvP, Stealth, etc. disabled)
       if (name === 'checked') {
         return id ? domValueStore.get(id) === 'true' : false;
       }
@@ -136,9 +136,9 @@ function createChainMock(id?: string): any {
     index: () => -1,
     serialize: () => '',
     serializeArray: () => [],
-    // Acesso por índice (computeElements[i])
+    // Index access (computeElements[i])
     0: null,
-    // $(document).ready(fn) — executa fn imediatamente em Node.js
+    // $(document).ready(fn) — runs fn immediately in Node.js
     ready: (fn: Function) => {
       try {
         fn();
@@ -151,12 +151,12 @@ function createChainMock(id?: string): any {
 function createJQueryMock() {
   const $ = function (selectorOrEl: any, _ctx?: any): any {
     if (typeof selectorOrEl !== 'string') return createChainMock();
-    // Extrai o ID do seletor "#meuId"
+    // Extract the ID from the "#myId" selector
     const idMatch = selectorOrEl.match(/^#([\w-]+)$/);
     return createChainMock(idMatch ? idMatch[1] : undefined);
   } as any;
 
-  // Utilitários estáticos do jQuery usados pelo motor
+  // Static jQuery utilities used by the engine
   $.isEmptyObject = (obj: any) => obj == null || Object.keys(obj).length === 0;
   $.isArray = Array.isArray;
   $.isFunction = (v: any) => typeof v === 'function';
@@ -180,7 +180,7 @@ function createJQueryMock() {
 }
 
 // ---------------------------------------------------------------------------
-// Mock do document
+// document mock
 // ---------------------------------------------------------------------------
 function createDocumentMock() {
   return {
@@ -211,10 +211,10 @@ function createDocumentMock() {
 }
 
 // ---------------------------------------------------------------------------
-// Configuração principal — chamar UMA VEZ antes de carregar o script da UESP
+// Main setup — call ONCE before loading the UESP script
 // ---------------------------------------------------------------------------
 export function setupNodeEnvironment(): void {
-  // navigator — propriedade read-only no Node 18+, precisa de defineProperty
+  // navigator — read-only property on Node 18+, needs defineProperty
   Object.defineProperty(global, 'navigator', {
     value: { userAgent: 'Mozilla/5.0 (Node.js ESO Engine)', language: 'en-US', onLine: true },
     configurable: true,
@@ -228,7 +228,7 @@ export function setupNodeEnvironment(): void {
     protocol: 'http:',
   };
 
-  // jQuery mock — o motor acessa via window.$ e também via $ diretamente
+  // jQuery mock — the engine accesses it via window.$ and also via $ directly
   const jq = createJQueryMock();
   (global as any).$ = jq;
   (global as any).jQuery = jq;
@@ -236,12 +236,12 @@ export function setupNodeEnvironment(): void {
   // document mock
   (global as any).document = createDocumentMock();
 
-  // console.time/timeEnd — usados pelo motor para profiling (no-ops aqui)
+  // console.time/timeEnd — used by the engine for profiling (no-ops here)
   if (!console.time) (console as any).time = () => {};
   if (!console.timeEnd) (console as any).timeEnd = () => {};
 
-  // window: usamos um Proxy que redireciona leituras/escritas para global.
-  // Isso evita quebrar internos do Node.js com "global.window = global".
+  // window: we use a Proxy redirecting reads/writes to global.
+  // This avoids breaking Node.js internals with "global.window = global".
   if (!(global as any).window) {
     (global as any).window = new Proxy(global, {
       get(target, prop) {

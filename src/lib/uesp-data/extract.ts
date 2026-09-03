@@ -1,13 +1,13 @@
 /**
- * Extração dos dados de jogo da engine a partir de um banco SQLite da UESP.
+ * Extraction of engine game data from a UESP SQLite database.
  *
- * Este mapeamento é o caminho canônico que produz o `uesp-game-data.json`
- * commitado — qualquer alteração aqui muda o JSON gerado. O wrapper consome
- * apenas 7 tabelas (escopo engine-only):
+ * This mapping is the canonical path producing the committed `uesp-game-data.json`
+ * — any change here alters the generated JSON. The wrapper consumes
+ * only 7 tables (engine-only scope):
  *
- *   dumps MariaDB → `computedStats`, `rules`, `effects`, `cp2Skills`,
+ *   MariaDB dumps → `computedStats`, `rules`, `effects`, `cp2Skills`,
  *                    `cp2SkillDescriptions`
- *   API UESP      → `playerSkills`, `skillTree`
+ *   UESP API      → `playerSkills`, `skillTree`
  */
 
 import * as fs from 'fs';
@@ -19,7 +19,7 @@ const JSON_PATH = path.resolve(
   '../../../vendor/uesp-data/uesp-game-data.json',
 );
 
-/** Subconjunto da API do node:sqlite usado pela extração. */
+/** Subset of the node:sqlite API used by the extraction. */
 export interface MinimalDb {
   prepare(sql: string): {
     get(...params: unknown[]): unknown;
