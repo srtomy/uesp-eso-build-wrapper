@@ -61,6 +61,7 @@
     "db:seed": "tsx --experimental-sqlite --no-warnings scripts/seed-db.ts",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
+    "test:esm": "node scripts/test-esm-import.mjs",
     "test:coverage": "vitest run --coverage",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
