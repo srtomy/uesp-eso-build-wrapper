@@ -40,10 +40,10 @@
  */
 
 import * as path from 'path';
-import { setupNodeEnvironment } from './env-setup';
-import { loadUespEngine, resetEngineLoader } from './loader';
-import { calculateBuild } from './calculator';
-import type { UespInitData } from './types';
+import { setupNodeEnvironment } from './env-setup.js';
+import { loadUespEngine, resetEngineLoader } from './loader.js';
+import { calculateBuild } from './calculator.js';
+import type { UespInitData } from './types.js';
 
 export type {
   BuildInput,
@@ -58,7 +58,7 @@ export type {
   UespInitData,
   ChampionPointNode,
   SkillSlot,
-} from './types';
+} from './types.js';
 export {
   calculateBuild,
   listAvailableBuffs,
@@ -67,15 +67,15 @@ export {
   listPassivesBySkillLine,
   listAvailableSkillLines,
   listAvailableToggleSkills,
-} from './calculator';
-export { debugBuild } from './debug';
+} from './calculator.js';
+export { debugBuild } from './debug.js';
 export type {
   BuildDebugInfo,
   BuildDebugInputValues,
   BuildDebugCpNode,
   BuildDebugStatSource,
-} from './debug';
-import { cacheStatObjects } from './calculator';
+} from './debug.js';
+import { cacheStatObjects } from './calculator.js';
 
 let initialized = false;
 
@@ -110,7 +110,7 @@ export interface EsoEngineFromDataOptions {
  */
 export function initEsoEngineFromData({ initData }: EsoEngineFromDataOptions): void {
   if (initialized) return;
-  const pkgRoot = path.resolve(__dirname, '../../..');
+  const pkgRoot = path.resolve(import.meta.dirname, '../../..');
   const resourcesPath = path.join(pkgRoot, 'vendor/uesp-esochardata/resources');
   setupNodeEnvironment();
   loadUespEngine(resourcesPath, initData);
