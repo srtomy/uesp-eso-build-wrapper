@@ -1,15 +1,15 @@
 /**
- * Pipeline de dados do wrapper: dumps MariaDB + API UESP → `UespInitData`.
+ * Wrapper data pipeline: MariaDB dumps + UESP API → `UespInitData`.
  *
- * Fluxo (uma função, sem estado persistente):
- *   1. Localiza os dumps (`buildEditor*.sql.gz`, `cp*.sql.gz`) em `dumpDir`
- *   2. Cria um banco SQLite **em memória** com o schema das 7 tabelas da engine
- *   3. Popula as 5 tabelas de dump em streaming (parser MariaDB)
- *   4. Popula `playerSkills` + `skillTree` via API UESP (retry + rate limit)
- *   5. Roda `extractGameData` e devolve o `UespInitData`
+ * Flow (one function, no persistent state):
+ *   1. Locate the dumps (`buildEditor*.sql.gz`, `cp*.sql.gz`) in `dumpDir`
+ *   2. Create an **in-memory** SQLite database with the engine's 7-table schema
+ *   3. Populate the 5 dump tables in streaming fashion (MariaDB parser)
+ *   4. Populate `playerSkills` + `skillTree` via UESP API (retry + rate limit)
+ *   5. Run `extractGameData` and return the `UespInitData`
  *
- * Escopo engine-only: nada aqui considera as tabelas auxiliares do
- * eso-build-editor (setSummary, minedItemSummary, skillTooltips, ...).
+ * Engine-only scope: nothing here considers the eso-build-editor
+ * helper tables (setSummary, minedItemSummary, skillTooltips, ...).
  */
 
 import { DatabaseSync } from 'node:sqlite';
@@ -20,7 +20,7 @@ import { assertCols, findDumpFile, iterateDumpRows } from './mariadb-dump.js';
 import { extractGameData } from './extract.js';
 
 // ---------------------------------------------------------------------------
-// Schema das tabelas (ordem posicional = ordem das colunas nos dumps)
+// Table schemas (positional order = column order in the dumps)
 // ---------------------------------------------------------------------------
 
 export type SqlType = 'INTEGER' | 'TEXT' | 'REAL';
@@ -37,7 +37,7 @@ interface DumpTableSpec extends TableSpec {
 
 interface ApiTableSpec extends TableSpec {
   apiTable: string;
-  /** Colunas numéricas da API (replicam o `Number()` do seed de referência). */
+  /** Numeric API columns (mirror the reference seed's `Number()`). */
   numericCols: readonly string[];
 }
 
@@ -284,11 +284,11 @@ const API_TABLES: readonly ApiTableSpec[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// API UESP
+// UESP API
 // ---------------------------------------------------------------------------
 
 const API_BASE = 'http://esolog.uesp.net/exportJson.php';
-// identificação educada junto ao UESP (mesma do seed de referência)
+// polite identification to UESP (same as the reference seed)
 const API_UA = 'Mozilla/5.0 (compatible; esobuildhub.com contact: tarcisioscotta2@gmail.com)';
 const API_RETRY_DELAY_MS = 2000;
 const API_RATE_LIMIT_MS = 500;
@@ -304,17 +304,17 @@ async function fetchApiRows(apiTable: string): Promise<Record<string, string>[]>
     res = await fetch(url, { headers });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch {
-    // retry único após 2s
+    // single retry after 2s
     await sleep(API_RETRY_DELAY_MS);
     res = await fetch(url, { headers });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ao buscar ${apiTable}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status} while fetching ${apiTable}`);
   }
 
   const json = (await res.json()) as Record<string, unknown>;
-  if (json.error) throw new Error(`API UESP: ${JSON.stringify(json.error)}`);
+  if (json.error) throw new Error(`UESP API: ${JSON.stringify(json.error)}`);
   const rows = json[apiTable];
   if (!Array.isArray(rows)) {
-    throw new Error(`Campo '${apiTable}' ausente na resposta da API UESP`);
+    throw new Error(`Field '${apiTable}' missing in the UESP API response`);
   }
   return rows as Record<string, string>[];
 }
@@ -335,11 +335,11 @@ export interface SeedProgressEvent {
 }
 
 export interface BuildUespGameDataOptions {
-  /** Diretório contendo os dumps UESP (`buildEditor*.sql.gz`, `cp*.sql.gz`). */
+  /** Directory containing the UESP dumps (`buildEditor*.sql.gz`, `cp*.sql.gz`). */
   dumpDir: string;
-  /** Versão das regras; `null`/ausente = maior versão numérica disponível. */
+  /** Rules version; `null`/absent = highest available numeric version. */
   version?: string | null;
-  /** Pula a busca via API UESP (skillsData sai vazio). */
+  /** Skip the UESP API fetch (skillsData comes out empty). */
   skipApi?: boolean;
   onProgress?: (event: SeedProgressEvent) => void;
 }
@@ -437,8 +437,8 @@ function resolveMaxVersion(db: DatabaseSync): string {
 }
 
 /**
- * Executa o pipeline completo: dumps + API → `UespInitData`.
- * O banco SQLite é criado em memória e descartado ao final.
+ * Runs the full pipeline: dumps + API → `UespInitData`.
+ * The SQLite database is created in memory and discarded at the end.
  */
 export async function buildUespGameData(
   options: BuildUespGameDataOptions,
@@ -446,7 +446,7 @@ export async function buildUespGameData(
   const { dumpDir, version = null, skipApi = false, onProgress = () => {} } = options;
 
   if (!fs.existsSync(dumpDir)) {
-    throw new Error(`Diretório de dumps não encontrado: '${dumpDir}'`);
+    throw new Error(`Dump directory not found: '${dumpDir}'`);
   }
 
   const dumpFiles: Record<DumpTableSpec['dumpPrefix'], string | null> = {
@@ -455,7 +455,7 @@ export async function buildUespGameData(
   };
   for (const [prefix, file] of Object.entries(dumpFiles)) {
     if (!file) {
-      throw new Error(`Dump não encontrado: nenhum arquivo '${prefix}*.sql.gz' em '${dumpDir}'`);
+      throw new Error(`Dump not found: no '${prefix}*.sql.gz' file in '${dumpDir}'`);
     }
   }
 
@@ -464,7 +464,7 @@ export async function buildUespGameData(
     for (const spec of [...DUMP_TABLES, ...API_TABLES]) {
       db.exec(createTableSql(spec));
     }
-    // acelera o JOIN effects ⋈ rules em extractGameData
+    // speeds up the effects ⋈ rules JOIN in extractGameData
     db.exec('CREATE INDEX idx_effects_ruleId ON effects(ruleId)');
 
     const counts: Record<string, number> = {};

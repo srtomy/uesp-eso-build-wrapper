@@ -1,9 +1,9 @@
 /**
- * Parser de dumps MariaDB (formato `mysqldump`) — zero dependências.
+ * MariaDB dump parser (mysqldump format) — zero dependencies.
  *
- * Adaptado de `eso-build-editor/scripts/seed.ts`. Suporta arquivos `.sql`
- * (plain), `.sql.gz` (gzip) e `.sql.zip` (via binário `unzip`), escaneando em
- * streaming os statements `INSERT INTO \`<tabela>\` VALUES ...`.
+ * Adapted from `eso-build-editor/scripts/seed.ts`. Supports `.sql` files
+ * (plain), `.sql.gz` (gzip) and `.sql.zip` (via the `unzip` binary), scanning in
+ * streaming fashion the `INSERT INTO \`<table>\` VALUES ...` statements.
  */
 
 import * as fs from 'fs';
@@ -16,9 +16,9 @@ import type { Readable } from 'stream';
 export type SqlValue = string | number | null;
 
 /**
- * Parseia uma linha de valores MariaDB do formato:
+ * Parses a MariaDB values line of the form:
  *   (val1, val2, 'str\'esc', NULL), (val1, val2), ...
- * Retorna array de rows, cada row é array de SqlValue.
+ * Returns an array of rows, each row an array of SqlValue.
  */
 export function parseInsertValues(line: string): SqlValue[][] {
   const rows: SqlValue[][] = [];
@@ -31,7 +31,7 @@ export function parseInsertValues(line: string): SqlValue[][] {
   }
 
   function parseString(): string {
-    // i está no '\'' de abertura
+    // i is on the opening '\''
     i++; // consume '
     let result = '';
     while (i < len) {
@@ -109,7 +109,7 @@ export function parseInsertValues(line: string): SqlValue[][] {
   }
 
   function parseRow(): SqlValue[] {
-    // i está no '('
+    // i is on the '('
     i++; // consume (
     const values: SqlValue[] = [];
     while (i < len) {
@@ -124,7 +124,7 @@ export function parseInsertValues(line: string): SqlValue[][] {
       }
       const before = i;
       values.push(parseValue());
-      if (i === before) break; // input malformado — evita loop infinito
+      if (i === before) break; // malformed input — avoid infinite loop
     }
     return values;
   }
@@ -146,22 +146,22 @@ export function parseInsertValues(line: string): SqlValue[][] {
   return rows;
 }
 
-/** Falha se a linha do dump não tem a quantidade esperada de colunas. */
+/** Fails if the dump row doesn't have the expected column count. */
 export function assertCols(cols: SqlValue[], expected: number, table: string): void {
   if (cols.length !== expected) {
     throw new Error(
-      `${table}: esperado ${expected} colunas, recebido ${cols.length} — re-verifique o dump`,
+      `${table}: expected ${expected} columns, got ${cols.length} — double-check the dump`,
     );
   }
 }
 
-/** Abre um dump (.sql / .sql.gz / .sql.zip) como stream de texto. */
+/** Opens a dump (.sql / .sql.gz / .sql.zip) as a text stream. */
 export async function openDump(filePath: string): Promise<Readable> {
   if (filePath.endsWith('.gz')) {
     return createReadStream(filePath).pipe(createGunzip());
   }
   if (filePath.endsWith('.zip')) {
-    // usa o binário `unzip` para descompactar (zip não tem stream nativo no Node)
+    // uses the `unzip` binary to decompress (zip has no native Node stream)
     const { spawn } = await import('child_process');
     const proc = spawn('unzip', ['-p', filePath]);
     proc.stderr.on('data', () => {}); // suppress stderr
@@ -171,9 +171,9 @@ export async function openDump(filePath: string): Promise<Readable> {
 }
 
 /**
- * Varre um dump em streaming e produz, uma a uma, as linhas do statement
- * `INSERT INTO \`tableName\` VALUES ...`. Valores saem na ordem das colunas
- * do CREATE TABLE original do dump.
+ * Scans a dump in streaming fashion yielding, one by one, the rows of the
+ * `INSERT INTO \`tableName\` VALUES ...` statement. Values come out in the column order
+ * of the dump's original CREATE TABLE.
  */
 export async function* iterateDumpRows(
   dumpFile: string,
@@ -216,9 +216,9 @@ export async function* iterateDumpRows(
 }
 
 /**
- * Encontra o dump mais recente de um prefixo (`buildEditor`, `cp`, ...) num
- * diretório. Ordena pelo número no nome do arquivo quando existir
- * (`buildEditor50` > `buildEditor49`), caindo para ordenação alfabética.
+ * Finds the most recent dump for a prefix (`buildEditor`, `cp`, ...) in a
+ * directory. Sorts by the number in the file name when present
+ * (`buildEditor50` > `buildEditor49`), falling back to alphabetical order.
  */
 export function findDumpFile(dir: string, prefix: string): string | null {
   const files = fs

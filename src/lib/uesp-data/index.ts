@@ -1,9 +1,9 @@
 /**
- * Pipeline de dados UESP do wrapper.
+ * Wrapper UESP data pipeline.
  *
- * `uesp-data` responde "como se obtém o `UespInitData`" (dumps MariaDB,
- * API UESP, banco SQLite); `eso-engine` é a glue da engine e consome o
- * resultado — a dependência é unidirecional (uesp-data → eso-engine/types).
+ * `uesp-data` answers "how is the `UespInitData` obtained" (MariaDB dumps,
+ * UESP API, SQLite database); `eso-engine` is the engine glue and consumes the
+ * result — the dependency is one-way (uesp-data → eso-engine/types).
  */
 
 export { extractGameData, loadInitData } from './extract.js';
