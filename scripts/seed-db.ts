@@ -13,7 +13,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
-import { buildUespGameData } from '../src/lib/uesp-data';
+import { buildUespGameData } from '../src/lib/uesp-data/index.js';
 
 // ---------------------------------------------------------------------------
 // ANSI / log (mesmo estilo do generate-data.ts)
@@ -74,7 +74,7 @@ const versionArg = getArg('version') ?? null;
 const skipApi = hasFlag('skip-api');
 const yesFlag = hasFlag('yes');
 
-const OUT_PATH = path.resolve(getArg('out') ?? path.join(__dirname, '../vendor/uesp-data/uesp-game-data.json'));
+const OUT_PATH = path.resolve(getArg('out') ?? path.join(import.meta.dirname, '../vendor/uesp-data/uesp-game-data.json'));
 
 if (!dirArg) {
   log.err('Uso: npm run db:seed -- --dir /caminho/para/dumps [--version 50] [--skip-api] [--yes]');

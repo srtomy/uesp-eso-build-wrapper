@@ -164,10 +164,18 @@ jobs:
         run: npm run publint
 
       - name: attw (type declarations)
-        # cjs-only-exports-default is ignored via the npm script: dist/ is a
-        # CJS-only build, so ESM consumers go through Node's default interop.
-        # Proper fix is a dual CJS/ESM build — see docs/CI-PIPELINE.md §5.
+        # The package is ESM-only (exports["."] → { types, default }). attw's
+        # node16-from-CJS leg is ignored via the npm script (cjs-resolves-to-esm):
+        # attw models Node 16 semantics, but engines >= 24 resolves require(esm).
+        # See docs/CI-PIPELINE.md §5.
         run: npm run attw
+
+      - name: ESM smoke test (pack + import + require(esm) + calculateBuild)
+        # Packs the tarball, installs into a clean project and imports the
+        # package via `import` (ESM) and `require` from CJS (require(esm)),
+        # initializing the engine from the vendored game data and computing
+        # a golden build.
+        run: npm run test:esm
 
       - name: npm publish dry run (files allowlist)
         run: npm publish --dry-run

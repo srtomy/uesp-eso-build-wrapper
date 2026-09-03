@@ -31,13 +31,12 @@
   },
   "main": "dist/lib/eso-engine/index.js",
   "types": "dist/lib/eso-engine/index.d.ts",
-  "type": "commonjs",
+  "type": "module",
   "sideEffects": true,
   "exports": {
     ".": {
       "types": "./dist/lib/eso-engine/index.d.ts",
-      "import": "./dist/lib/eso-engine/index.js",
-      "require": "./dist/lib/eso-engine/index.js"
+      "default": "./dist/lib/eso-engine/index.js"
     }
   },
   "files": [
@@ -57,19 +56,20 @@
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
     "publint": "publint",
-    "attw": "attw --pack . --ignore-rules cjs-only-exports-default",
-    "generate-data": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/generate-data.ts",
-    "db:seed": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/seed-db.ts",
+    "attw": "attw --pack . --ignore-rules cjs-resolves-to-esm",
+    "generate-data": "tsx --experimental-sqlite --no-warnings scripts/generate-data.ts",
+    "db:seed": "tsx --experimental-sqlite --no-warnings scripts/seed-db.ts",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
+    "test:esm": "node scripts/test-esm-import.mjs",
     "test:coverage": "vitest run --coverage",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "docs:api": "typedoc --options typedoc.json",
-    "test:explore": "ts-node --project tsconfig.json scripts/test-engine.ts",
-    "test:build": "ts-node --project tsconfig.json scripts/test-build.ts",
-    "test:db-init": "node --experimental-sqlite --no-warnings -r ts-node/register/transpile-only scripts/test-db-init.ts"
+    "test:explore": "tsx scripts/test-engine.ts",
+    "test:build": "tsx scripts/test-build.ts",
+    "test:db-init": "tsx --experimental-sqlite --no-warnings scripts/test-db-init.ts"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
@@ -82,7 +82,7 @@
     "fast-check": "^4.9.0",
     "prettier": "^3.8.3",
     "publint": "^0.3.24",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.13.0",
     "typescript": "^5.9.3",

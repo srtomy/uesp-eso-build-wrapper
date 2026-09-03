@@ -73,16 +73,19 @@ Repository **Settings → Branches → Add rule** for `main`:
 ## 5. Package validation (standard for published npm libraries)
 
 Catches packaging/types bugs before they reach consumers — important here
-because of the dual CJS/ESM `exports` and the curated `files` allowlist
+because the package is ESM-only and has a curated `files` allowlist
 (`dist/` + specific vendor files):
 
 - **publint** — validates `package.json` (`exports`, `main`, `types`) against
   the real `dist/` output
 - **@arethetypeswrong/cli** (`attw --pack .`) — checks `.d.ts` correctness
-  across `node10`/`node16`/`bundler` resolution. The
-  `cjs-only-exports-default` problem is explicitly ignored: `dist/` is a
-  CJS-only build, so ESM consumers rely on Node's default interop (works, but
-  the true fix is a dual CJS/ESM build — known follow-up)
+  across `node10`/`node16`/`bundler` resolution. The package is ESM-only
+  (`exports["."]` → `{ types, default }`), so attw's `node16 (from CJS)` leg
+  flags `cjs-resolves-to-esm`; that rule is ignored because attw models
+  Node 16 semantics, while `engines >= 24` resolves `require(esm)` natively
+- **`npm run test:esm`** — packs the tarball, installs it into a clean project
+  and imports `uesp-eso-build-wrapper` from both ESM (`import`) and CJS
+  (`require(esm)`), initializing the engine with the vendored game data
 - **`npm publish --dry-run`** — shows exactly which files would ship (verifies
   `vendor/` files, `LICENSE`, `THIRD_PARTY_NOTICES` are included)
 

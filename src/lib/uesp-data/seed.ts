@@ -15,9 +15,9 @@
 import { DatabaseSync } from 'node:sqlite';
 import * as fs from 'fs';
 import * as path from 'path';
-import type { UespInitData } from '../eso-engine';
-import { assertCols, findDumpFile, iterateDumpRows } from './mariadb-dump';
-import { extractGameData } from './extract';
+import type { UespInitData } from '../eso-engine/index.js';
+import { assertCols, findDumpFile, iterateDumpRows } from './mariadb-dump.js';
+import { extractGameData } from './extract.js';
 
 // ---------------------------------------------------------------------------
 // Schema das tabelas (ordem posicional = ordem das colunas nos dumps)

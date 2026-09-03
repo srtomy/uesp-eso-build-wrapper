@@ -18,9 +18,9 @@
  *   4. Ler os resultados de g_EsoComputedStats[statId].value
  */
 
-import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup';
-import { engineGlobals } from './engine-globals';
-import type { EnginePassiveRecord, EngineStatEntry } from './engine-globals';
+import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup.js';
+import { engineGlobals } from './engine-globals.js';
+import type { EnginePassiveRecord, EngineStatEntry } from './engine-globals.js';
 import type {
   BuffInfo,
   BuildInput,
@@ -31,7 +31,7 @@ import type {
   SkillSlot,
   ToggleSkillInfo,
   UespItemApiData,
-} from './types';
+} from './types.js';
 
 // Cache dos objetos de stat — populado uma vez após initEsoEngineFromData.
 // Evita Object.keys/values a cada calculateBuild; ~200 objetos.
