@@ -20,10 +20,12 @@ Esta biblioteca carrega esse motor **vendored e sem modificações** dentro do N
 
 O wrapper nunca implementa uma fórmula sequer do jogo. Quando um stat parece errado depois de um patch, a correção está sempre nos *dados* do jogo alimentados ao motor — nunca em matemática do wrapper. É isso que mantém a precisão entre patches de ESO.
 
-## Features
+## Propriedades principais
 
-- **100% fórmulas UESP** — o mesmo motor do [esobuilds.uesp.net](https://esobuilds.uesp.net)
+- **Roda local, sem rede para calcular** — `calculateBuild()` é síncrono e não faz requisições HTTP; o motor vendored roda in-process. Ver [Arquitetura](/pt/architecture).
+- **100% fórmulas UESP** — o mesmo motor do [esobuilds.uesp.net](https://esobuilds.uesp.net), zero matemática de ESO no wrapper
 - **221 stats computados** — todas as Computed Character Statistics do build editor
+- **Item data da UESP pluga direto** — objetos `exportJson.php?table=minedItem` vão direto para `BuildInput.items`
 - **Zero dependências de runtime** — Node.js puro
 - **Tipos TypeScript completos** — inputs e outputs tipados, [API Reference](/api/) documentada com TSDoc
 - **Loader singleton** — o motor carrega uma vez por processo; builds seguintes são rápidas
@@ -48,6 +50,7 @@ No `initEsoEngineFromData()`, o wrapper carrega os scripts vendored da UESP no e
 
 ## Próximos passos
 
+- [Arquitetura](/pt/architecture) — motor local, política de rede, fluxo de dados
 - [Primeiros Passos](/pt/getting-started) — instalar, inicializar, primeiro cálculo
 - [Guias](/pt/guides/character) — cada input em detalhe: itens, CP, buffs, skills
 - [Lendo o Resultado](/pt/output) — o que volta e como usar
