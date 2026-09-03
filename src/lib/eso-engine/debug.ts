@@ -4,8 +4,8 @@ import type { EngineInputValues } from './engine-globals.js';
 import type { BuildInput, ComputedStats } from './types.js';
 
 // ---------------------------------------------------------------------------
-// Tipos de debug — vivem aqui (não em types.ts) porque são internos à
-// ferramenta de diagnóstico, não parte da superfície principal da lib.
+// Debug types — they live here (not in types.ts) because they are internal to
+// the diagnostic tool, not part of the lib's main surface.
 // ---------------------------------------------------------------------------
 
 /** One contribution to an input stat: which source (passive, CP, buff, set...) set it. */
@@ -39,15 +39,15 @@ export interface BuildDebugInputValues {
 }
 
 export interface BuildDebugInfo {
-  /** Todos os computed stats calculados (mesmo que raw em ComputedStats). */
+  /** All computed stats (same as raw in ComputedStats). */
   computedStats: Record<string, number>;
-  /** Valores de entrada por categoria, filtrados para não-zero (exceto SkillBonus/SkillLine). */
+  /** Input values by category, filtered to non-zero (except SkillBonus/SkillLine). */
   inputValues: BuildDebugInputValues;
-  /** Estado dos CP nodes: quais estavam ativos (isUnlocked) e com quantos pontos. */
+  /** CP node state: which were active (isUnlocked) and with how many points. */
   cpNodes: Record<string, BuildDebugCpNode>;
   /**
-   * Fontes de cada input stat: registradas pelo engine durante GetEsoInputValues.
-   * Útil para rastrear de onde vem um valor inesperado (ex: qual passivo setou SkillBonusSpellDmg.Flame).
+   * Sources of each input stat: recorded by the engine during GetEsoInputValues.
+   * Useful for tracing where an unexpected value comes from (e.g. which passive set SkillBonusSpellDmg.Flame).
    */
   statSources: Record<string, BuildDebugStatSource[]>;
 }
@@ -68,16 +68,16 @@ function pickNonZero(obj: Record<string, number>): Record<string, number> {
  * Captures:
  * - `computedStats`: all computed stat values (same as `result.raw`)
  * - `inputValues`: per-category input values used during computation (non-zero only,
- *   except SkillBonus/SkillLine que são sempre incluídos para facilitar inspeção)
- * - `cpNodes`: estado dos CP nodes (nome, pontos, isUnlocked)
- * - `statSources`: registro de fontes por stat — qual passivo/CP/buff setou cada valor;
- *   útil para rastrear de onde vem um valor inesperado
+ *   except SkillBonus/SkillLine which are always included for easier inspection)
+ * - `cpNodes`: CP node state (name, points, isUnlocked)
+ * - `statSources`: per-stat source log — which passive/CP/buff set each value;
+ *   useful for tracing where an unexpected value comes from
  *
- * Por que o monkey-patch em GetEsoInputValues:
- * Chamar GetEsoInputValues() uma segunda vez após calculateBuild() dá resultados
- * incorretos porque g_EsoComputedStats já tem os valores da primeira rodada, e algumas
- * regras de passivos os leem indiretamente. O patch captura os inputValues exatos usados
- * no cálculo, sem re-executá-lo.
+ * Why the monkey-patch on GetEsoInputValues:
+ * Calling GetEsoInputValues() a second time after calculateBuild() gives incorrect
+ * results because g_EsoComputedStats already holds the first round's values, and some
+ * passive rules read them indirectly. The patch captures the exact inputValues used
+ * in the calculation, without re-running it.
  *
  * Must be called after initEsoEngineFromData().
  */
@@ -104,13 +104,13 @@ export function debugBuild(input: BuildInput): BuildDebugInfo {
 
   const iv: EngineInputValues = capturedIv ?? {};
 
-  // CP node states — lê g_EsoCpData que ainda está populado do calculateBuild
+  // CP node states — read g_EsoCpData which is still populated from calculateBuild
   const cpNodes: Record<string, BuildDebugCpNode> = {};
   const cpDataGlobal = g.g_EsoCpData ?? {};
   const cpSkills = g.g_EsoCpSkills ?? {};
   for (const [nodeId, cpData] of Object.entries(cpDataGlobal)) {
     if (!cpData || cpData.type !== 'skill') continue;
-    // g_EsoCpData não armazena points — lê do input original
+    // g_EsoCpData does not store points — read from the original input
     const inputNode = input.championPointNodes?.[nodeId];
     cpNodes[nodeId] = {
       name: cpData.name ?? cpSkills[nodeId]?.name ?? `CP_${nodeId}`,
@@ -119,7 +119,7 @@ export function debugBuild(input: BuildInput): BuildDebugInfo {
     };
   }
 
-  // Stat sources — populados pelo engine em AddEsoInputStatSource durante GetEsoInputValues
+  // Stat sources — populated by the engine in AddEsoInputStatSource during GetEsoInputValues
   const statSources: Record<string, BuildDebugStatSource[]> = {};
   const rawSources = g.g_EsoInputStatSources ?? {};
   for (const [statId, sources] of Object.entries(rawSources)) {

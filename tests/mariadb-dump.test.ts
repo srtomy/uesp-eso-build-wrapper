@@ -77,7 +77,7 @@ describe('assertCols', () => {
   });
 
   it('falha com quantidade divergente', () => {
-    expect(() => assertCols([1, 'a'], 3, 'rules')).toThrowError(/rules: esperado 3 colunas/);
+    expect(() => assertCols([1, 'a'], 3, 'rules')).toThrowError(/rules: expected 3 columns/);
   });
 });
 
@@ -210,7 +210,7 @@ describe('buildUespGameData (skipApi — fixtures de dump)', () => {
   it('falha claramente quando o dump não existe', async () => {
     await expect(
       buildUespGameData({ dumpDir: path.join(tmpDir, 'vazio-inexistente'), skipApi: true }),
-    ).rejects.toThrowError(/não encontrado/);
+    ).rejects.toThrowError(/not found/);
   });
 
   it('popula as tabelas da API quando skipApi é false', async () => {

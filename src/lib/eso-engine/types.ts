@@ -18,10 +18,10 @@
  */
 
 // ---------------------------------------------------------------------------
-// Buff catalog — retornado por listAvailableBuffs()
+// Buff catalog — returned by listAvailableBuffs()
 // ---------------------------------------------------------------------------
 
-/** Grupo do buff, corresponde às abas da UI da UESP. */
+/** Buff group, matching the UESP UI tabs. */
 export type BuffGroup =
   | 'Major'
   | 'Minor'
@@ -34,33 +34,33 @@ export type BuffGroup =
   | 'Other'
   | (string & {});
 
-/** Efeito individual de um buff sobre um stat. */
+/** A single buff effect on a stat. */
 export interface BuffEffect {
-  /** ID do stat afetado. Ex: "SpellCrit", "WeaponDamage", "CritDamage" */
+  /** Affected stat ID. Ex: "SpellCrit", "WeaponDamage", "CritDamage" */
   statId: string;
-  /** Valor numérico do efeito (já na unidade do stat). */
+  /** Numeric effect value (already in the stat's unit). */
   value: number;
   /**
-   * Tipo de display da UESP.
-   * "%" → valor está em pontos de porcentagem (ex: 20 = 20%, ou seja 0.2 no stat final).
-   * "" → valor absoluto no mesmo sistema de unidades do stat.
+   * UESP display type.
+   * "%" → value is in percentage points (e.g. 20 = 20%, i.e. 0.2 on the final stat).
+   * "" → absolute value in the same unit system as the stat.
    */
   display: string;
 }
 
-/** Informações de um buff disponível no catálogo do motor. */
+/** Info about a buff available in the engine catalog. */
 export interface BuffInfo {
-  /** Nome exato a passar em `activeBuffs`. Ex: "Major Prophecy" */
+  /** Exact name to pass in `activeBuffs`. Ex: "Major Prophecy" */
   name: string;
-  /** Grupo do buff — corresponde às abas da interface da UESP. */
+  /** Buff group — matches the UESP interface tabs. */
   group: BuffGroup;
-  /** URL relativa do ícone na UESP. Ex: "/esoui/art/icons/ability_debuff_major_cowardice.png" */
+  /** Relative icon URL on UESP. Ex: "/esoui/art/icons/ability_debuff_major_cowardice.png" */
   icon: string;
-  /** Efeitos sobre os stats quando ativado. */
+  /** Effects on stats when enabled. */
   effects: BuffEffect[];
-  /** True se este buff é um toggle (pode ser ligado/desligado na aba). */
+  /** True if this buff is a toggle (can be switched on/off in the tab). */
   isToggle: boolean;
-  /** True se este buff está visível na aba de buffs da UESP. */
+  /** True if this buff is visible in the UESP buff tab. */
   isVisible: boolean;
 }
 
@@ -125,11 +125,11 @@ export interface UespItemApiData {
   setBonusDesc5?: string;
   abilityDesc?: string;
   link?: string;
-  [key: string]: string | undefined; // campos extras da API
+  [key: string]: string | undefined; // extra API fields
 }
 
 // ---------------------------------------------------------------------------
-// Slots de equipamento válidos no motor da UESP
+// Valid equipment slots in the UESP engine
 // ---------------------------------------------------------------------------
 // Food slot: use `abilityDesc` to apply food/drink buffs.
 // The engine matches the text against buildRules.abilitydesc (17 rules) — see examples:
@@ -163,56 +163,56 @@ export type EquipSlot =
 /** One skill slotted on an action bar (BuildInput.skillBars). */
 export interface SkillSlot {
   /**
-   * Chave de lookup em g_EsoSkillActiveData — corresponde a origSkillId no DOM
-   * do Build Editor (ID do skill base/sem morph). Para skills sem morph, é igual a morphSkillId.
+   * Lookup key in g_EsoSkillActiveData — matches origSkillId in the Build Editor DOM
+   * (base/unmorphed skill ID). For morph-less skills it equals morphSkillId.
    */
   skillId: number;
   /**
-   * Ability ID do morph atual (rank específico). Usado como chave em g_SkillsData e em
-   * GetEsoSkillDescription para obter a descrição correta com os bônus do morph equipado.
-   * Se ausente, o engine usa skillId (para skills sem morph).
+   * Ability ID of the current morph (specific rank). Used as a key into g_SkillsData and in
+   * GetEsoSkillDescription to get the correct description with the slotted morph's bonuses.
+   * If absent, the engine uses skillId (for morph-less skills).
    */
   morphSkillId?: number;
   /**
-   * Índice do morph: 0 = base, 1 = primeiro morph, 2 = segundo morph.
+   * Morph index: 0 = base, 1 = first morph, 2 = second morph.
    * @default 0
    */
   morphIndex?: 0 | 1 | 2;
 }
 
 // ---------------------------------------------------------------------------
-// Node de Champion Points
+// Champion Points node
 // ---------------------------------------------------------------------------
 /** One Champion Point node in BuildInput.championPointNodes. */
 export interface ChampionPointNode {
   /**
-   * Pontos investidos neste node.
-   * Usado para resolver automaticamente a descrição via g_EsoCpSkillDesc[nodeId][points].
-   * Obrigatório no caminho novo (quando buildRules.cp estiver carregado).
+   * Points invested in this node.
+   * Used to auto-resolve the description via g_EsoCpSkillDesc[nodeId][points].
+   * Required on the new path (when buildRules.cp is loaded).
    */
   points?: number;
   /**
-   * Override da descrição do node (opcional).
-   * Se não fornecido, a descrição é resolvida automaticamente via g_EsoCpSkillDesc.
+   * Node description override (optional).
+   * If not provided, the description is auto-resolved via g_EsoCpSkillDesc.
    * Ex: "Grants 1 Max Magicka per stage. Current bonus: 1000"
    */
   description?: string;
   /**
-   * Valor numérico ou percentual do bônus atual.
-   * Formato legado para quando buildRules.cp não estiver disponível.
-   * Ex: 1000  ou  "10%"
+   * Numeric or percentage value of the current bonus.
+   * Legacy format for when buildRules.cp is unavailable.
+   * Ex: 1000  or  "10%"
    */
   currentBonus?: number | string;
   /**
-   * Se o node está ativo/slotado no UESP.
-   * false = node tem pontos mas não está equipado (nós slotáveis não ativados).
-   * Quando ausente (fixtures antigos), assume true para compatibilidade.
+   * Whether the node is active/slotted in UESP.
+   * false = node has points but is not slotted (unslotted slottable nodes).
+   * When absent (old fixtures), assumed true for compatibility.
    */
   isUnlocked?: boolean;
 }
 
 // ---------------------------------------------------------------------------
-// Input para a função calculateBuild()
+// Input for the calculateBuild() function
 // ---------------------------------------------------------------------------
 /**
  * Complete input for calculateBuild(): character sheet plus everything the
@@ -225,76 +225,76 @@ export interface ChampionPointNode {
  */
 export interface BuildInput {
   character: {
-    /** Raça. Ex: "High Elf", "Nord", "Breton", "Khajiit", "Dark Elf" */
+    /** Race. Ex: "High Elf", "Nord", "Breton", "Khajiit", "Dark Elf" */
     race: string;
-    /** Classe. Ex: "Sorcerer", "Dragonknight", "Nightblade", "Templar" */
+    /** Class. Ex: "Sorcerer", "Dragonknight", "Nightblade", "Templar" */
     class: string;
-    /** Nível do personagem: 1–50 */
+    /** Character level: 1–50 */
     level: number;
-    /** Pontos de atributo distribuídos (máx 64 cada, total 64) */
+    /** Distributed attribute points (max 64 each, 64 total) */
     attributes: {
       health: number;
       magicka: number;
       stamina: number;
     };
-    /** Pedra de Mundus ativa. Ex: "The Thief", "The Apprentice" */
+    /** Active Mundus Stone. Ex: "The Thief", "The Apprentice" */
     mundusStone?: string;
     /**
-     * Segunda Pedra de Mundus ativa.
-     * Requer o set "Twice-Born Star" (5 peças equipadas).
+     * Second active Mundus Stone.
+     * Requires the "Twice-Born Star" set (5 pieces equipped).
      * Ex: "The Apprentice"
      */
     mundusStone2?: string;
-    /** Habilita Battle Spirit (modo PvP Cyrodiil) */
+    /** Enables Battle Spirit (Cyrodiil PvP mode) */
     cyrodiil?: boolean;
-    /** Estágio de vampiro: 0–4 */
+    /** Vampire stage: 0–4 */
     vampireStage?: number;
-    /** Estágio de lobisomem: 0 ou 1 */
+    /** Werewolf stage: 0 or 1 */
     werewolfStage?: number;
-    /** Total de Champion Points (0–3600). Distribuição detalhada via cpData. */
+    /** Total Champion Points (0–3600). Detailed distribution via cpData. */
     championPoints?: number;
-    /** Versão das regras: "Live" (padrão) ou "PTS" */
+    /** Rules version: "Live" (default) or "PTS" */
     rulesVersion?: string;
   };
   /**
-   * Itens equipados. Passe o objeto retornado pela API da UESP diretamente.
-   * Busca: `GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>`
-   * Mapeie o item desejado (do array .minedItem[]) ao slot correto.
+   * Equipped items. Pass the object returned by the UESP API directly.
+   * Lookup: `GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>`
+   * Map the desired item (from the .minedItem[] array) to the correct slot.
    */
   items?: Partial<Record<EquipSlot, UespItemApiData>>;
   /**
-   * Nodes do Champion Points 2 que estão desbloqueados.
-   * Chave: ID numérico do node (rule ID de ESO_CPEFFECT_MATCHES ou abilityId legado).
+   * Unlocked Champion Points 2 nodes.
+   * Key: numeric node ID (ESO_CPEFFECT_MATCHES rule ID or legacy abilityId).
    *
-   * Formato preferido (quando buildRules.cp está carregado):
-   *   description: texto completo do node que casa com a regex da regra CP.
+   * Preferred format (when buildRules.cp is loaded):
+   *   description: full node text matching the CP rule regex.
    *   Ex: { 38750: { description: "Grants 1 Max Magicka per stage. Current bonus: 1000" } }
    *
-   * Formato legado (quando buildRules.cp não está disponível):
-   *   currentBonus: valor do "Current bonus: X" ou "Current value: X%"
+   * Legacy format (when buildRules.cp is unavailable):
+   *   currentBonus: value of "Current bonus: X" or "Current value: X%"
    *   Ex: { 141744: { currentBonus: 1000 } }
    *
-   * Requer que character.championPoints > 0.
+   * Requires character.championPoints > 0.
    */
   championPointNodes?: Record<string | number, ChampionPointNode>;
   /**
-   * Nomes exatos dos buffs ativos (habilitados para o cálculo).
+   * Exact names of active buffs (enabled for the calculation).
    * Ex: ["Minor Slayer", "Major Prophecy", "Major Savagery"]
-   * Usa o mesmo nome que aparece em g_EsoBuildBuffData da UESP.
+   * Uses the same name as in UESP's g_EsoBuildBuffData.
    */
   activeBuffs?: string[];
   /**
-   * Nomes exatos das toggle skills habilitadas.
+   * Exact names of enabled toggle skills.
    * Ex: ["Emperor", "Authority", "Domination", "Tactician"]
-   * Usa o mesmo nome que aparece em g_EsoBuildToggledSkillData da UESP.
+   * Uses the same name as in UESP's g_EsoBuildToggledSkillData.
    */
   toggleSkills?: string[];
   /**
-   * Skills slotados nas barras de habilidade do personagem (máx 6 por barra).
+   * Skills slotted on the character's action bars (max 6 per bar).
    *
-   * A presença de skills na barra ativa passivos de skill line (ex: passivos de
-   * Destruction Staff só se aplicam se houver um skill dessa linha na barra).
-   * Também afeta set bonuses condicionais como "Adds N damage to your Class abilities".
+   * Slotted skills enable skill line passives (e.g. Destruction Staff passives
+   * only apply if a skill from that line is on the bar).
+   * Also affects conditional set bonuses like "Adds N damage to your Class abilities".
    *
    * @example
    * ```ts
@@ -314,24 +314,24 @@ export interface BuildInput {
     bar2?: SkillSlot[];
   };
   /**
-   * Qual barra de armas está ativa para o cálculo.
-   * Afeta quais itens de MainHand/OffHand contam para set bonuses e enchants.
-   * - `1` = barra principal (MainHand1 / OffHand1) — padrão
-   * - `2` = barra secundária (MainHand2 / OffHand2)
+   * Which weapon bar is active for the calculation.
+   * Affects which MainHand/OffHand items count for set bonuses and enchants.
+   * - `1` = main bar (MainHand1 / OffHand1) — default
+   * - `2` = secondary bar (MainHand2 / OffHand2)
    *
    * @default 1
    */
   activeWeaponBar?: 1 | 2;
   /**
-   * Ability IDs dos skills passivos que o personagem possui desbloqueados.
-   * O motor aplica automaticamente o efeito de cada passivo via regex no texto
-   * da descrição (ESO_PASSIVEEFFECT_MATCHES).
+   * Ability IDs of the passive skills the character has unlocked.
+   * The engine automatically applies each passive's effect via regex on the
+   * description text (ESO_PASSIVEEFFECT_MATCHES).
    *
-   * Requer que g_SkillsData contenha os dados do skill (presente em
-   * uesp-game-data.json gerado via npm run generate-data).
+   * Requires g_SkillsData to contain the skill data (present in
+   * uesp-game-data.json generated via npm run generate-data).
    *
-   * Os IDs correspondem à coluna `abilityId` no banco de dados da UESP.
-   * Exemplo: a passiva "Highborn" do High Elf tem abilityId 45284.
+   * IDs match the `abilityId` column in the UESP database.
+   * Example: High Elf's "Highborn" passive has abilityId 45284.
    */
   passiveSkills?: number[];
   /**
@@ -345,11 +345,11 @@ export interface BuildInput {
    */
   autoPassives?: boolean;
   /**
-   * Encantamentos customizados por slot — sobrepõem o enchantDesc padrão do item.
-   * Gerado automaticamente por browser-export-build.js quando o usuário troca o
-   * encantamento no UESP Build Editor. O calculator injeta esses dados em
-   * g_EsoBuildEnchantData[slot] (isDefaultEnchant=false), fazendo o engine aplicar
-   * o fator de escala correto para slots pequenos (Hands/Waist/Feet/Shoulders: ×0.4044).
+   * Custom enchantments per slot — override the item's default enchantDesc.
+   * Auto-generated by browser-export-build.js when the user swaps the
+   * enchantment in the UESP Build Editor. The calculator injects this data into
+   * g_EsoBuildEnchantData[slot] (isDefaultEnchant=false), making the engine apply
+   * the correct scale factor for small slots (Hands/Waist/Feet/Shoulders: ×0.4044).
    *
    * @example
    * ```ts
@@ -361,10 +361,10 @@ export interface BuildInput {
    */
   enchantOverrides?: Partial<Record<string, { enchantDesc: string; enchantName?: string }>>;
   /**
-   * Chaves dos toggle set bonuses habilitados (correspondem a g_EsoBuildToggledSetData).
-   * Exportado automaticamente por browser-export-build.js quando o usuário ativa um toggle.
+   * Keys of enabled toggle set bonuses (matching g_EsoBuildToggledSetData).
+   * Auto-exported by browser-export-build.js when the user enables a toggle.
    *
-   * As chaves são o `nameId` da regra (string), ex:
+   * Keys are the rule's `nameId` (string), e.g.:
    *   - "Ansuul's Torment"         → +7% damage done against monsters (base)
    *   - "Ansuul's Torment (Bonus Damage)" → +14% additional (on interrupt)
    *   - "Spectral Cloak"           → +6% damage done (via Blade Cloak proc)
@@ -373,8 +373,8 @@ export interface BuildInput {
 }
 
 // ---------------------------------------------------------------------------
-// Resultado calculado pelo motor da UESP
-// Os stat IDs batem exatamente com os de g_EsoComputedStats (versão 49+).
+// Result computed by the UESP engine
+// Stat IDs match g_EsoComputedStats exactly (version 49+).
 // ---------------------------------------------------------------------------
 /**
  * The result of calculateBuild(): the key stats as named properties, plus
@@ -384,81 +384,81 @@ export interface BuildInput {
  * values are returned as the engine stores them (e.g. 12.5 = 12.5%).
  */
 export interface ComputedStats {
-  // Atributos máximos
+  // Max attributes
   Health: number;
   Magicka: number;
   Stamina: number;
 
-  // Regeneração
+  // Regeneration
   HealthRegen: number;
   MagickaRegen: number;
   StaminaRegen: number;
 
-  // Dano
+  // Damage
   WeaponDamage: number;
   SpellDamage: number;
 
-  // Crítico
+  // Critical
   WeaponCrit: number;
   SpellCrit: number;
   SpellCritDamage: number;
   WeaponCritDamage: number;
 
-  // Resistências
+  // Resistances
   PhysicalResist: number;
   SpellResist: number;
   CritResist: number;
 
-  // Penetração
+  // Penetration
   PhysicalPenetration: number;
   SpellPenetration: number;
 
-  // Poder efetivo
+  // Effective power
   EffectiveSpellPower: number;
   EffectiveWeaponPower: number;
   EffectivePower: number;
 
-  // Cura
+  // Healing
   HealingDone: number;
   HealingTaken: number;
 
-  // Velocidade
+  // Speed
   RunSpeed: number;
   SprintSpeed: number;
 
-  // Mitigação (calculada internamente como AttackSpellMitigation etc.)
+  // Mitigation (computed internally as AttackSpellMitigation etc.)
   AttackSpellMitigation: number;
   AttackPhysicalMitigation: number;
   DefenseSpellMitigation: number;
   DefensePhysicalMitigation: number;
 
-  /** Objeto bruto com TODOS os valores de g_EsoComputedStats após o cálculo */
+  /** Raw object with ALL g_EsoComputedStats values after the calculation */
   raw: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
-// Dados de inicialização do motor
+// Engine init data
 // ---------------------------------------------------------------------------
 
 export interface UespInitData {
-  /** Fórmulas de cálculo dos stats (a "inteligência" do motor) */
+  /** Stat calculation formulas (the engine's "brains") */
   computedStats: Record<string, unknown>;
-  /** Dados de buffs iniciais */
+  /** Initial buff data */
   buffData?: Record<string, unknown>;
-  /** Dados de Champion Points iniciais */
+  /** Initial Champion Points data */
   cpData?: Record<string, unknown>;
-  /** Regras gerais da build */
+  /** General build rules */
   buildRules?: Record<string, unknown>;
   /**
-   * Banco completo de skills da UESP (race/class passivos, activos, set skills).
-   * Capturado de window.g_SkillsData após a página en.uesp.net/wiki/Special:EsoBuildEditor carregar.
-   * Necessário para que GetEsoSkillDescription interpole coeficientes nos textos.
+   * Complete UESP skill database (race/class passives, actives, set skills).
+   * Captured from window.g_SkillsData after en.uesp.net/wiki/Special:EsoBuildEditor loads.
+   * Required for GetEsoSkillDescription to interpolate coefficients into texts.
    */
   skillsData?: Record<string, unknown>;
-  /** Dados de skills de sets */
+  /** Set skill data */
   setSkillsData?: Record<string, unknown>;
-  /** Metadados dos nodes CP2: nome, disciplina, cluster, posição no grafo */
+  /** CP2 node metadata: name, discipline, cluster, graph position */
   cpSkillsData?: Record<string, unknown>;
-  /** Descrições dos nodes CP2 por nível de pontos: cpSkillDescData[nodeId][points] */
+  /** CP2 node descriptions by points level: cpSkillDescData[nodeId][points] */
   cpSkillDescData?: Record<string, Record<string, string>>;
 }
