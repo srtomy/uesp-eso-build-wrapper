@@ -18,9 +18,8 @@ maturity improvements.
 ## Release flow
 
 - ~~Reintroduce `CHANGELOG.md`~~ — done, Keep a Changelog format.
-- **Automate the release process** (release-please: version bump + CHANGELOG +
-  npm publish from a Release PR) — designed in `docs/CI-PIPELINE.md` §8,
-  tracked on Trello card #34.
+- **Automate the release process** (version bump + CHANGELOG +
+  npm publish from a Release PR) — designed in `docs/CI-PIPELINE.md` §8.
 - **`npm publish --dry-run`** in CI to catch packaging issues (the `files`
   allowlist in `package.json` ships only `dist/` + specific vendor files) —
   part of the `package` job, see `docs/CI-PIPELINE.md` §5.
@@ -28,7 +27,7 @@ maturity improvements.
 ## CI / quality
 
 The full CI design (parallel jobs, typecheck, coverage, package validation,
-branch protection, PR hygiene) lives in **`docs/CI-PIPELINE.md`** (Trello #33).
+branch protection, PR hygiene) lives in **`docs/CI-PIPELINE.md`**.
 Remaining items not yet implemented:
 
 - **Coverage**: `@vitest/coverage-v8` is already a devDependency — wire up
@@ -36,7 +35,7 @@ Remaining items not yet implemented:
 - **Branch protection on `main`** with required status checks (§3).
 - **Dependency security**: `npm audit` job + Dependabot (§6).
 
-## Project-specific tooling (ties back to Trello card #7)
+## Project-specific tooling
 
 These are bigger items, intentionally deferred:
 
