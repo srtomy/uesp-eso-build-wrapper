@@ -14,16 +14,16 @@ Useful for debugging discrepancies between expected and computed stats.
 Captures:
 - `computedStats`: all computed stat values (same as `result.raw`)
 - `inputValues`: per-category input values used during computation (non-zero only,
-  except SkillBonus/SkillLine que são sempre incluídos para facilitar inspeção)
-- `cpNodes`: estado dos CP nodes (nome, pontos, isUnlocked)
-- `statSources`: registro de fontes por stat — qual passivo/CP/buff setou cada valor;
-  útil para rastrear de onde vem um valor inesperado
+  except SkillBonus/SkillLine which are always included for easier inspection)
+- `cpNodes`: CP node state (name, points, isUnlocked)
+- `statSources`: per-stat source log — which passive/CP/buff set each value;
+  useful for tracing where an unexpected value comes from
 
-Por que o monkey-patch em GetEsoInputValues:
-Chamar GetEsoInputValues() uma segunda vez após calculateBuild() dá resultados
-incorretos porque g_EsoComputedStats já tem os valores da primeira rodada, e algumas
-regras de passivos os leem indiretamente. O patch captura os inputValues exatos usados
-no cálculo, sem re-executá-lo.
+Why the monkey-patch on GetEsoInputValues:
+Calling GetEsoInputValues() a second time after calculateBuild() gives incorrect
+results because g_EsoComputedStats already holds the first round's values, and some
+passive rules read them indirectly. The patch captures the exact inputValues used
+in the calculation, without re-running it.
 
 Must be called after initEsoEngineFromData().
 

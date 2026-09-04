@@ -6,15 +6,15 @@
 
 # Interface: BuffInfo
 
-Informações de um buff disponível no catálogo do motor.
+Info about a buff available in the engine catalog.
 
 ## Properties
 
 | Property | Type | Description |
 | ------ | ------ | ------ |
-| <a id="effects"></a> `effects` | [`BuffEffect`](BuffEffect.md)[] | Efeitos sobre os stats quando ativado. |
-| <a id="group"></a> `group` | [`BuffGroup`](../type-aliases/BuffGroup.md) | Grupo do buff — corresponde às abas da interface da UESP. |
-| <a id="icon"></a> `icon` | `string` | URL relativa do ícone na UESP. Ex: "/esoui/art/icons/ability_debuff_major_cowardice.png" |
-| <a id="istoggle"></a> `isToggle` | `boolean` | True se este buff é um toggle (pode ser ligado/desligado na aba). |
-| <a id="isvisible"></a> `isVisible` | `boolean` | True se este buff está visível na aba de buffs da UESP. |
-| <a id="name"></a> `name` | `string` | Nome exato a passar em `activeBuffs`. Ex: "Major Prophecy" |
+| <a id="effects"></a> `effects` | [`BuffEffect`](BuffEffect.md)[] | Effects on stats when enabled. |
+| <a id="group"></a> `group` | [`BuffGroup`](../type-aliases/BuffGroup.md) | Buff group — matches the UESP interface tabs. |
+| <a id="icon"></a> `icon` | `string` | Relative icon URL on UESP. Ex: "/esoui/art/icons/ability_debuff_major_cowardice.png" |
+| <a id="istoggle"></a> `isToggle` | `boolean` | True if this buff is a toggle (can be switched on/off in the tab). |
+| <a id="isvisible"></a> `isVisible` | `boolean` | True if this buff is visible in the UESP buff tab. |
+| <a id="name"></a> `name` | `string` | Exact name to pass in `activeBuffs`. Ex: "Major Prophecy" |
