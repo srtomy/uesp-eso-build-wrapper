@@ -66,7 +66,8 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "docs:api": "typedoc --options typedoc.json",
+    "docs:api": "typedoc --options typedoc.json && npm run docs:api:sync-pt",
+    "docs:api:sync-pt": "rm -rf docs/pt/api && cp -r docs/api docs/pt/api",
     "test:explore": "tsx scripts/test-engine.ts",
     "test:build": "tsx scripts/test-build.ts",
     "test:db-init": "tsx --experimental-sqlite --no-warnings scripts/test-db-init.ts"
