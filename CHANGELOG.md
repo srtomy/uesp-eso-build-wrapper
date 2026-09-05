@@ -48,6 +48,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - **BREAKING**: `initEsoEngine()` (deprecated since 0.2.0) — use `initEsoEngineFromData({ initData })` instead; `uesp-init-data.json` no longer exists
 
+## [0.4.0] — 2026-09-05
+
+### Added
+- adiciona script db:seed autossuficiente (#8) (#23) (d9f0dd9)
+- v0.3.0 — ESO v50 support, CI/CD pipeline, fixture tests, SonarCloud (#22) (79cf503)
+
+### Changed
+- automate changelog generation for releases (B+ manual dispatch) (#41) (#36) (0a98cf8)
+- add bilingual VitePress documentation site (#33) (16cd647)
+- cover loader environment and public API (#29) (a4c134e)
+
 ## [0.2.0] — 2026-06-06
 
 ### Added
