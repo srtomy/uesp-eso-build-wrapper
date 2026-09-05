@@ -7,17 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-09-05
+
 ### Added
-- Complete CI merge-gate pipeline: parallel jobs (lint, typecheck, test, build, package validation, security audit), coverage summary in the CI job summary, PR title enforcement (Conventional Commits), CodeQL, Dependabot, SonarCloud
-- `typecheck`, `publint` and `attw` npm scripts; branch protection on `main` with required status checks
-- `test:esm` smoke test: packs the tarball, installs it into a clean project and exercises `uesp-eso-build-wrapper` from both ESM (`import`) and CJS (`require(esm)`), initializing the engine with the vendored game data
+- Self-contained `db:seed` pipeline: regenerate `uesp-game-data.json` from UESP SQL dumps with zero dependencies, no longer requiring `eso-build-editor`
+- Bilingual documentation site (English + pt-BR, VitePress) with consumer guides and TypeDoc API reference, deployed to GitHub Pages
+- `test:esm` smoke test: packs the tarball and exercises the package from both ESM `import` and CJS `require(esm)`
+- `typecheck`, `publint` and `attw` package-validation scripts, with branch protection on `main`
 
 ### Changed
-- **Node.js requirement bumped to >= 24 (latest LTS)** — Node 20 reached EOL in 2026-04; CI now tests Node 24.x only
-- **ESM-only package** — `"type": "module"`, single tsc build emitting real ESM (`module: nodenext`), `exports["."]` reduced to `{ types, default }`; sources use `import.meta.dirname` and explicit `.js` extensions on relative imports. CJS consumers on supported Node versions keep working via `require(esm)`; on older runtimes use `await import()`
-- attw: the `cjs-only-exports-default` workaround is gone; `cjs-resolves-to-esm` is ignored instead (attw models Node 16 semantics, `engines >= 24` resolves `require(esm)` natively)
-- Dev scripts run through `tsx` instead of ts-node (CJS-only and unmaintained)
-- CI hardening: `npm ci --ignore-scripts`, lockfile-pinned package-validation binaries, third-party actions pinned by commit SHA
+- **ESM-only package** — single `tsc` build emitting real ESM (`"type": "module"`, `module: nodenext`); CJS consumers on supported Node versions keep working via native `require(esm)`
+- **Node.js requirement is now >= 24** (Node 20 reached EOL; CI tests 24.x only)
+- Codebase translated to English (comments and TSDoc in `src/`, `tests/`, `scripts/`) for international contributors
+- Automated changelog generation for releases (B+ manual dispatch: deterministic `prepare-release` + `publish-release` workflows, no AI in CI)
+- Dev scripts run through `tsx` instead of unmaintained CJS-only `ts-node`
+- CI hardening: `npm ci --ignore-scripts`, lockfile-pinned validation binaries, third-party actions pinned by commit SHA
+
+### Fixed
+- `prepare-release` script: new section now lands before the latest version, footer compare link is added, tag ranges predating their release content are truncated, and the user-facing heuristic no longer matches `test:`/`ci:` subjects
 
 ## [0.3.0] — 2026-08-29
 
@@ -76,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Golden build-fixture test suite (`build-fixtures.test.ts`)
 - Zero runtime dependencies
 
+[0.4.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/srtomy/uesp-eso-build-wrapper/releases/tag/v0.1.0
