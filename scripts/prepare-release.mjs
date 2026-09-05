@@ -69,6 +69,39 @@ function getCommitsSince(tag) {
     });
 }
 
+// Matches a previous release marker in a commit subject, e.g.
+// "feat: v0.3.0 — ESO v50 support" or "chore: release v0.3.0".
+const RELEASE_MARKER_RE = /^\w+(\(.+\))?!?:\s*(v?\d+\.\d+\.\d+\b|release\b)/i;
+
+function isAncestor(tag) {
+  try {
+    sh(`git merge-base --is-ancestor ${tag} HEAD`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Drop a previous release marker and everything older than it. git log
+// returns newest-first, so the first marker found bounds the range.
+// This handles tags that predate their release content (e.g. tag v0.3.0
+// created before "feat: v0.3.0 …" landed) as well as rewritten history:
+// without this, already-released commits leak into the new section.
+function truncateAtPreviousRelease(commits, lastTag) {
+  if (!lastTag || commits.length === 0) return { commits, dropped: [] };
+  const idx = commits.findIndex((c) => RELEASE_MARKER_RE.test(c.subject));
+  if (idx === -1) return { commits, dropped: [] };
+  const dropped = commits.slice(idx);
+  if (!isAncestor(lastTag)) {
+    console.log(`WARNING: tag ${lastTag} is not an ancestor of HEAD (rewritten history?).`);
+  }
+  console.log(
+    `Truncating range at previous release marker ${dropped[0].shortHash} (${dropped.length} already-released commits dropped):`,
+  );
+  for (const d of dropped) console.log(` - ${d.shortHash} ${d.subject}`);
+  return { commits: commits.slice(0, idx), dropped };
+}
+
 const CONVENTIONAL_RE = /^(feat|fix|perf|refactor|chore|docs|style|test|build|ci)(\(.+\))?(!)?:\s*(.+)$/i;
 const SKIP_CHANGELOG_RE = /\[skip changelog\]/i;
 
@@ -88,9 +121,14 @@ function classifyCommit(c) {
   // User-facing heuristic for normally-skipped types (strict: only explicit release-note trailer)
   // Chore/ci/docs/etc are INTERNAL noise unless the author explicitly marks with [release-note]
   // or the change is breaking. This keeps "ci: add Codecov" or "test: cover ..." out of the changelog.
+  // The looser strongUserFacingRe guess below never applies to test:/ci: subjects —
+  // e.g. "test: cover loader environment and public API" must stay out without [release-note].
   const hasReleaseNoteTrailer = /\[release-note\]/i.test(c.body) || /\[release-note\]/i.test(c.subject);
   const strongUserFacingRe = /(BREAKING CHANGE|bump node|node >=|public api|consumer-facing)/i;
-  const userFacing = hasReleaseNoteTrailer || strongUserFacingRe.test(c.subject) || strongUserFacingRe.test(c.body);
+  const heuristicEligible = type !== 'test' && type !== 'ci';
+  const userFacing =
+    hasReleaseNoteTrailer ||
+    (heuristicEligible && (strongUserFacingRe.test(c.subject) || strongUserFacingRe.test(c.body)));
 
   let section = null;
   let include = false;
@@ -188,7 +226,35 @@ function renderChangelogSection(version, date, groups) {
   return lines.join('\n');
 }
 
-function updateChangelog(version, date, section) {
+function footerCompareLink(version, prevTag) {
+  if (!prevTag) return null;
+  let repoUrl = null;
+  try {
+    const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf-8'));
+    const raw = pkg.repository?.url ?? '';
+    const m = raw.match(/github\.com[/:]([^/]+\/[^/.]+?)(?:\.git)?$/);
+    if (m) repoUrl = `https://github.com/${m[1]}`;
+  } catch {
+    return null;
+  }
+  if (!repoUrl) return null;
+  const prev = prevTag.startsWith('v') ? prevTag : `v${prevTag}`;
+  return `[${version}]: ${repoUrl}/compare/${prev}...v${version}`;
+}
+
+function insertFooterLink(content, linkLine) {
+  if (!linkLine) return content;
+  if (content.includes(`\n${linkLine}\n`) || content.endsWith(`\n${linkLine}`)) return content;
+  const lines = content.split('\n');
+  const firstLinkIdx = lines.findIndex((l) => /^\[[^\]]+\]: https?:/.test(l));
+  if (firstLinkIdx === -1) {
+    return `${content.trimEnd()}\n\n${linkLine}\n`;
+  }
+  lines.splice(firstLinkIdx, 0, linkLine);
+  return lines.join('\n');
+}
+
+function updateChangelog(version, date, section, prevTag) {
   const orig = fs.readFileSync(CHANGELOG, 'utf-8');
   // Insert after header paragraph (after "Semantic Versioning..." line + blank line + "## [Unreleased]")
   // Keep [Unreleased] intact. Insert new section right after its content block.
@@ -199,28 +265,22 @@ function updateChangelog(version, date, section) {
   const afterUnreleased = orig.slice(idx);
   const nextVersionRe = /\n## \[/g;
   const nextMatches = [...afterUnreleased.matchAll(nextVersionRe)];
-  // First match is the current header itself at offset 0? Actually afterUnreleased starts with "## [Unreleased]" so need second occurrence
+  // NOTE: the regex requires a leading newline, so the Unreleased header itself
+  // (at slice offset 0, with no preceding newline) never matches.
+  // nextMatches[0] is therefore already the newest released version.
   let insertPos;
-  if (nextMatches.length >= 2) {
-    insertPos = idx + nextMatches[1].index;
-  } else if (nextMatches.length === 1) {
-    // No next version yet, append before link references at end
-    const linkRe = /\n\[[^\]]+\]: https:/g;
-    const linkMatch = orig.match(linkRe);
-    if (linkMatch) {
-      const lastLinkIdx = orig.lastIndexOf('\n[');
-      insertPos = lastLinkIdx;
-    } else {
-      insertPos = orig.length;
-    }
+  if (nextMatches.length >= 1) {
+    insertPos = idx + nextMatches[0].index;
   } else {
-    insertPos = orig.length;
+    // No released versions yet: insert before footer link refs, else at EOF
+    const lastLinkIdx = orig.lastIndexOf('\n[');
+    insertPos = lastLinkIdx !== -1 ? lastLinkIdx : orig.length;
   }
   const before = orig.slice(0, insertPos).trimEnd();
   const after = orig.slice(insertPos).trimStart();
   const newContent = `${before}\n\n${section.trimEnd()}\n\n${after}`;
-  // Ensure links footer includes new version compare link (best-effort)
-  return newContent;
+  // Ensure the footer carries a compare link for the new version.
+  return insertFooterLink(newContent, footerCompareLink(version, prevTag));
 }
 
 function updatePackageJson(version) {
@@ -236,9 +296,11 @@ function main() {
   const wantAuto = args.includes('auto') || !versionArg;
 
   const lastTag = getLastTag();
-  const commits = getCommitsSince(lastTag);
+  let commits = getCommitsSince(lastTag);
   console.log(`Last tag: ${lastTag ?? '(none — first release)'}`);
   console.log(`Commits since tag: ${commits.length}`);
+  commits = truncateAtPreviousRelease(commits, lastTag).commits;
+  console.log(`Commits in release range: ${commits.length}`);
 
   const currentPkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf-8'));
   const currentVersion = parseVersion(currentPkg.version);
@@ -305,7 +367,7 @@ function main() {
   fs.writeFileSync(PACKAGE_JSON, newPkg, 'utf-8');
   console.log(`\nUpdated package.json → ${nextVersion}`);
 
-  const newChangelog = updateChangelog(nextVersion, date, section);
+  const newChangelog = updateChangelog(nextVersion, date, section, lastTag);
   fs.writeFileSync(CHANGELOG, newChangelog, 'utf-8');
   console.log('Updated CHANGELOG.md');
 
