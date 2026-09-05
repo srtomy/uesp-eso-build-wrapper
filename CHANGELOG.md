@@ -19,6 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dev scripts run through `tsx` instead of ts-node (CJS-only and unmaintained)
 - CI hardening: `npm ci --ignore-scripts`, lockfile-pinned package-validation binaries, third-party actions pinned by commit SHA
 
+## [0.4.0] — 2026-09-05
+
+### Added
+- adiciona script db:seed autossuficiente (#8) (#23) (d9f0dd9)
+
+### Changed
+- automate changelog generation for releases (B+ manual dispatch) (#41) (#36) (0a98cf8)
+- add bilingual VitePress documentation site (#33) (16cd647)
+
+### Fixed
+- correct prepare-release section position, footer link, tag-range guard and user-facing heuristic (#39) (#45) (17c6286)
+
 ## [0.3.0] — 2026-08-29
 
 ### Added
@@ -76,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Golden build-fixture test suite (`build-fixtures.test.ts`)
 - Zero runtime dependencies
 
+[0.4.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/srtomy/uesp-eso-build-wrapper/releases/tag/v0.1.0
