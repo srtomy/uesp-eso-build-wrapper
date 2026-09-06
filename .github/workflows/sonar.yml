@@ -48,7 +48,11 @@ jobs:
         run: npm run test:coverage
 
       - name: SonarCloud Scan
-        # SonarSource/sonarcloud-github-action@v5.0.0 — pinned to commit SHA.
-        uses: SonarSource/sonarcloud-github-action@ffc3010689be73b8e5ae0c57ce35968afd7909e8
+        if: secrets.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@2f77a1ec69fb1d595b06f35ab27e97605bdef703 # v5.3.2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Skip notice (no token — Dependabot/fork)
+        if: secrets.SONAR_TOKEN == ''
+        run: 'echo "Skipping Sonar scan - SONAR_TOKEN not available in this PR context; full analysis runs on push to main."'
