@@ -98,11 +98,14 @@ TypeScript) and the `type` field was missing.
   are **grouped** (one PR per ecosystem, they would otherwise conflict on the
   same workflow files); each update PR is validated by the CI gate itself
 - **SonarCloud** — CI-based scan (`.github/workflows/sonar.yml`,
-  `SonarSource/sonarcloud-github-action`), gated on the `SONAR_SCANNING`
+  `SonarSource/sonarqube-scan-action`), gated on the `SONAR_SCANNING`
   repository variable. `sonar-project.properties` excludes `vendor/**` and
   `dist/**` — vendored UESP code and build output are not maintained here and
   must not affect quality ratings (the GitHub-App automatic analysis ignored
   these exclusions, which is why the scan moved into CI).
+  Dependabot/fork PRs don't receive `secrets.SONAR_TOKEN`, so the scan step is
+  skipped with a green notice and the full analysis runs on `push` to `main` —
+  this keeps the required `SonarCloud Code Analysis` check green on update PRs.
   Enable order: 1) add `SONAR_TOKEN` secret (SonarCloud → My Account →
   Security), 2) create variable `SONAR_SCANNING=true`, 3) verify the job on
   the next PR, 4) disable automatic analysis in SonarCloud
