@@ -38,7 +38,7 @@ describe('debugBuild', () => {
   it('captures CP node state and stat sources', () => {
     const debug = debugBuild({
       character: { ...CHARACTER, championPoints: 160 },
-      championPointNodes: { '141744': { points: 25 } },
+      championPointNodes: { '141744': { points: 25, isUnlocked: true } },
     });
 
     expect(debug.cpNodes['141744']).toEqual({

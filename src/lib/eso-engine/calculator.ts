@@ -358,8 +358,20 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         if (desc) {
           // Strip HTML tags and ESO color codes (|cHHHHHH...|r) so the engine's regex matching works on plain text
           const plainDesc = desc.replace(/<[^>]+>/g, '').replace(/\|c[0-9a-fA-F]{6}|\|r/g, '');
-          // isUnlocked: use explicit value from fixture when present; default true for old fixtures without it
-          const isUnlocked = nodeData.isUnlocked !== undefined ? nodeData.isUnlocked : true;
+          // isUnlocked: explicit value wins. Otherwise derive from the node
+          // metadata: passives (skillType 0) are active from jumpPointDelta up;
+          // slottable nodes (skillType 1/2) default to false because the wrapper
+          // cannot know whether they are on the Champion bar.
+          let isUnlocked: boolean;
+          if (nodeData.isUnlocked !== undefined) {
+            isUnlocked = nodeData.isUnlocked;
+          } else {
+            const meta = cpSkills[nodeId];
+            const points = nodeData.points ?? 0;
+            const delta = Number(meta?.jumpPointDelta ?? 0);
+            const skillType = Number(meta?.skillType ?? 0);
+            isUnlocked = points >= delta && skillType === 0;
+          }
           cpDataGlobal[nodeId] = { type: 'skill', isUnlocked, description: plainDesc, name };
         }
         // no resolvable description → node ignored (no engine effect)

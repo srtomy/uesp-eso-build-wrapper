@@ -153,6 +153,43 @@ const DUMP_TABLES: readonly DumpTableSpec[] = [
       ['description', 'TEXT'],
     ],
   },
+  {
+    tableName: 'cp2Disciplines',
+    dumpPrefix: 'cp',
+    columns: [
+      ['id', 'INTEGER'],
+      ['disciplineIndex', 'INTEGER'],
+      ['disciplineId', 'INTEGER'],
+      ['name', 'TEXT'],
+      ['discType', 'INTEGER'],
+      ['numSkills', 'INTEGER'],
+      ['bgTexture', 'TEXT'],
+      ['glowTexture', 'TEXT'],
+      ['selectTexture', 'TEXT'],
+    ],
+  },
+  {
+    tableName: 'cp2SkillLinks',
+    dumpPrefix: 'cp',
+    columns: [
+      ['id', 'INTEGER'],
+      ['parentSkillId', 'INTEGER'],
+      ['skillId', 'INTEGER'],
+    ],
+  },
+  {
+    tableName: 'cp2ClusterRoots',
+    dumpPrefix: 'cp',
+    columns: [
+      ['id', 'INTEGER'],
+      ['skillId', 'INTEGER'],
+      ['texture', 'TEXT'],
+      ['name', 'TEXT'],
+      ['skills', 'TEXT'],
+      ['disciplineIndex', 'INTEGER'],
+      ['disciplineId', 'INTEGER'],
+    ],
+  },
 ];
 
 const PLAYER_SKILLS_TEXT_COLUMNS = [

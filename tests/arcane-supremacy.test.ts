@@ -44,7 +44,7 @@ describe('Arcane Supremacy CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: { [NODE_ID]: { points: 50 } },
+        championPointNodes: { [NODE_ID]: { points: 50, isUnlocked: true } },
       });
     });
 
@@ -77,7 +77,7 @@ describe('Arcane Supremacy CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: { [NODE_ID]: { points: 25 } },
+        championPointNodes: { [NODE_ID]: { points: 25, isUnlocked: true } },
       });
     });
 
@@ -119,7 +119,7 @@ describe('Endless Endurance CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: { [NODE_ID]: { points: 50 } },
+        championPointNodes: { [NODE_ID]: { points: 50, isUnlocked: true } },
       });
     });
 
@@ -167,7 +167,7 @@ describe('Boundless Vitality CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: { [NODE_ID]: { points: 50 } },
+        championPointNodes: { [NODE_ID]: { points: 50, isUnlocked: true } },
       });
     });
 
@@ -215,7 +215,7 @@ describe('Fortified CP node — real data integration', () => {
     beforeAll(() => {
       stats = calculateBuild({
         character: CHAR_CP160,
-        championPointNodes: { [NODE_ID]: { points: 50 } },
+        championPointNodes: { [NODE_ID]: { points: 50, isUnlocked: true } },
       });
     });
 
