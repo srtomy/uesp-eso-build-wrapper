@@ -166,7 +166,9 @@ jobs:
         # The package is ESM-only (exports["."] → { types, default }). attw's
         # node16-from-CJS leg is ignored via the npm script (cjs-resolves-to-esm):
         # attw models Node 16 semantics, but engines >= 24 resolves require(esm).
-        # See docs/CI-PIPELINE.md §5.
+        # no-resolution is ignored too: the ./cp-gate and ./uesp-data subpaths are
+        # exports-only, so the (irrelevant, engines >= 24) node10 resolver cannot
+        # see them. See docs/CI-PIPELINE.md §5.
         run: npm run attw
 
       - name: ESM smoke test (pack + import + require(esm) + calculateBuild)

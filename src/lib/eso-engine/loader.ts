@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as vm from 'vm';
 import type { UespInitData } from './types.js';
 import { buildInputStats } from './input-stats.js';
+import { resetCpTreeCache } from './cp-tree.js';
 
 let engineLoaded = false;
 
@@ -30,6 +31,9 @@ let engineLoaded = false;
  */
 export function loadUespEngine(uespResourcesPath: string, initData: string | UespInitData): void {
   if (engineLoaded) return; // singleton — loads only once per process
+
+  // Drop the memoized CP tree so a reload rebuilds it from the new globals.
+  resetCpTreeCache();
 
   // 1. Resolve the init JSON — file path or already-parsed object.
   let data: UespInitData;
@@ -64,6 +68,11 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
   // can resolve names and descriptions dynamically without hardcoding.
   (global as any).g_EsoCpSkills = data.cpSkillsData ?? {};
   (global as any).g_EsoCpSkillDesc = data.cpSkillDescData ?? {};
+  // CP2 tree structure — disciplines, cluster roots and the abilityId
+  // adjacency graph (g_EsoCpLinks equivalent). Consumed by getCpTree().
+  (global as any).g_EsoCpDisciplines = data.cpDisciplinesData ?? [];
+  (global as any).g_EsoCpClusterRoots = data.cpClusterRootsData ?? [];
+  (global as any).g_EsoCpLinks = data.cpLinksData ?? {};
 
   // Globals coming from PHP/DB — initialized as empty objects so that
   // loops like "for (var id in g_SkillsData)" don't break
@@ -181,6 +190,9 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     'g_SkillsData',
     'g_EsoCpSkills',
     'g_EsoCpSkillDesc',
+    'g_EsoCpDisciplines',
+    'g_EsoCpClusterRoots',
+    'g_EsoCpLinks',
     // Globals read by esoskills.js but defined externally (PHP/backend)
     'g_EsoCraftedScripts',
     'g_EsoSkillElfBaneSkills',
@@ -350,10 +362,21 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
   }
   (global as any).g_EsoPassiveSkillSnapshot = passiveSnapshot;
 
+  // 7. Stub UI-only CP helpers.
+  //    UpdateEsoCp2SpecialDescriptions() (esoEditBuild.js) calls the esolog
+  //    UI function UpdateEsoCPSkillDesc(), which does not exist in Node and
+  //    throws a ReferenceError for builds using node 156008 (Enlivening
+  //    Overflow). The description was already resolved by calculator.ts from
+  //    cpSkillDescData, so a no-op is enough to let the calculation proceed.
+  if (typeof (global as any).UpdateEsoCPSkillDesc !== 'function') {
+    (global as any).UpdateEsoCPSkillDesc = () => {};
+  }
+
   engineLoaded = true;
 }
 
 /** Allows reloading the engine (useful in tests) */
 export function resetEngineLoader(): void {
   engineLoaded = false;
+  resetCpTreeCache();
 }

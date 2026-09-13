@@ -204,11 +204,78 @@ export interface ChampionPointNode {
    */
   currentBonus?: number | string;
   /**
-   * Whether the node is active/slotted in UESP.
-   * false = node has points but is not slotted (unslotted slottable nodes).
-   * When absent (old fixtures), assumed true for compatibility.
+   * Whether the node's effect applies.
+   * `false` = node has points but is not active (unslotted slottable nodes,
+   * or below the first stage).
+   *
+   * When absent, it is derived from the node metadata and its points:
+   * `points >= jumpPointDelta` for passives (`skillType === 0`); for slottable
+   * nodes (`skillType 1/2`) it defaults to `false`, since the wrapper cannot
+   * know whether the node is on the Champion bar. Pass it explicitly when the
+   * node is slotted.
    */
   isUnlocked?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Champion Points tree (cp2* tables)
+// ---------------------------------------------------------------------------
+/** One CP discipline (cp2Disciplines). */
+export interface CpDiscipline {
+  disciplineIndex: number;
+  disciplineId: number;
+  name: string;
+  discType: number;
+  numSkills: number;
+}
+
+/** One CP node (cp2Skills) with the directed parent relationship resolved. */
+export interface CpNode {
+  abilityId: number;
+  skillId: number;
+  name: string;
+  disciplineIndex: number;
+  skillType: number;
+  maxPoints: number;
+  jumpPoints: number[];
+  jumpPointDelta: number;
+  isRoot: boolean;
+  isClusterRoot: boolean;
+  /** Parent abilityIds, derived by BFS from the roots over the link graph. */
+  parentIds: number[];
+  /** Distance from the nearest root in the link graph. */
+  depth: number;
+  x: number;
+  y: number;
+}
+
+/** One CP link (cp2SkillLinks), in `skillId` space, for rendering the tree. */
+export interface CpLink {
+  parentSkillId: number;
+  skillId: number;
+}
+
+/** One CP cluster root (cp2ClusterRoots). */
+export interface CpCluster {
+  skillId: number;
+  name: string;
+  skills: number[];
+  disciplineIndex: number;
+  texture: string;
+}
+
+/**
+ * Full Champion Points tree consumed by the editor UI and the CP gate.
+ * Returned by {@link getCpTree} and derived from `cpSkillsData` +
+ * `cpSkillDescData` + `cpDisciplinesData` + `cpClusterRootsData` + `cpLinksData`.
+ */
+export interface CpTree {
+  disciplines: CpDiscipline[];
+  nodes: CpNode[];
+  links: CpLink[];
+  clusters: CpCluster[];
+  /** abilityId → description indexed by invested points. */
+  descriptions: Record<number, string[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -461,4 +528,15 @@ export interface UespInitData {
   cpSkillsData?: Record<string, unknown>;
   /** CP2 node descriptions by points level: cpSkillDescData[nodeId][points] */
   cpSkillDescData?: Record<string, Record<string, string>>;
+  /** CP2 disciplines (cp2Disciplines). */
+  cpDisciplinesData?: Record<string, unknown>[];
+  /** CP2 cluster roots (cp2ClusterRoots). */
+  cpClusterRootsData?: Record<string, unknown>[];
+  /**
+   * CP2 adjacency graph in abilityId space — the equivalent of the UESP
+   * `g_EsoCpLinks` global. Symmetric (each edge appears in both directions).
+   * Derivation: `cp2SkillLinks` rows mapped from skillId to abilityId
+   * (UESP `CreateCp2LinksData`).
+   */
+  cpLinksData?: Record<string, number[]>;
 }
