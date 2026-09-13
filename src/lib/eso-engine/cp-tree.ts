@@ -9,14 +9,7 @@
  */
 
 import { engineGlobals } from './engine-globals.js';
-import type {
-  CpCluster,
-  CpDiscipline,
-  CpLink,
-  CpNode,
-  CpTree,
-  UespInitData,
-} from './types.js';
+import type { CpCluster, CpDiscipline, CpLink, CpNode, CpTree, UespInitData } from './types.js';
 
 /** Subset of `UespInitData` needed to assemble a {@link CpTree}. */
 export type CpTreeSource = Pick<
