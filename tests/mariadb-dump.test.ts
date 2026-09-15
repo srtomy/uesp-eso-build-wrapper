@@ -149,14 +149,22 @@ describe('buildUespGameData (skipApi — dump fixtures)', () => {
       [
         'CREATE TABLE `cp2Skills` (`id` int, `skillId` int, `parentSkillId` int, `abilityId` int, `disciplineIndex` int, `disciplineId` int, `skillIndex` int, `name` text, `skillType` int, `minDescription` text, `maxDescription` text, `maxValue` real, `isRoot` int, `isClusterRoot` int, `maxPoints` int, `jumpPoints` text, `jumpPointDelta` int, `numJumpPoints` int, `x` real, `y` real, `a` real, `b` real, `c` real, `d` real, `r2` real, `fitDescription` text);',
         "INSERT INTO `cp2Skills` VALUES (39,163,-1,59526,2,1,10,'Foresight',1,'min','max',2.5,0,0,10,'[1,2]',1,3,566.5,100.25,-1,-1,-1,-1,-1,'fit');",
+        "INSERT INTO `cp2Skills` VALUES (40,164,-1,149305,2,1,11,'Second',1,'min','max',2.5,0,0,10,'[1,2]',1,3,100.5,200.25,-1,-1,-1,-1,-1,'fit');",
         'CREATE TABLE `cp2SkillDescriptions` (`id` int, `abilityId` int, `skillId` int, `points` int, `description` text);',
         "INSERT INTO `cp2SkillDescriptions` VALUES (1,59526,163,0,'desc zero');",
         "INSERT INTO `cp2SkillDescriptions` VALUES (2,59526,163,1,'desc um');",
+        'CREATE TABLE `cp2Disciplines` (`id` int, `disciplineIndex` int, `disciplineId` int, `name` text, `discType` int, `numSkills` int, `bgTexture` text, `glowTexture` text, `selectTexture` text);',
+        "INSERT INTO `cp2Disciplines` VALUES (1,2,1,'Warfare',0,48,'bg','glow','sel');",
+        'CREATE TABLE `cp2SkillLinks` (`id` int, `parentSkillId` int, `skillId` int);',
+        'INSERT INTO `cp2SkillLinks` VALUES (1,163,164);',
+        'INSERT INTO `cp2SkillLinks` VALUES (2,164,163);',
+        'CREATE TABLE `cp2ClusterRoots` (`id` int, `skillId` int, `texture` text, `name` text, `skills` text, `disciplineIndex` int, `disciplineId` int);',
+        "INSERT INTO `cp2ClusterRoots` VALUES (1,163,'tex','Master-at-Arms','163,164',2,1);",
       ].join('\n'),
     );
   });
 
-  it('populates the 5 dump tables and resolves the max version', async () => {
+  it('populates the 8 dump tables and resolves the max version', async () => {
     const { initData, version, counts } = await buildUespGameData({
       dumpDir: tmpDir,
       skipApi: true,
@@ -167,8 +175,25 @@ describe('buildUespGameData (skipApi — dump fixtures)', () => {
       rules: 1,
       effects: 1,
       computedStats: 1,
-      cp2Skills: 1,
+      cp2Skills: 2,
       cp2SkillDescriptions: 2,
+      cp2Disciplines: 1,
+      cp2SkillLinks: 2,
+      cp2ClusterRoots: 1,
+    });
+
+    // CP2 tree data extracted as abilityId-keyed structures.
+    expect(initData.cpLinksData).toEqual({ 59526: [149305], 149305: [59526] });
+    expect(initData.cpDisciplinesData).toHaveLength(1);
+    expect(initData.cpDisciplinesData?.[0]).toMatchObject({
+      disciplineIndex: 2,
+      name: 'Warfare',
+      numSkills: 48,
+    });
+    expect(initData.cpClusterRootsData?.[0]).toMatchObject({
+      skillId: 163,
+      name: 'Master-at-Arms',
+      skills: '163,164',
     });
 
     // computedStats: compute parsed from JSON, ids as strings

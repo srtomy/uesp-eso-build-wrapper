@@ -283,3 +283,52 @@ describe('CP node injection — isolation between calls', () => {
     expect(cpData?.['60500']?.description).toBe('Rider at 20 pts.');
   });
 });
+
+// ── isUnlocked default (D4) ──────────────────────────────────────────────────
+
+describe('CP node injection — isUnlocked default (D4)', () => {
+  afterEach(clearMockCpGlobals);
+
+  function withMeta(skillType: number, jumpPointDelta: number) {
+    (global as any).g_EsoCpSkills = {
+      '60494': { name: 'Node', skillType, jumpPointDelta },
+    };
+    (global as any).g_EsoCpSkillDesc = { '60494': { 0: 'base', 10: 'ten' } };
+  }
+
+  it('passiva (skillType 0) com points >= jumpPointDelta fica unlocked por padrão', () => {
+    withMeta(0, 10);
+    calculateBuild({
+      character: BASE_CHAR,
+      championPointNodes: { '60494': { points: 10 } },
+    });
+    expect((global as any).g_EsoCpData?.['60494']?.isUnlocked).toBe(true);
+  });
+
+  it('slotável (skillType 1) sem isUnlocked explícito fica locked por padrão', () => {
+    withMeta(1, 10);
+    calculateBuild({
+      character: BASE_CHAR,
+      championPointNodes: { '60494': { points: 10 } },
+    });
+    expect((global as any).g_EsoCpData?.['60494']?.isUnlocked).toBe(false);
+  });
+
+  it('isUnlocked explícito vence o default derivado', () => {
+    withMeta(1, 10);
+    calculateBuild({
+      character: BASE_CHAR,
+      championPointNodes: { '60494': { points: 10, isUnlocked: true } },
+    });
+    expect((global as any).g_EsoCpData?.['60494']?.isUnlocked).toBe(true);
+  });
+
+  it('passiva abaixo do jumpPointDelta fica locked por padrão', () => {
+    withMeta(0, 10);
+    calculateBuild({
+      character: BASE_CHAR,
+      championPointNodes: { '60494': { points: 5 } },
+    });
+    expect((global as any).g_EsoCpData?.['60494']?.isUnlocked).toBe(false);
+  });
+});

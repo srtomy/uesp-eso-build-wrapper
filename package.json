@@ -37,6 +37,14 @@
     ".": {
       "types": "./dist/lib/eso-engine/index.d.ts",
       "default": "./dist/lib/eso-engine/index.js"
+    },
+    "./cp-gate": {
+      "types": "./dist/lib/eso-engine/cp-gate.d.ts",
+      "default": "./dist/lib/eso-engine/cp-gate.js"
+    },
+    "./uesp-data": {
+      "types": "./dist/lib/uesp-data/index.d.ts",
+      "default": "./dist/lib/uesp-data/index.js"
     }
   },
   "files": [
@@ -56,7 +64,7 @@
     "format": "prettier --write src tests",
     "format:check": "prettier --check src tests",
     "publint": "publint",
-    "attw": "attw --pack . --ignore-rules cjs-resolves-to-esm",
+    "attw": "attw --pack . --ignore-rules cjs-resolves-to-esm no-resolution",
     "generate-data": "tsx --experimental-sqlite --no-warnings scripts/generate-data.ts",
     "db:seed": "tsx --experimental-sqlite --no-warnings scripts/seed-db.ts",
     "prepublishOnly": "npm run build && npm run lint",
