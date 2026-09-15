@@ -49,6 +49,9 @@ export function extractGameData(db: MinimalDb, versionOverride?: string | null):
     .all(version) as Row[];
   const cpSkillsRows = db.prepare('SELECT * FROM cp2Skills').all() as Row[];
   const cpDescRows = db.prepare('SELECT * FROM cp2SkillDescriptions').all() as Row[];
+  const cpDiscRows = db.prepare('SELECT * FROM cp2Disciplines').all() as Row[];
+  const cpClusterRows = db.prepare('SELECT * FROM cp2ClusterRoots').all() as Row[];
+  const cpLinkRows = db.prepare('SELECT * FROM cp2SkillLinks').all() as Row[];
   const psRows = db.prepare('SELECT * FROM playerSkills').all() as Row[];
   const stRows = db.prepare('SELECT * FROM skillTree').all() as Row[];
 
@@ -191,6 +194,46 @@ export function extractGameData(db: MinimalDb, versionOverride?: string | null):
     cpSkillDescData[key][row.points] = row.description;
   }
 
+  const cpDisciplinesData = cpDiscRows.map((row) => ({
+    id: String(row.id),
+    disciplineIndex: Number(row.disciplineIndex),
+    disciplineId: Number(row.disciplineId),
+    name: row.name,
+    discType: Number(row.discType),
+    numSkills: Number(row.numSkills),
+    bgTexture: row.bgTexture,
+    glowTexture: row.glowTexture,
+    selectTexture: row.selectTexture,
+  }));
+
+  const cpClusterRootsData = cpClusterRows.map((row) => ({
+    id: String(row.id),
+    skillId: Number(row.skillId),
+    texture: row.texture,
+    name: row.name,
+    skills: row.skills,
+    disciplineIndex: Number(row.disciplineIndex),
+    disciplineId: Number(row.disciplineId),
+  }));
+
+  // cp2SkillLinks is stored in skillId space; map to abilityId space to match
+  // the UESP g_EsoCpLinks global (UESP CreateCp2LinksData). The graph is kept
+  // symmetric (both directions) exactly as the dump provides it.
+  const skillIdToAbilityId = new Map<number, number>();
+  for (const row of cpSkillsRows) {
+    skillIdToAbilityId.set(Number(row.skillId), Number(row.abilityId));
+  }
+
+  const cpLinksData: Record<string, number[]> = {};
+  for (const row of cpLinkRows) {
+    const parentAbilityId = skillIdToAbilityId.get(Number(row.parentSkillId));
+    const childAbilityId = skillIdToAbilityId.get(Number(row.skillId));
+    if (parentAbilityId == null || childAbilityId == null) continue;
+    const key = String(parentAbilityId);
+    if (!cpLinksData[key]) cpLinksData[key] = [];
+    cpLinksData[key].push(childAbilityId);
+  }
+
   const skillTreeByAbilityId = new Map<number, any>();
   for (const st of stRows) {
     if (st.abilityId != null) skillTreeByAbilityId.set(st.abilityId, st);
@@ -312,6 +355,9 @@ export function extractGameData(db: MinimalDb, versionOverride?: string | null):
     setSkillsData,
     cpSkillsData,
     cpSkillDescData: cpSkillDescData as unknown as Record<string, Record<string, string>>,
+    cpDisciplinesData,
+    cpClusterRootsData,
+    cpLinksData,
   };
 }
 

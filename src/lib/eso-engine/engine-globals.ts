@@ -150,8 +150,14 @@ export interface UespEngineGlobals {
   g_EsoSkillActiveData?: Record<string, { abilityId: number }>;
   _esoWrapperTwiceBornOverride?: boolean;
   g_EsoBuildRules?: { cp?: unknown };
-  g_EsoCpSkills?: Record<string, { name?: string }>;
+  g_EsoCpSkills?: Record<
+    string,
+    { name?: string; skillType?: number | string; jumpPointDelta?: number | string }
+  >;
   g_EsoCpSkillDesc?: Record<string, Record<string, string>>;
+  g_EsoCpDisciplines?: Record<string, unknown>[];
+  g_EsoCpClusterRoots?: Record<string, unknown>[];
+  g_EsoCpLinks?: Record<string, number[]>;
   g_EsoPassiveSkillSnapshot?: Record<string, EnginePassiveRecord>;
   g_EsoBuildActiveWeapon?: number;
   g_EsoBuildActiveAbilityBar?: number;

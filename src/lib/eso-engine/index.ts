@@ -58,6 +58,11 @@ export type {
   UespInitData,
   ChampionPointNode,
   SkillSlot,
+  CpDiscipline,
+  CpNode,
+  CpLink,
+  CpCluster,
+  CpTree,
 } from './types.js';
 export {
   calculateBuild,
@@ -68,6 +73,16 @@ export {
   listAvailableSkillLines,
   listAvailableToggleSkills,
 } from './calculator.js';
+export { getCpTree, buildCpTree, resetCpTreeCache } from './cp-tree.js';
+export type { CpTreeSource } from './cp-tree.js';
+export {
+  buildCpLinks,
+  buildCpParentMap,
+  computePurchaseableNodes,
+  isCpNodePurchaseable,
+  createCpGate,
+} from './cp-gate.js';
+export type { CpGate, CpGateNode, CpRawLink } from './cp-gate.js';
 export { debugBuild } from './debug.js';
 export type {
   BuildDebugInfo,
