@@ -68,6 +68,16 @@ describe('CP rules — structure loaded by the engine', () => {
     expect(typeof cpSkillDesc).toBe('object');
   });
 
+  it('g_EsoCpDisciplines / g_EsoCpClusterRoots / g_EsoCpLinks are loaded', () => {
+    expect((global as any).g_EsoCpDisciplines).toHaveLength(3);
+    expect((global as any).g_EsoCpClusterRoots).toHaveLength(6);
+    const links = (global as any).g_EsoCpLinks;
+    expect(Object.keys(links)).toHaveLength(108);
+    expect(Object.values(links as Record<string, number[]>).reduce((n, v) => n + v.length, 0)).toBe(
+      260,
+    );
+  });
+
   it('g_EsoCpSkills has node 141744 with name "Arcane Supremacy"', () => {
     const cpSkills = (global as any).g_EsoCpSkills;
     expect(cpSkills?.['141744']).toBeDefined();

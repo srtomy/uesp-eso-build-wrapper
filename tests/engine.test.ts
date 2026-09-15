@@ -1143,7 +1143,10 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
         championPointNodes: {
-          141744: { description: 'Grants 1 Max Magicka per stage. Current bonus: 1000' },
+          141744: {
+            description: 'Grants 1 Max Magicka per stage. Current bonus: 1000',
+            isUnlocked: true,
+          },
         },
       });
       expect(withCP.Magicka - withItems.Magicka).toBe(1000);
@@ -1155,7 +1158,10 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
         championPointNodes: {
-          149305: { description: 'Increases Max Magicka by 1 per stage. Current bonus: 500' },
+          149305: {
+            description: 'Increases Max Magicka by 1 per stage. Current bonus: 500',
+            isUnlocked: true,
+          },
         },
       });
       expect(withCP.Magicka - withItems.Magicka).toBe(500);
@@ -1170,6 +1176,7 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
           141899: {
             description:
               'Increases your Critical Damage and Critical Healing done by 1% per stage. Current bonus: 10',
+            isUnlocked: true,
           },
         },
       });
@@ -1182,7 +1189,10 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
         championPointNodes: {
-          142035: { description: 'Grants 1.0 Armor per stage. Current bonus: 1000' },
+          142035: {
+            description: 'Grants 1.0 Armor per stage. Current bonus: 1000',
+            isUnlocked: true,
+          },
         },
       });
       expect(withCP.SpellResist - withItems.SpellResist).toBe(1000);
@@ -1195,7 +1205,10 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
         championPointNodes: {
-          141895: { description: 'Grants 1 Offensive Penetration per stage. Current bonus: 800' },
+          141895: {
+            description: 'Grants 1 Offensive Penetration per stage. Current bonus: 800',
+            isUnlocked: true,
+          },
         },
       });
       expect(withCP.SpellPenetration - withItems.SpellPenetration).toBe(800);
@@ -1207,8 +1220,14 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
         character: HIGH_ELF_SORC_CP160,
         items: FULL_BUILD_ITEMS,
         championPointNodes: {
-          141744: { description: 'Grants 1 Max Magicka per stage. Current bonus: 1000' },
-          149305: { description: 'Increases Max Magicka by 1 per stage. Current bonus: 500' },
+          141744: {
+            description: 'Grants 1 Max Magicka per stage. Current bonus: 1000',
+            isUnlocked: true,
+          },
+          149305: {
+            description: 'Increases Max Magicka by 1 per stage. Current bonus: 500',
+            isUnlocked: true,
+          },
         },
       });
       expect(withCP.Magicka - withItems.Magicka).toBe(1500);
