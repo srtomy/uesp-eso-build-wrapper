@@ -80,6 +80,25 @@ function normalizeItemData(item: UespItemApiData): UespItemApiData {
 }
 
 /**
+ * Strips HTML tags and ESO color codes (|cHHHHHH...|r) from a CP node
+ * description so the engine's regex matching works on plain text.
+ *
+ * The tag pattern is applied repeatedly until stable to rule out the
+ * incomplete multi-character sanitization class (a single pass could leave
+ * a tag re-exposed from inside another match). Each pass only removes
+ * characters, so the loop always terminates.
+ */
+function stripDescriptionFormats(desc: string): string {
+  let plainDesc = desc;
+  let previousDesc: string;
+  do {
+    previousDesc = plainDesc;
+    plainDesc = plainDesc.replace(/<[^>]+>/g, '');
+  } while (plainDesc !== previousDesc);
+  return plainDesc.replace(/\|c[0-9a-fA-F]{6}|\|r/g, '');
+}
+
+/**
  * Calculates the Computed Character Statistics for the given build.
  *
  * Each call starts from a clean engine state (previous items, buffs, CP nodes
@@ -356,14 +375,8 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         }
 
         if (desc) {
-          // Strip HTML tags and ESO color codes (|cHHHHHH...|r) so the engine's regex matching works on plain text.
-          // Apply repeatedly until stable to avoid incomplete multi-character sanitization.
-          let plainDesc = desc;
-          let previousDesc: string;
-          do {
-            previousDesc = plainDesc;
-            plainDesc = plainDesc.replace(/<[^>]+>/g, '').replace(/\|c[0-9a-fA-F]{6}|\|r/g, '');
-          } while (plainDesc !== previousDesc);
+          // Strip HTML tags and ESO color codes (|cHHHHHH...|r) so the engine's regex matching works on plain text
+          const plainDesc = stripDescriptionFormats(desc);
           // isUnlocked: explicit value wins. Otherwise derive from the node
           // metadata: passives (skillType 0) are active from jumpPointDelta up;
           // slottable nodes (skillType 1/2) default to false because the wrapper
