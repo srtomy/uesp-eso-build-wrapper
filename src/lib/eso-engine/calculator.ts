@@ -356,8 +356,14 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         }
 
         if (desc) {
-          // Strip HTML tags and ESO color codes (|cHHHHHH...|r) so the engine's regex matching works on plain text
-          const plainDesc = desc.replace(/<[^>]+>/g, '').replace(/\|c[0-9a-fA-F]{6}|\|r/g, '');
+          // Strip HTML tags and ESO color codes (|cHHHHHH...|r) so the engine's regex matching works on plain text.
+          // Apply repeatedly until stable to avoid incomplete multi-character sanitization.
+          let plainDesc = desc;
+          let previousDesc: string;
+          do {
+            previousDesc = plainDesc;
+            plainDesc = plainDesc.replace(/<[^>]+>/g, '').replace(/\|c[0-9a-fA-F]{6}|\|r/g, '');
+          } while (plainDesc !== previousDesc);
           // isUnlocked: explicit value wins. Otherwise derive from the node
           // metadata: passives (skillType 0) are active from jumpPointDelta up;
           // slottable nodes (skillType 1/2) default to false because the wrapper
