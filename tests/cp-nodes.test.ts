@@ -175,6 +175,26 @@ describe('CP node injection — description resolution', () => {
     expect(node.description).toContain('42');
   });
 
+  it('nested HTML tags do not re-emerge after stripping', () => {
+    // Lock-in test for the incomplete multi-character sanitization alert:
+    // overlapping markup must be fully stripped, leaving no '<' residue
+    // that could break the engine's regex matching.
+    (global as any).g_EsoCpSkills = { '60494': { name: 'Inspiration Boost', disciplineIndex: 0 } };
+    (global as any).g_EsoCpSkillDesc = {
+      '60494': {
+        0: '<<b>Grants 1 Max Health per stage. Current bonus: 100</b>>',
+      },
+    };
+    calculateBuild({
+      character: BASE_CHAR,
+      championPointNodes: { '60494': { points: 0 } },
+    });
+    const node = (global as any).g_EsoCpData?.['60494'];
+    expect(node).toBeDefined();
+    expect(node.description).not.toContain('<');
+    expect(node.description).toContain('Current bonus: 100');
+  });
+
   it('points above the highest available key → floor lookup uses the largest key', () => {
     // mock has keys 0, 5, 10 — points=999 must return key 10
     const node = captureNodeAfterCall('60494', 999);
