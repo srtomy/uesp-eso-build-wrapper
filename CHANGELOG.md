@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-09-17
+
+### Added
+- **cp:** own the Champion Points tree and purchaseability gate (#52) (fc95e2f)
+
+### Fixed
+- strip nested HTML tags in CP descriptions until stable (#53) (4d62a38)
+- **ci:** migrate to sonarqube-scan-action and skip scan without token (#49) (c24a86c)
+
 ## [0.4.0] — 2026-09-05
 
 ### Added
@@ -83,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Golden build-fixture test suite (`build-fixtures.test.ts`)
 - Zero runtime dependencies
 
+[0.5.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.1.0...v0.2.0
