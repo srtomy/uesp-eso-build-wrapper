@@ -1,4 +1,4 @@
-[**uesp-eso-build-wrapper v0.5.0**](../index.md)
+[**uesp-eso-build-wrapper v0.3.0**](../index.md)
 
 ***
 
