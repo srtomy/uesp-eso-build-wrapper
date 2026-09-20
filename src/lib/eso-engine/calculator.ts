@@ -136,6 +136,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     activeWeaponBar,
     passiveSkills,
     autoPassives,
+    autoInherentPassives,
     enchantOverrides,
     toggledSetBonuses,
   } = input;
@@ -498,6 +499,24 @@ export function calculateBuild(input: BuildInput): ComputedStats {
       }
     }
   }
+  if (autoInherentPassives) {
+    // The UESP page loads its own ESO_FREE_PASSIVES baseline (armor bonuses/
+    // penalties, racial, craft, a few free actives). Mirror it. The list carries
+    // one racial passive per race, so keep only the character's own race; IDs
+    // missing from g_SkillsData are ignored downstream and armor effects are
+    // gated per equipped piece.
+    const freePassives = g.ESO_FREE_PASSIVES;
+    const skillsData = g.g_SkillsData;
+    if (freePassives) {
+      for (const id of Object.keys(freePassives)) {
+        const abilityId = Number(id);
+        if (!Number.isFinite(abilityId) || abilityId <= 0) continue;
+        const raceType = skillsData?.[abilityId]?.raceType;
+        if (raceType && raceType !== character.race) continue;
+        allPassiveIds.add(abilityId);
+      }
+    }
+  }
   if (allPassiveIds.size > 0) {
     const passiveData: Record<string, { abilityId: number }> = {};
     for (const abilityId of allPassiveIds) {
@@ -730,6 +749,43 @@ export function listRacialPassives(race: string): PassiveSkillInfo[] {
   return buildPassiveSkillInfos(
     (v) => v.raceType === race,
     (v) => v.baseName,
+  );
+}
+
+/**
+ * Returns the game's inherent passives — the entries of the UESP
+ * `ESO_FREE_PASSIVES` list that are passives (Light/Medium/Heavy Armor Bonuses
+ * and Penalties, racial, craft). The UESP Build Editor loads them by itself;
+ * pass `BuildInput.autoInherentPassives: true` to apply them here, or use this
+ * list to mark them as owned in a UI.
+ *
+ * The list carries one racial passive per race. Pass `race` to keep only the
+ * character's own race (non-racial entries are always kept); omitting it returns
+ * every race's entries.
+ *
+ * Free-list entries that are actives/ultimates (Soul Trap, Werewolf
+ * Transformation, Scribing/Volendrung skills) are not passives and are omitted.
+ *
+ * Must be called after initEsoEngineFromData().
+ *
+ * @param race - Race name as passed to BuildInput.character.race. Ex: "High Elf".
+ */
+export function listInherentPassives(race?: string): PassiveSkillInfo[] {
+  const g = engineGlobals();
+  const freePassives = g.ESO_FREE_PASSIVES;
+  if (!freePassives || typeof freePassives !== 'object') return [];
+  const skillsData = g.g_SkillsData;
+  const freeIds = new Set<number>();
+  for (const id of Object.keys(freePassives)) {
+    const abilityId = Number(id);
+    if (!Number.isFinite(abilityId) || abilityId <= 0) continue;
+    const raceType = skillsData?.[abilityId]?.raceType;
+    if (race && raceType && raceType !== race) continue;
+    freeIds.add(abilityId);
+  }
+  return buildPassiveSkillInfos(
+    (v) => freeIds.has(Number(v.abilityId)),
+    (v) => (v.skillLine ?? '') + v.baseName,
   );
 }
 

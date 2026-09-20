@@ -73,3 +73,21 @@ const stats = calculateBuild({
 ```
 
 Cobre apenas passivas **de raça** — passivas de classe e de skill line devem ser passadas explicitamente via `passiveSkills`.
+
+## Passivas inerentes (bônus/penalidades de armadura)
+
+O editor da UESP carrega sozinho o baseline `ESO_FREE_PASSIVES` — os Light/Medium/Heavy Armor Bonuses
+e Penalties inerentes, raciais, craft e algumas ativas grátis. `autoInherentPassives: true` espelha
+isso: o motor aplica essas passivas além de `passiveSkills`.
+
+```ts
+const stats = calculateBuild({
+  character: { /* ... */ },
+  items: itensEquipados,
+  autoInherentPassives: true,
+});
+```
+
+As entradas de armadura são gated por peça equipada, então sem armadura daquele peso elas não
+contribuem em nada. Use `listInherentPassives()` para enumerá-las — por exemplo, para marcá-las como
+adquiridas numa UI.
