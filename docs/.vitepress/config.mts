@@ -1,7 +1,16 @@
 import { defineConfig } from 'vitepress';
+import { readFileSync } from 'node:fs';
 
 // Deployed to GitHub Pages under the repository subpath.
 export const BASE = '/uesp-eso-build-wrapper/';
+
+// Version badge: the release workflow passes the git tag the site was built from
+// (DOCS_VERSION); local/PR builds fall back to `v` + package.json version.
+const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8')) as {
+  version: string;
+};
+const DOCS_VERSION = process.env.DOCS_VERSION || `v${pkg.version}`;
+const RELEASE_URL = `https://github.com/srtomy/uesp-eso-build-wrapper/releases/tag/${DOCS_VERSION}`;
 
 // Internal maintainer docs (dev docs, private md-vault symlinks) are not
 // published pages — keep them out of the docs site build.
@@ -25,6 +34,7 @@ function englishTheme(): NavSidebar {
       { text: 'Getting Started', link: '/getting-started' },
       { text: 'Guides', link: '/guides/character' },
       { text: 'API', link: '/api/' },
+      { text: DOCS_VERSION, link: RELEASE_URL },
     ],
     sidebar: [
       { text: 'Introduction', link: '/' },
@@ -112,6 +122,7 @@ function portugueseTheme(): NavSidebar {
       { text: 'Primeiros Passos', link: '/pt/getting-started' },
       { text: 'Guias', link: '/pt/guides/character' },
       { text: 'API', link: '/pt/api/' },
+      { text: DOCS_VERSION, link: RELEASE_URL },
     ],
     sidebar: [
       { text: 'Introdução', link: '/pt/' },
