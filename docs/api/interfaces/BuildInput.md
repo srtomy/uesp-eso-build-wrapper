@@ -1,4 +1,4 @@
-[**uesp-eso-build-wrapper v0.3.0**](../index.md)
+[**uesp-eso-build-wrapper v0.5.0**](../index.md)
 
 ***
 
@@ -20,6 +20,7 @@ between calls.
 | ------ | ------ | ------ |
 | <a id="activebuffs"></a> `activeBuffs?` | `string`[] | Exact names of active buffs (enabled for the calculation). Ex: ["Minor Slayer", "Major Prophecy", "Major Savagery"] Uses the same name as in UESP's g_EsoBuildBuffData. |
 | <a id="activeweaponbar"></a> `activeWeaponBar?` | `2` \| `1` | Which weapon bar is active for the calculation. Affects which MainHand/OffHand items count for set bonuses and enchants. - `1` = main bar (MainHand1 / OffHand1) — default - `2` = secondary bar (MainHand2 / OffHand2) **Default** `1` |
+| <a id="autoinherentpassives"></a> `autoInherentPassives?` | `boolean` | When true, automatically injects the game's inherent passives — the `ESO_FREE_PASSIVES` list (Light/Medium/Heavy Armor Bonuses and Penalties, racial, craft, and a few free actives) — in addition to any explicit `passiveSkills` and `autoPassives`. Mirrors the UESP Build Editor, which loads this baseline by itself. The armor entries are gated per equipped piece (`factorStatId` ArmorLight/ArmorMedium/ArmorHeavy), so with no armor of that weight they contribute nothing. Use `listInherentPassives()` to enumerate them. **Default** `false` |
 | <a id="autopassives"></a> `autoPassives?` | `boolean` | When true, automatically injects the highest-rank racial passives for character.race (in addition to any explicit passiveSkills). Mirrors the UESP "Auto Purchase Racial Passives" checkbox — class passives must be passed explicitly via passiveSkills or listClassPassives(). **Default** `false` |
 | <a id="championpointnodes"></a> `championPointNodes?` | `Record`\<`string` \| `number`, [`ChampionPointNode`](ChampionPointNode.md)\> | Unlocked Champion Points 2 nodes. Key: numeric node ID (ESO_CPEFFECT_MATCHES rule ID or legacy abilityId). Preferred format (when buildRules.cp is loaded): description: full node text matching the CP rule regex. Ex: { 38750: { description: "Grants 1 Max Magicka per stage. Current bonus: 1000" } } Legacy format (when buildRules.cp is unavailable): currentBonus: value of "Current bonus: X" or "Current value: X%" Ex: { 141744: { currentBonus: 1000 } } Requires character.championPoints > 0. |
 | <a id="character"></a> `character` | `object` | - |
