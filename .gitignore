@@ -8,6 +8,10 @@ dist/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 
+# API reference gerada pelo typedoc — `predocs:dev`/`predocs:build` regeneram antes de servir/buildar
+docs/api/
+docs/pt/api/
+
 # env — never commit real secrets
 .env
 .env.local
