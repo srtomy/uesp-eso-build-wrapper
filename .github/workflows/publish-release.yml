@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: release
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
     permissions:
       contents: write
       id-token: write
@@ -166,6 +168,8 @@ jobs:
 
       - name: Build docs site
         run: npm run docs:build
+        env:
+          DOCS_VERSION: ${{ needs.publish.outputs.tag }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
