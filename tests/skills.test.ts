@@ -19,7 +19,7 @@
 
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { UespItemApiData } from '../src/lib/eso-engine/types';
-import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
+import { calculateBuild, initEsoEngineFromData, listInherentPassives } from '../src/lib/eso-engine';
 import { loadInitData } from '../src/lib/uesp-data';
 
 const CHAR = {
@@ -609,5 +609,92 @@ describe('g_EsoSkillActiveData populated from skillBars', () => {
     expect(activeData[28807]).toBeDefined();
     expect(activeData[24322]).toBeDefined();
     expect(activeData[29073]).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// autoInherentPassives — ESO_FREE_PASSIVES baseline (card #111)
+//
+// The UESP Build Editor loads ESO_FREE_PASSIVES by itself. The flag mirrors it:
+// armor bonuses/penalties are gated per equipped piece, so with no armor of that
+// weight they contribute nothing; with armor they change Bash/Block/BreakFree/
+// Sneak/Sprint. Values below cross-check the explicit-passive path.
+// ---------------------------------------------------------------------------
+describe('autoInherentPassives — inherent passives baseline', () => {
+  const ARMOR_IDS = [150185, 152778, 150181, 150184, 152780];
+
+  it('listInherentPassives() includes the armor bonuses/penalties', () => {
+    const ids = listInherentPassives().map((p) => p.abilityId);
+    for (const id of ARMOR_IDS) expect(ids).toContain(id);
+  });
+
+  it('race filter: keeps the own race, drops the others', () => {
+    const highElf = listInherentPassives('High Elf').map((p) => p.abilityId);
+    expect(highElf).toContain(35965); // High Elf Highborn
+    expect(highElf).not.toContain(36582); // Argonian Amphibian
+    expect(highElf).toContain(150185); // Light Armor Bonuses (non-racial)
+  });
+
+  it("does not apply another race's free passive (Argonian Amphibian → SwimSpeed)", () => {
+    const base = calculateBuild({ character: CHAR });
+    const on = calculateBuild({ character: CHAR, autoInherentPassives: true });
+    expect(on.raw.SwimSpeed).toBe(base.raw.SwimSpeed);
+  });
+
+  it('default (off) does not apply the baseline', () => {
+    const base = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM });
+    const off = calculateBuild({
+      character: CHAR,
+      items: SEVEN_MEDIUM,
+      autoInherentPassives: false,
+    });
+    expect(off.raw.SneakCost).toBe(base.raw.SneakCost);
+    expect(off.raw.SprintCost).toBe(base.raw.SprintCost);
+  });
+
+  it('7 medium pieces → SneakCost 87 / SprintCost 460 (same as explicit 150181)', () => {
+    const on = calculateBuild({ character: CHAR, items: SEVEN_MEDIUM, autoInherentPassives: true });
+    const explicit = calculateBuild({
+      character: CHAR,
+      items: SEVEN_MEDIUM,
+      passiveSkills: [150181],
+    });
+    expect(on.raw.SneakCost).toBe(87);
+    expect(on.raw.SprintCost).toBe(460);
+    expect(on.raw.SneakCost).toBe(explicit.raw.SneakCost);
+    expect(on.raw.SprintCost).toBe(explicit.raw.SprintCost);
+  });
+
+  it('no armor → armor-gated stats unchanged', () => {
+    const base = calculateBuild({ character: CHAR });
+    const on = calculateBuild({ character: CHAR, autoInherentPassives: true });
+    for (const stat of ['BashCost', 'BlockCost', 'BreakFreeCost', 'SneakRange', 'SprintSpeed']) {
+      expect(on.raw[stat]).toBe(base.raw[stat]);
+    }
+  });
+
+  it('light armor → Bash/Block/BreakFree react to the baseline', () => {
+    const base = calculateBuild({ character: CHAR, items: SEVEN_LIGHT });
+    const on = calculateBuild({ character: CHAR, items: SEVEN_LIGHT, autoInherentPassives: true });
+    expect(on.raw.BashCost).toBeLessThan(base.raw.BashCost);
+    expect(on.raw.BlockCost).toBeGreaterThan(base.raw.BlockCost);
+    expect(on.raw.BreakFreeCost).toBeLessThan(base.raw.BreakFreeCost);
+  });
+
+  it('union with passiveSkills — no double count', () => {
+    const explicit = calculateBuild({
+      character: CHAR,
+      items: SEVEN_LIGHT,
+      passiveSkills: [150181, 150185, 152778],
+    });
+    const on = calculateBuild({
+      character: CHAR,
+      items: SEVEN_LIGHT,
+      autoInherentPassives: true,
+      passiveSkills: [150181, 150185, 152778],
+    });
+    expect(on.raw.BashCost).toBe(explicit.raw.BashCost);
+    expect(on.raw.SneakCost).toBe(explicit.raw.SneakCost);
+    expect(on.raw.BlockCost).toBe(explicit.raw.BlockCost);
   });
 });

@@ -73,3 +73,20 @@ const stats = calculateBuild({
 ```
 
 It only covers **racial** passives — class and skill-line passives must be passed explicitly via `passiveSkills`.
+
+## Inherent passives (armor bonuses/penalties)
+
+The UESP Build Editor loads its own `ESO_FREE_PASSIVES` baseline by itself — the inherent
+Light/Medium/Heavy Armor Bonuses and Penalties, racial, craft, and a few free actives.
+`autoInherentPassives: true` mirrors that: the engine applies them on top of `passiveSkills`.
+
+```ts
+const stats = calculateBuild({
+  character: { /* ... */ },
+  items: equippedItems,
+  autoInherentPassives: true,
+});
+```
+
+The armor entries are gated per equipped piece, so with no armor of that weight they contribute
+nothing. Use `listInherentPassives()` to enumerate them — for example to mark them as owned in a UI.
