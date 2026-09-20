@@ -128,3 +128,53 @@ jobs:
           echo "NPM_PUBLISH_ENABLED != 'true' — skipping npm publish."
           echo "To enable, set repository variable NPM_PUBLISH_ENABLED=true and add secret NPM_TOKEN."
           echo "Then re-run this workflow or publish manually: npm publish --provenance --access public"
+
+  # Publica a doc do site só no release, pra ela refletir a versão do npm (e não a main).
+  # O `predocs:build` regenera a API (typedoc) com o package.json do ref do release.
+  # Não dá pra disparar por tag: o push da tag usa o GITHUB_TOKEN, que não cria novos
+  # workflow runs — por isso o deploy vive aqui, no mesmo workflow do publish.
+  # Requer Pages servido por "GitHub Actions" (Settings → Pages).
+  deploy-docs:
+    name: deploy-docs
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout ref
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build docs site
+        run: npm run docs:build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/.vitepress/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
