@@ -25,9 +25,6 @@ beforeAll(() => {
 const SKIP_STATS = new Set([
   // Proc damage values (computed but unreliable without target data)
   'LichCrystalDamage',
-  // DefenseCritDmg has a consistent -0.50 offset vs UESP — likely Battle Spirit
-  // or target-formula interaction not yet reproduced; not a character build stat.
-  'DefenseCritDmg',
   // Movement speed stats — known base divergence unrelated to build inputs;
   // not combat stats so not worth blocking fixture coverage for.
   'WalkSpeed',
