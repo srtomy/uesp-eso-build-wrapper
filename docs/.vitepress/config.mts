@@ -69,6 +69,7 @@ function englishTheme(): NavSidebar {
               { text: 'listAvailableBuffs', link: '/api/functions/listAvailableBuffs' },
               { text: 'listRacialPassives', link: '/api/functions/listRacialPassives' },
               { text: 'listClassPassives', link: '/api/functions/listClassPassives' },
+              { text: 'listInherentPassives', link: '/api/functions/listInherentPassives' },
               { text: 'listPassivesBySkillLine', link: '/api/functions/listPassivesBySkillLine' },
               { text: 'listAvailableSkillLines', link: '/api/functions/listAvailableSkillLines' },
               {
@@ -158,6 +159,7 @@ function portugueseTheme(): NavSidebar {
               { text: 'listAvailableBuffs', link: '/pt/api/functions/listAvailableBuffs' },
               { text: 'listRacialPassives', link: '/pt/api/functions/listRacialPassives' },
               { text: 'listClassPassives', link: '/pt/api/functions/listClassPassives' },
+              { text: 'listInherentPassives', link: '/pt/api/functions/listInherentPassives' },
               { text: 'listPassivesBySkillLine', link: '/pt/api/functions/listPassivesBySkillLine' },
               { text: 'listAvailableSkillLines', link: '/pt/api/functions/listAvailableSkillLines' },
               {

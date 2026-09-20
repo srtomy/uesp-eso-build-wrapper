@@ -159,6 +159,10 @@ export interface UespEngineGlobals {
   g_EsoCpClusterRoots?: Record<string, unknown>[];
   g_EsoCpLinks?: Record<string, number[]>;
   g_EsoPassiveSkillSnapshot?: Record<string, EnginePassiveRecord>;
+  /** `window.g_SkillsData` — all skills, keyed by abilityId. */
+  g_SkillsData?: Record<string, { raceType?: string; isPassive?: string }>;
+  /** `window.ESO_FREE_PASSIVES` — UESP's zero-skill-point list (armor bonuses/penalties, racial, craft, free actives). */
+  ESO_FREE_PASSIVES?: Record<string, number>;
   g_EsoBuildActiveWeapon?: number;
   g_EsoBuildActiveAbilityBar?: number;
   UpdateEsoComputedStatsList_Real?: (keepSaveResults: null, noUpdate: boolean) => void;
