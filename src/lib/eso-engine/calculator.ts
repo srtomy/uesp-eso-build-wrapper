@@ -273,7 +273,9 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   setDomValue('esotbTargetPenetrationFactor', '0');
   setDomValue('esotbTargetDefenseBonus', '0');
   setDomValue('esotbTargetAttackBonus', '0');
-  setDomValue('esotbTargetCritDamage', '0');
+  // UESP default target crit damage: 50% (base). Feeds DefenseCritDmg; with 0 the stat went
+  // negative (-0.1848) instead of the UESP's 0.3152 (exact -0.5 delta).
+  setDomValue('esotbTargetCritDamage', '50');
   setDomValue('esotbTargetCritChance', '0');
   setDomValue('esotbTargetPercentHealth', '100');
 
