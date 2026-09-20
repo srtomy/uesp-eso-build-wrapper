@@ -69,6 +69,7 @@ export {
   listAvailableBuffs,
   listRacialPassives,
   listClassPassives,
+  listInherentPassives,
   listPassivesBySkillLine,
   listAvailableSkillLines,
   listAvailableToggleSkills,
