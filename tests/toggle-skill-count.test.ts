@@ -146,3 +146,15 @@ describe('toggleSkills count — toggles without maxTimes ignore the count', () 
     expect(withAegis.SpellResist).toBe(1636);
   });
 });
+
+describe('toggleSkills count — unknown toggle names are tolerated', () => {
+  it('does not throw and applies no effect', () => {
+    const base = calculateBuild({ character: CHAR });
+    const withUnknown = calculateBuild({
+      character: CHAR,
+      toggleSkills: [{ name: 'Not A Real Toggle', count: 3 }],
+    });
+    expect(withUnknown.Magicka).toBe(base.Magicka);
+    expect(withUnknown.SpellDamage).toBe(base.SpellDamage);
+  });
+});

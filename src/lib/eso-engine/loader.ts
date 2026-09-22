@@ -318,17 +318,15 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
   if (typeof _origUpdateToggledSkill === 'function') {
     (global as any).UpdateEsoBuildToggledSkillData = function (inputValues: any) {
       const toggleData: any = (global as any).g_EsoBuildToggledSkillData ?? {};
-      const savedEnabled: Record<string, boolean> = {};
-      const savedCount: Record<string, unknown> = {};
-      for (const k of Object.keys(toggleData)) {
-        savedEnabled[k] = !!toggleData[k]?.enabled;
-        savedCount[k] = toggleData[k]?.count;
-      }
+      // The engine only mutates existing entries (never deletes), so snapshot the
+      // keys and restore each one unconditionally — no branches.
+      const saved = Object.keys(toggleData).map(
+        (k) => [k, !!toggleData[k].enabled, toggleData[k].count] as const,
+      );
       _origUpdateToggledSkill.call(this, inputValues);
-      for (const k of Object.keys(savedEnabled)) {
-        if (!toggleData[k]) continue;
-        toggleData[k].enabled = savedEnabled[k];
-        if (savedCount[k] !== undefined) toggleData[k].count = savedCount[k];
+      for (const [k, enabled, count] of saved) {
+        toggleData[k].enabled = enabled;
+        toggleData[k].count = count;
       }
     };
   }
