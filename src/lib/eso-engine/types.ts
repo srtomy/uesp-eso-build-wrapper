@@ -88,6 +88,23 @@ export interface ToggleSkillInfo {
 }
 
 /**
+ * A toggle skill to enable, with an optional stack count.
+ * Use this form in BuildInput.toggleSkills for toggles with `maxTimes`
+ * (e.g. Grim Focus, Amplitude, Undeath).
+ */
+export interface ToggleSkillInput {
+  /** Toggle name, as returned by listAvailableToggleSkills(). */
+  name: string;
+  /**
+   * Stack count fed to the engine (`toggleData.count`).
+   * Only meaningful for toggles with `maxTimes`; for those without it the
+   * value is ignored by the engine. Defaults to 0 when omitted (the engine's
+   * own default). Values above `maxTimes` are clamped, matching the UESP UI.
+   */
+  count?: number;
+}
+
+/**
  * Item data as returned by the UESP public item API
  * (esolog.uesp.net/exportJson.php?table=minedItem).
  * Pass the object straight into BuildInput.items[slot] — no transformation needed.
@@ -351,11 +368,15 @@ export interface BuildInput {
    */
   activeBuffs?: string[];
   /**
-   * Exact names of enabled toggle skills.
-   * Ex: ["Emperor", "Authority", "Domination", "Tactician"]
+   * Toggle skills to enable, optionally with a stack count.
+   * Ex: ["Emperor", { name: "Grim Focus", count: 5 }]
    * Uses the same name as in UESP's g_EsoBuildToggledSkillData.
+   *
+   * Toggles with `maxTimes` need `count > 0` to apply their effect; passing the
+   * plain name leaves the count at 0 and the engine discards the effect.
+   * See listAvailableToggleSkills() for the names and their `maxTimes`.
    */
-  toggleSkills?: string[];
+  toggleSkills?: (string | ToggleSkillInput)[];
   /**
    * Skills slotted on the character's action bars (max 6 per bar).
    *

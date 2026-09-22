@@ -299,27 +299,36 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     };
   }
 
-  // 7. Patch UpdateEsoBuildToggledSkillData to preserve the enabled state.
+  // 7. Patch UpdateEsoBuildToggledSkillData to preserve the enabled state and the
+  //    stack count.
   //
   //    The engine uses $("#esotbToggledSkillInfo").find(...).is(":checked") to read
-  //    toggle skill checkboxes. In Node.js the jQuery mock has no real DOM, so
-  //    checkElement.length = 1 (mock) and .is(":checked") returns a chain proxy.
-  //    This makes SetEsoBuildToggledSkillEnable(skillId, falsyValue) overwrite the
-  //    enabled=true that calculator.ts set before the calculation.
+  //    toggle skill checkboxes, and .next(".esotbToggleSkillNumber").val() to read the
+  //    stack count. In Node.js the jQuery mock has no real DOM, so checkElement.length
+  //    = 1 (mock), .is(":checked") returns a chain proxy and .val() returns "". This
+  //    makes SetEsoBuildToggledSkillEnable(skillId, falsyValue) overwrite the enabled=true
+  //    that calculator.ts set before the calculation, and SetEsoBuildToggledSkillCount
+  //    overwrite the count with NiceIntParse("") = 0 (discarding the effect of toggles
+  //    with maxTimes — see D1).
   //
-  //    Fix: save enabled[] before the original call and restore afterwards — preserves
-  //    the programmatic state without affecting the engine's validation (.valid) logic.
+  //    Fix: save enabled[] and count[] before the original call and restore afterwards —
+  //    preserves the programmatic state without affecting the engine's validation
+  //    (.valid) logic.
   const _origUpdateToggledSkill = (global as any).UpdateEsoBuildToggledSkillData;
   if (typeof _origUpdateToggledSkill === 'function') {
     (global as any).UpdateEsoBuildToggledSkillData = function (inputValues: any) {
       const toggleData: any = (global as any).g_EsoBuildToggledSkillData ?? {};
       const savedEnabled: Record<string, boolean> = {};
+      const savedCount: Record<string, unknown> = {};
       for (const k of Object.keys(toggleData)) {
         savedEnabled[k] = !!toggleData[k]?.enabled;
+        savedCount[k] = toggleData[k]?.count;
       }
       _origUpdateToggledSkill.call(this, inputValues);
       for (const k of Object.keys(savedEnabled)) {
-        if (toggleData[k]) toggleData[k].enabled = savedEnabled[k];
+        if (!toggleData[k]) continue;
+        toggleData[k].enabled = savedEnabled[k];
+        if (savedCount[k] !== undefined) toggleData[k].count = savedCount[k];
       }
     };
   }
