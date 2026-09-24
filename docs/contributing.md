@@ -50,8 +50,9 @@ cd ../..
 **2. Game data** (`vendor/uesp-data/uesp-game-data.json`):
 
 ```bash
-# seed local.db from UESP SQL dumps first (see eso-build-editor's db:seed)
-npm run generate-data -- --db /path/to/local.db --version <patch>
+# self-contained: parse the UESP SQL dumps straight into uesp-game-data.json
+npm run db:seed -- --dir /path/to/dumps --version <patch>
+# (or seed local.db and run: npm run generate-data -- --db /path/to/local.db --version <patch>)
 ```
 
 Then:

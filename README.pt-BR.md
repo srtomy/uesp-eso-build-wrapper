@@ -46,7 +46,7 @@ Você injeta os inputs, o próprio código da UESP calcula cada stat, você lê 
 - Não reimplementa as fórmulas de stats do ESO
 - API síncrona; o motor inicializa uma vez por processo (singleton, chamadas seguintes são no-op)
 - Zero dependências de runtime — Node.js puro
-- 221 computed stats por build
+- 204 computed stats por build
 
 ## Instalação
 
@@ -101,7 +101,7 @@ Documentação completa em **Português (BR)** e **English** em
 | [Arquitetura](https://srtomy.github.io/uesp-eso-build-wrapper/pt/architecture) | Motor local, política de rede, fluxo de dados |
 | [Primeiros Passos](https://srtomy.github.io/uesp-eso-build-wrapper/pt/getting-started) | Instalação, game data, primeiro cálculo |
 | [Guias](https://srtomy.github.io/uesp-eso-build-wrapper/pt/guides/character) | Personagem, itens, Champion Points, buffs, skills |
-| [Lendo o Resultado](https://srtomy.github.io/uesp-eso-build-wrapper/pt/output) | Os 221 computed stats, `debugBuild()` |
+| [Lendo o Resultado](https://srtomy.github.io/uesp-eso-build-wrapper/pt/output) | Os 204 computed stats, `debugBuild()` |
 | [API Reference](https://srtomy.github.io/uesp-eso-build-wrapper/api/) | Gerada a partir do TSDoc (em inglês) |
 | [Solução de Problemas](https://srtomy.github.io/uesp-eso-build-wrapper/pt/troubleshooting) | Problemas comuns (Next.js/serverless, stats errados...) |
 | [Contribuindo](https://srtomy.github.io/uesp-eso-build-wrapper/pt/contributing) | Setup dev, testes, atualização após patch do ESO |
