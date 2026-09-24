@@ -15,7 +15,7 @@ Camada de compatibilidade Node.js (globals de browser + superfície mínima de D
     ↓
 Motor UESP (esoEditBuild.js + esobuilddata.js, executados in-process via vm.runInThisContext)
     ↓
-ComputedStats (221 stats lidos de g_EsoComputedStats)
+ComputedStats (204 stats lidos de g_EsoComputedStats)
 ```
 
 ## Precisa de conexão com a internet?
@@ -73,7 +73,7 @@ UpdateEsoComputedStatsList_Real(null, true)  — entry point do próprio motor
     ↓
 g_EsoComputedStats (cada stat com .value atualizado in place)
     ↓
-ComputedStats (chaves nomeadas + raw com os 221 stats)
+ComputedStats (chaves nomeadas + raw com os 204 stats)
 ```
 
 `debugBuild(input)` roda o mesmo cálculo e ainda retorna cada input por categoria e qual fonte contribuiu para cada stat — ferramenta de diagnóstico para investigar divergências, não caminho de produção.

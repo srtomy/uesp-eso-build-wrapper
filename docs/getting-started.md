@@ -23,11 +23,13 @@ The canonical source is [`vendor/uesp-data/uesp-game-data.json`](https://github.
 Ways to obtain it:
 
 1. **Copy from the repo** — download `uesp-game-data.json` from the repository above and load it with `fs.readFileSync`.
-2. **Generate it yourself** — seed a SQLite DB from UESP dumps using [eso-build-editor](https://github.com/srtomy/eso-build-editor), then run this library's generator (Node >= 22):
+2. **Generate it yourself** — the wrapper ships a self-contained pipeline that parses the UESP MariaDB dumps directly (no external project required), using the same Node >= 24 runtime as the library:
 
    ```bash
-   npm run generate-data -- --db /path/to/local.db --version <patch>
+   npm run db:seed -- --dir /path/to/dumps --version <patch>
    ```
+
+   (Or seed a SQLite DB and use the older `npm run generate-data -- --db /path/to/local.db --version <patch>`.)
 
 ## Initialize the engine
 
@@ -65,7 +67,7 @@ console.log(stats.MagickaRegen); // 514
 console.log(stats.SpellDamage);  // 1000
 ```
 
-The result object also carries `stats.raw` — all 221 stats as a plain record. See [Reading the Output](/output).
+The result object also carries `stats.raw` — all 204 stats as a plain record. See [Reading the Output](/output).
 
 ## Next steps
 

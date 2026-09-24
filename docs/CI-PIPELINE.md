@@ -9,19 +9,24 @@ Goal: a PR may only be merged into `main` when the full pipeline passes. CI is a
 
 ## 1. Current state (`ci.yml`)
 
-Runs on `push` (main) and `pull_request` → main, Node 24.x
-(latest LTS — Node 20 hit EOL 2026-04; policy: test the newest LTS line and
-keep `engines` in sync):
+Runs on `push` (main) and `pull_request` → main. `permissions: contents: read` and
+`concurrency` (cancel superseded runs per ref) are set at workflow level. The original
+single job has been split into the parallel jobs detailed in §2.
 
-- checkout with `submodules: recursive` (required — the engine is vendored)
-- `npm ci`
-- `npm run lint`, `npm run format:check`, `npm run build`, `npm test`
+- `checkout` uses `submodules: recursive` where the vendored engine is needed (`test`, `package`).
+- Install is `npm ci --ignore-scripts` everywhere.
+- `lint`, `typecheck`, `build`, `package`, `security` and `docs-build` run on **Node 22.x**;
+  only the `test` matrix runs **24.x** (the minimum supported line).
+- `build` also asserts there is no `dist/` drift.
+- `test` runs with coverage and uploads it (workflow artifact + Codecov; SonarCloud is the merge gate).
+- Other workflows: `pr-title.yml` (Conventional Commits), `sonar.yml`, `codeql.yml`,
+  `prepare-release.yml`, `publish-release.yml`.
 
-**Gaps:** no explicit typecheck, no coverage, no npm-package validation, no
-dependency security, no branch protection (CI is informational only), no PR
-hygiene.
+**Remaining gap:** branch protection with the required checks (§3) is a repository setting —
+verify it matches the list. The `engines` floor is Node 24 while most jobs run 22.x; aligning
+them is worth a follow-up.
 
-## 2. Target: parallel jobs, fail-fast
+## 2. Job layout: parallel jobs, fail-fast
 
 Split the single job into parallel jobs so failures surface quickly and each
 concern has its own required check name:
@@ -53,7 +58,8 @@ Repository **Settings → Branches → Add rule** for `main`:
 
 - **Require a pull request before merging**
 - **Require status checks to pass**: `lint`, `typecheck`, `test (24.x)`,
-  `build`, `package`, `security`, `pr-title`, `SonarCloud Code Analysis`
+  `build`, `package`, `security`, `docs-build`, `pr-title`,
+  `SonarCloud Code Analysis`
 - **Require branches to be up to date before merging**
 - **Require linear history** (squash merges)
 - Do not allow bypassing the rules (admins included)
