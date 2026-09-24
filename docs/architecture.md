@@ -15,7 +15,7 @@ Node.js compatibility layer (browser-like globals + minimal DOM surface)
     ↓
 UESP engine (esoEditBuild.js + esobuilddata.js, executed in-process via vm.runInThisContext)
     ↓
-ComputedStats (221 stats read from g_EsoComputedStats)
+ComputedStats (204 stats read from g_EsoComputedStats)
 ```
 
 ## Does it require an internet connection?
@@ -73,7 +73,7 @@ UpdateEsoComputedStatsList_Real(null, true)  — the engine's own entry point
     ↓
 g_EsoComputedStats (every stat's .value updated in place)
     ↓
-ComputedStats (named keys + raw record with all 221 stats)
+ComputedStats (named keys + raw record with all 204 stats)
 ```
 
 `debugBuild(input)` runs the same calculation and additionally returns every input value per category and which source contributed each stat — a diagnostic tool for investigating discrepancies, not a production path.
