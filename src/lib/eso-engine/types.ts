@@ -449,8 +449,26 @@ export interface BuildInput {
    *   - "Ansuul's Torment"         → +7% damage done against monsters (base)
    *   - "Ansuul's Torment (Bonus Damage)" → +14% additional (on interrupt)
    *   - "Spectral Cloak"           → +6% damage done (via Blade Cloak proc)
+   *
+   * Unknown ids (or ids whose set is not equipped) are ignored silently.
    */
   toggledSetBonuses?: string[];
+  /**
+   * Stack count per enabled toggle id. Only relevant for toggles whose
+   * {@link SetToggle.maxTimes} is not null (e.g. "Sergeant's Mail",
+   * "Rallying Cry") — the engine multiplies the effect by this count.
+   *
+   * Defaults to 0, which makes such a toggle contribute nothing — the same as
+   * the UESP editor, whose number input starts at 0. Values are clamped to the
+   * toggle's `minTimes`/`maxTimes` range, mirroring that input.
+   *
+   * @example
+   * ```ts
+   * toggledSetBonuses: ["Sergeant's Mail"],
+   * toggledSetBonusCounts: { "Sergeant's Mail": 4 },
+   * ```
+   */
+  toggledSetBonusCounts?: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
@@ -458,8 +476,11 @@ export interface BuildInput {
 // Stat IDs match g_EsoComputedStats exactly (version 49+).
 // ---------------------------------------------------------------------------
 /**
- * The result of calculateBuild(): the key stats as named properties, plus
- * `raw` with all 204 computed stats from the UESP engine.
+ * The key stats as named properties, plus `raw` with all 204 computed stats
+ * from the UESP engine.
+ *
+ * `calculateBuild()` returns a {@link CalculatedBuild} — this shape extended
+ * with `setToggles`.
  *
  * Stat IDs match `g_EsoComputedStats` exactly (UESP version 49+). Percent
  * values are returned as the engine stores them (e.g. 12.5 = 12.5%).
@@ -515,6 +536,66 @@ export interface ComputedStats {
 
   /** Raw object with ALL g_EsoComputedStats values after the calculation */
   raw: Record<string, number>;
+}
+
+/**
+ * A set toggle that applies to the calculated build.
+ *
+ * Set bonuses whose condition the engine cannot infer on its own (e.g.
+ * "after interrupting an enemy", "out of combat") are exposed by the UESP
+ * Build Editor as manual checkboxes. `calculateBuild` reports which of them
+ * apply to the current build via `setToggles`; enabling one is a separate
+ * step, done by passing its {@link SetToggle.id} in
+ * `BuildInput.toggledSetBonuses`.
+ *
+ * Note: `setToggles` is the list of *applicable* toggles, not the enabled
+ * ones. A toggle only takes effect when it is both applicable and enabled.
+ */
+export interface SetToggle {
+  /** Rule `nameId` — the key accepted in `BuildInput.toggledSetBonuses`. */
+  id: string;
+  /**
+   * Set the toggle belongs to. Variant rules (e.g. "Ansuul's Torment (Bonus
+   * Damage)") resolve to their base set via the rule's `setId` (the engine maps
+   * the rule's source `originalId` field to `setId` at load time).
+   */
+  setId: string;
+  /** Human-readable label for UI (`displayName` when present, else `id`). */
+  label: string;
+  /**
+   * Set bonus text the toggle belongs to: the slice of the bonus line the
+   * rule's regex matches (falls back to the full line when the rule has no
+   * regex or it doesn't match). Empty when the equipped items carry no set
+   * bonus descriptions.
+   */
+  description: string;
+  /** Minimum stacks for a stacking toggle (0 when the rule has no `minTimes`). */
+  minTimes: number;
+  /** Maximum stacks the toggle can reach; null for toggles without a count. */
+  maxTimes: number | null;
+  /**
+   * Stack count used in this calculation (from `BuildInput.toggledSetBonusCounts`).
+   * Always 0 for toggles without `maxTimes`; for stacking toggles it is 0 when
+   * no count is provided, which makes the toggle contribute nothing.
+   */
+  count: number;
+}
+
+/**
+ * Result of `calculateBuild()`: the computed stats plus metadata about the
+ * same calculation.
+ *
+ * Extends {@link ComputedStats}, so consumers keep reading `stats.Health` /
+ * `stats.raw` unchanged — `setToggles` is an additive field.
+ */
+export interface CalculatedBuild extends ComputedStats {
+  /**
+   * Set toggles that apply to this build: the set is equipped with enough
+   * pieces and any skill/stat requirement of the rule is met.
+   *
+   * Empty when the build equips no set with a conditional toggle.
+   */
+  setToggles: SetToggle[];
 }
 
 // ---------------------------------------------------------------------------

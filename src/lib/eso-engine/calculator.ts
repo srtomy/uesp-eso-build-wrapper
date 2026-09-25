@@ -20,12 +20,13 @@
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup.js';
 import { engineGlobals } from './engine-globals.js';
+import { collectSetToggles } from './set-toggles.js';
 import type { EnginePassiveRecord, EngineStatEntry } from './engine-globals.js';
 import type {
   BuffInfo,
   BuildInput,
+  CalculatedBuild,
   ChampionPointNode,
-  ComputedStats,
   EquipSlot,
   PassiveSkillInfo,
   SkillSlot,
@@ -99,6 +100,24 @@ function stripDescriptionFormats(desc: string): string {
 }
 
 /**
+ * Clamps a stacking toggle's count to the rule's range, mirroring the UESP
+ * editor's number input (`OnEsoBuildToggleSetNumber`): negatives become 0, and
+ * the value is capped at `maxTimes` / raised to `minTimes` when those are set.
+ * Input validation only — the engine still decides how the count scales the
+ * effect.
+ */
+function clampSetToggleCount(
+  count: number,
+  minTimes: number | null | undefined,
+  maxTimes: number | null | undefined,
+): number {
+  let value = count < 0 ? 0 : count;
+  if (maxTimes != null && value > maxTimes) value = maxTimes;
+  if (minTimes != null && value < minTimes) value = minTimes;
+  return value;
+}
+
+/**
  * Calculates the Computed Character Statistics for the given build.
  *
  * Each call starts from a clean engine state (previous items, buffs, CP nodes
@@ -107,7 +126,8 @@ function stripDescriptionFormats(desc: string): string {
  * @param input - The build to calculate: character sheet, items, champion
  *   point nodes, buffs, toggle skills, skill bars and passives.
  * @returns All computed stats — named keys (Health, Magicka, SpellDamage, ...)
- *   plus `raw` with the full 204-stat `g_EsoComputedStats` record.
+ *   plus `raw` with the full 204-stat `g_EsoComputedStats` record, and
+ *   `setToggles` with the set toggles that apply to this build.
  * @throws If the engine has not been initialized with
  *   `initEsoEngineFromData()` first.
  *
@@ -123,9 +143,10 @@ function stripDescriptionFormats(desc: string): string {
  *   },
  * });
  * console.log(stats.Magicka, stats.SpellDamage);
+ * console.log(stats.setToggles); // [{ id, setId, label }, ...]
  * ```
  */
-export function calculateBuild(input: BuildInput): ComputedStats {
+export function calculateBuild(input: BuildInput): CalculatedBuild {
   const {
     character,
     items,
@@ -139,6 +160,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     autoInherentPassives,
     enchantOverrides,
     toggledSetBonuses,
+    toggledSetBonusCounts,
   } = input;
 
   // ─── GLOBAL STATE RESET ───────────────────────────────────────────────────
@@ -595,11 +617,36 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     };
   }
 
+  // Stacking toggles (Sergeant's Mail, Rallying Cry, ...) read their count from
+  // a UESP number input. The Node DOM mock returns 0, and
+  // UpdateEsoBuildToggledSetData overwrites the count right at the start of the
+  // calculation — so re-apply the counts from the input just after it runs,
+  // before the effects read `toggleData.count`. Same spirit as the toggle-skill
+  // patch in loader.ts.
+  const setToggleCounts = toggledSetBonusCounts ?? {};
+  const origUpdateToggledSetData = g.UpdateEsoBuildToggledSetData;
+  const hasSetToggleCounts =
+    Object.keys(setToggleCounts).length > 0 && origUpdateToggledSetData !== undefined;
+  if (hasSetToggleCounts && origUpdateToggledSetData) {
+    const origUpdate = origUpdateToggledSetData;
+    g.UpdateEsoBuildToggledSetData = function (inputValues) {
+      origUpdate(inputValues);
+      const toggleData = g.g_EsoBuildToggledSetData;
+      for (const [id, count] of Object.entries(setToggleCounts)) {
+        const entry = toggleData[id];
+        if (entry?.valid) entry.count = clampSetToggleCount(count, entry.minTimes, entry.maxTimes);
+      }
+    };
+  }
+
   try {
     updateFn(null, true);
   } finally {
     if (toggledSetIds.size > 0) {
       g.IsEsoBuildToggledSetEnabled = origIsEnabled;
+    }
+    if (hasSetToggleCounts) {
+      g.UpdateEsoBuildToggledSetData = origUpdateToggledSetData;
     }
   }
 
@@ -615,6 +662,12 @@ export function calculateBuild(input: BuildInput): ComputedStats {
       raw[statId] = stat.value;
     }
   }
+
+  // Set toggles that apply to this build. The engine recomputes `valid` on
+  // every call (UpdateEsoBuildToggledSetData), regardless of whether a toggle
+  // is enabled, so reading it right after the synchronous update captures a
+  // consistent snapshot.
+  const setToggles = collectSetToggles(g.g_EsoBuildToggledSetData);
 
   return {
     // Max attributes
@@ -666,6 +719,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     DefensePhysicalMitigation: raw['DefensePhysicalMitigation'] ?? 0,
 
     raw,
+    setToggles,
   };
 }
 

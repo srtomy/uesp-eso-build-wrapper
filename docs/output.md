@@ -4,7 +4,7 @@ title: Reading the Output
 
 # Reading the Output
 
-`calculateBuild()` returns a [ComputedStats](/api/interfaces/ComputedStats) object.
+`calculateBuild()` returns a [`CalculatedBuild`](/api/interfaces/CalculatedBuild) object — the computed stats plus `setToggles`.
 
 ```ts
 const stats = calculateBuild({ character: { /* ... */ } });
@@ -43,6 +43,33 @@ for (const [statId, value] of Object.entries(stats.raw)) {
 ::: tip
 Stat IDs are stable — they are the engine's own `g_EsoComputedStats` keys (UESP version 49+). If you need a stat not in the named list, access it via `stats.raw.<StatId>`.
 :::
+
+## Applicable set toggles: `stats.setToggles`
+
+Some set bonuses are conditional in a way the engine cannot infer (e.g. "after interrupting an enemy", "out of combat"). The UESP Build Editor exposes them as manual checkboxes. `calculateBuild()` reports which of them apply to the current build:
+
+```ts
+const { setToggles } = calculateBuild(input);
+
+setToggles;
+// [
+//   { id: "Ansuul's Torment",                setId: "Ansuul's Torment", label: "Ansuul's Torment" },
+//   { id: "Ansuul's Torment (Bonus Damage)", setId: "Ansuul's Torment", label: "Ansuul's Torment (Bonus Damage)" },
+// ]
+```
+
+This is the list of **applicable** toggles (the set is equipped with enough pieces and any rule requirement is met) — not the enabled ones. To enable one, pass its `id` in [`BuildInput.toggledSetBonuses`](/api/interfaces/BuildInput):
+
+```ts
+calculateBuild({
+  ...input,
+  toggledSetBonuses: ["Ansuul's Torment"],
+});
+```
+
+Empty when the build equips no set with a conditional toggle.
+
+Stacking toggles (e.g. Sergeant's Mail) only contribute when a count is given via [`BuildInput.toggledSetBonusCounts`](/api/interfaces/BuildInput); each `SetToggle` exposes `minTimes`/`maxTimes`/`count`. See [Buffs & Toggle Skills](/guides/buffs-and-toggles).
 
 ## Debugging a discrepancy
 

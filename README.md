@@ -82,12 +82,13 @@ const stats = calculateBuild({
 console.log(stats.Health);       // 16000
 console.log(stats.Magicka);      // 19104
 console.log(stats.SpellDamage);  // 1000
+console.log(stats.setToggles);   // [] — set toggles that apply to this build
 ```
 
 ## How it works
 
 1. `initEsoEngineFromData({ initData })` prepares browser-like globals, seeds the engine with your game data, and executes the vendored UESP scripts via `vm.runInThisContext` — once per process.
-2. `calculateBuild(input)` writes your build into the engine state, runs the engine's own `UpdateEsoComputedStatsList_Real()`, and reads results from `g_EsoComputedStats` into a typed `ComputedStats` object.
+2. `calculateBuild(input)` writes your build into the engine state, runs the engine's own `UpdateEsoComputedStatsList_Real()`, and reads results from `g_EsoComputedStats` into a typed `CalculatedBuild` object (`ComputedStats` plus `setToggles`).
 
 Details: [Architecture](https://srtomy.github.io/uesp-eso-build-wrapper/architecture) · [Getting Started](https://srtomy.github.io/uesp-eso-build-wrapper/getting-started) · [Reading the Output](https://srtomy.github.io/uesp-eso-build-wrapper/output).
 
