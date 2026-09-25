@@ -458,8 +458,11 @@ export interface BuildInput {
 // Stat IDs match g_EsoComputedStats exactly (version 49+).
 // ---------------------------------------------------------------------------
 /**
- * The result of calculateBuild(): the key stats as named properties, plus
- * `raw` with all 204 computed stats from the UESP engine.
+ * The key stats as named properties, plus `raw` with all 204 computed stats
+ * from the UESP engine.
+ *
+ * `calculateBuild()` returns a {@link CalculatedBuild} — this shape extended
+ * with `setToggles`.
  *
  * Stat IDs match `g_EsoComputedStats` exactly (UESP version 49+). Percent
  * values are returned as the engine stores them (e.g. 12.5 = 12.5%).
@@ -515,6 +518,54 @@ export interface ComputedStats {
 
   /** Raw object with ALL g_EsoComputedStats values after the calculation */
   raw: Record<string, number>;
+}
+
+/**
+ * A set toggle that applies to the calculated build.
+ *
+ * Set bonuses whose condition the engine cannot infer on its own (e.g.
+ * "after interrupting an enemy", "out of combat") are exposed by the UESP
+ * Build Editor as manual checkboxes. `calculateBuild` reports which of them
+ * apply to the current build via `setToggles`; enabling one is a separate
+ * step, done by passing its {@link SetToggle.id} in
+ * `BuildInput.toggledSetBonuses`.
+ *
+ * Note: `setToggles` is the list of *applicable* toggles, not the enabled
+ * ones. A toggle only takes effect when it is both applicable and enabled.
+ */
+export interface SetToggle {
+  /** Rule `nameId` — the key accepted in `BuildInput.toggledSetBonuses`. */
+  id: string;
+  /**
+   * Set the toggle belongs to. Variant rules (e.g. "Ansuul's Torment (Bonus
+   * Damage)") resolve to their base set via the rule's `originalId`.
+   */
+  setId: string;
+  /** Human-readable label for UI (`displayName` when present, else `id`). */
+  label: string;
+  /**
+   * Set bonus text the toggle belongs to (the full bonus line, as the UESP
+   * shows under its checkbox). Empty when the equipped items carry no set
+   * bonus descriptions.
+   */
+  description: string;
+}
+
+/**
+ * Result of `calculateBuild()`: the computed stats plus metadata about the
+ * same calculation.
+ *
+ * Extends {@link ComputedStats}, so consumers keep reading `stats.Health` /
+ * `stats.raw` unchanged — `setToggles` is an additive field.
+ */
+export interface CalculatedBuild extends ComputedStats {
+  /**
+   * Set toggles that apply to this build: the set is equipped with enough
+   * pieces and any skill/stat requirement of the rule is met.
+   *
+   * Empty when the build equips no set with a conditional toggle.
+   */
+  setToggles: SetToggle[];
 }
 
 // ---------------------------------------------------------------------------

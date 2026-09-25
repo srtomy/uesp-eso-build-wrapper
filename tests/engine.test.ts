@@ -2184,3 +2184,102 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
     });
   });
 });
+
+describe('calculateBuild set toggles', () => {
+  const character = {
+    race: 'High Elf',
+    class: 'Sorcerer',
+    level: 50,
+    attributes: { health: 0, magicka: 64, stamina: 0 },
+    championPoints: 160,
+  } as const;
+
+  // Five Ansuul's Torment pieces activate the 3-piece Minor Slayer (+5%
+  // DamageDone) and the 5-piece toggle. The item payload is a real UESP API one.
+  const ANSUUL_5PC = {
+    Head: ANSUULS_HELMET,
+    Shoulders: ANSUULS_HELMET,
+    Chest: ANSUULS_HELMET,
+    Hands: ANSUULS_HELMET,
+    Legs: ANSUULS_HELMET,
+  };
+
+  it('lists the toggles that apply to the equipped set', () => {
+    const { setToggles } = calculateBuild({ character, items: ANSUUL_5PC });
+
+    expect(setToggles).toHaveLength(2);
+    const base = setToggles.find((toggle) => toggle.id === "Ansuul's Torment");
+    expect(base).toMatchObject({
+      id: "Ansuul's Torment",
+      setId: "Ansuul's Torment",
+      label: "Ansuul's Torment",
+    });
+    expect(base?.description).toContain('Increases your damage done against monsters');
+    expect(setToggles.map((toggle) => toggle.id)).toContain("Ansuul's Torment (Bonus Damage)");
+    // Variant rules resolve to the base set name.
+    expect(setToggles.every((toggle) => toggle.setId === "Ansuul's Torment")).toBe(true);
+  });
+
+  it('is empty when the build equips no set with a toggle', () => {
+    const { setToggles } = calculateBuild({
+      character,
+      items: { Chest: JERKIN_OF_THE_DEPTHS },
+    });
+    expect(setToggles).toEqual([]);
+  });
+
+  it('does not apply a toggle whose set is not equipped', () => {
+    const items = { Chest: JERKIN_OF_THE_DEPTHS };
+    const withoutToggle = calculateBuild({ character, items });
+    const withToggle = calculateBuild({
+      character,
+      items,
+      toggledSetBonuses: ["Ansuul's Torment"],
+    });
+
+    expect(withToggle.raw.DamageDone).toBe(withoutToggle.raw.DamageDone);
+    expect(withToggle.setToggles).toEqual([]);
+  });
+
+  it('returns a snapshot that later calculations do not mutate', () => {
+    const snapshot = calculateBuild({ character, items: ANSUUL_5PC }).setToggles;
+
+    // A different build resets the engine's toggle state.
+    calculateBuild({ character });
+
+    expect(snapshot).toHaveLength(2);
+    expect(snapshot.find((toggle) => toggle.id === "Ansuul's Torment")).toMatchObject({
+      id: "Ansuul's Torment",
+      setId: "Ansuul's Torment",
+      label: "Ansuul's Torment",
+    });
+  });
+
+  describe('applying toggles to the 5-piece set', () => {
+    // 3-piece Minor Slayer contributes +5% DamageDone on its own.
+    const MINOR_SLAYER = 0.05;
+
+    it('base DamageDone comes from the 3-piece Minor Slayer', () => {
+      const { raw } = calculateBuild({ character, items: ANSUUL_5PC });
+      expect(raw.DamageDone).toBeCloseTo(MINOR_SLAYER, 5);
+    });
+
+    it('enabling "Ansuul\'s Torment" adds the 5-piece damage bonus (7%)', () => {
+      const { raw } = calculateBuild({
+        character,
+        items: ANSUUL_5PC,
+        toggledSetBonuses: ["Ansuul's Torment"],
+      });
+      expect(raw.DamageDone).toBeCloseTo(MINOR_SLAYER + 0.07, 5);
+    });
+
+    it('enabling both toggles stacks the base and bonus damage', () => {
+      const { raw } = calculateBuild({
+        character,
+        items: ANSUUL_5PC,
+        toggledSetBonuses: ["Ansuul's Torment", "Ansuul's Torment (Bonus Damage)"],
+      });
+      expect(raw.DamageDone).toBeCloseTo(MINOR_SLAYER + 0.14, 5);
+    });
+  });
+});

@@ -20,12 +20,13 @@
 
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup.js';
 import { engineGlobals } from './engine-globals.js';
+import { collectSetToggles } from './set-toggles.js';
 import type { EnginePassiveRecord, EngineStatEntry } from './engine-globals.js';
 import type {
   BuffInfo,
   BuildInput,
+  CalculatedBuild,
   ChampionPointNode,
-  ComputedStats,
   EquipSlot,
   PassiveSkillInfo,
   SkillSlot,
@@ -107,7 +108,8 @@ function stripDescriptionFormats(desc: string): string {
  * @param input - The build to calculate: character sheet, items, champion
  *   point nodes, buffs, toggle skills, skill bars and passives.
  * @returns All computed stats — named keys (Health, Magicka, SpellDamage, ...)
- *   plus `raw` with the full 204-stat `g_EsoComputedStats` record.
+ *   plus `raw` with the full 204-stat `g_EsoComputedStats` record, and
+ *   `setToggles` with the set toggles that apply to this build.
  * @throws If the engine has not been initialized with
  *   `initEsoEngineFromData()` first.
  *
@@ -123,9 +125,10 @@ function stripDescriptionFormats(desc: string): string {
  *   },
  * });
  * console.log(stats.Magicka, stats.SpellDamage);
+ * console.log(stats.setToggles); // [{ id, setId, label }, ...]
  * ```
  */
-export function calculateBuild(input: BuildInput): ComputedStats {
+export function calculateBuild(input: BuildInput): CalculatedBuild {
   const {
     character,
     items,
@@ -616,6 +619,12 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     }
   }
 
+  // Set toggles that apply to this build. The engine recomputes `valid` on
+  // every call (UpdateEsoBuildToggledSetData), regardless of whether a toggle
+  // is enabled, so reading it right after the synchronous update captures a
+  // consistent snapshot.
+  const setToggles = collectSetToggles(g.g_EsoBuildToggledSetData);
+
   return {
     // Max attributes
     Health: raw['Health'] ?? 0,
@@ -666,6 +675,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     DefensePhysicalMitigation: raw['DefensePhysicalMitigation'] ?? 0,
 
     raw,
+    setToggles,
   };
 }
 

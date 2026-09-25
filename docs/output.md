@@ -44,6 +44,31 @@ for (const [statId, value] of Object.entries(stats.raw)) {
 Stat IDs are stable — they are the engine's own `g_EsoComputedStats` keys (UESP version 49+). If you need a stat not in the named list, access it via `stats.raw.<StatId>`.
 :::
 
+## Applicable set toggles: `stats.setToggles`
+
+Some set bonuses are conditional in a way the engine cannot infer (e.g. "after interrupting an enemy", "out of combat"). The UESP Build Editor exposes them as manual checkboxes. `calculateBuild()` reports which of them apply to the current build:
+
+```ts
+const { setToggles } = calculateBuild(input);
+
+setToggles;
+// [
+//   { id: "Ansuul's Torment",                setId: "Ansuul's Torment", label: "Ansuul's Torment" },
+//   { id: "Ansuul's Torment (Bonus Damage)", setId: "Ansuul's Torment", label: "Ansuul's Torment (Bonus Damage)" },
+// ]
+```
+
+This is the list of **applicable** toggles (the set is equipped with enough pieces and any rule requirement is met) — not the enabled ones. To enable one, pass its `id` in [`BuildInput.toggledSetBonuses`](/api/interfaces/BuildInput):
+
+```ts
+calculateBuild({
+  ...input,
+  toggledSetBonuses: ["Ansuul's Torment"],
+});
+```
+
+Empty when the build equips no set with a conditional toggle.
+
 ## Debugging a discrepancy
 
 When a stat doesn't match what you expect, [debugBuild()](/api/functions/debugBuild) returns the full picture: every input value per category (item, set, buff, CP, mundus, food, skill) and **which source contributed each value**:

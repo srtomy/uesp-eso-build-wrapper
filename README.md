@@ -82,6 +82,7 @@ const stats = calculateBuild({
 console.log(stats.Health);       // 16000
 console.log(stats.Magicka);      // 19104
 console.log(stats.SpellDamage);  // 1000
+console.log(stats.setToggles);   // [] — set toggles that apply to this build
 ```
 
 ## How it works
