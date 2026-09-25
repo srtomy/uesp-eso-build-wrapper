@@ -480,7 +480,7 @@ export interface BuildInput {
 // ---------------------------------------------------------------------------
 /**
  * The result of calculateBuild(): the key stats as named properties, plus
- * `raw` with all 221 computed stats from the UESP engine.
+ * `raw` with all 204 computed stats from the UESP engine.
  *
  * Stat IDs match `g_EsoComputedStats` exactly (UESP version 49+). Percent
  * values are returned as the engine stores them (e.g. 12.5 = 12.5%).

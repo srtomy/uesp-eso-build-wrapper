@@ -120,7 +120,7 @@ function normalizeToggleCount(count: number, maxTimes: unknown): number {
  * @param input - The build to calculate: character sheet, items, champion
  *   point nodes, buffs, toggle skills, skill bars and passives.
  * @returns All computed stats — named keys (Health, Magicka, SpellDamage, ...)
- *   plus `raw` with the full 221-stat `g_EsoComputedStats` record.
+ *   plus `raw` with the full 204-stat `g_EsoComputedStats` record.
  * @throws If the engine has not been initialized with
  *   `initEsoEngineFromData()` first.
  *

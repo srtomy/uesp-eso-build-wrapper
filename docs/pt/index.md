@@ -6,7 +6,7 @@ title: Introdução
 
 Um wrapper Node.js/TypeScript em torno do motor de cálculo do [UESP ESO Build Editor](https://github.com/uesp/uesp-esochardata).
 
-Calcule as **Computed Character Statistics** de Elder Scrolls Online — Health, Magicka, Stamina, mitigação, chance de crítico, regeneração e mais [221 stats](/pt/output) — usando as fórmulas da própria UESP. **Sem reimplementar nenhuma fórmula.**
+Calcule as **Computed Character Statistics** de Elder Scrolls Online — Health, Magicka, Stamina, mitigação, chance de crítico, regeneração e mais [200+ stats](/pt/output) — usando as fórmulas da própria UESP. **Sem reimplementar nenhuma fórmula.**
 
 ## Por que esta biblioteca?
 
@@ -24,7 +24,7 @@ O wrapper nunca implementa uma fórmula sequer do jogo. Quando um stat parece er
 
 - **Roda local, sem rede para calcular** — `calculateBuild()` é síncrono e não faz requisições HTTP; o motor vendored roda in-process. Ver [Arquitetura](/pt/architecture).
 - **100% fórmulas UESP** — o mesmo motor do [esobuilds.uesp.net](https://esobuilds.uesp.net), zero matemática de ESO no wrapper
-- **221 stats computados** — todas as Computed Character Statistics do build editor
+- **204 stats computados** — todas as Computed Character Statistics do build editor
 - **Item data da UESP pluga direto** — objetos `exportJson.php?table=minedItem` vão direto para `BuildInput.items`
 - **Zero dependências de runtime** — Node.js puro
 - **Tipos TypeScript completos** — inputs e outputs tipados, [API Reference](/api/) documentada com TSDoc
