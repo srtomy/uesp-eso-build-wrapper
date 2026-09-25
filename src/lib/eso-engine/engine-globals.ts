@@ -80,8 +80,14 @@ export interface EngineToggledSetEntry {
   displayName?: string;
   /** Set bonus text the toggle belongs to (the full bonus line). */
   desc?: string;
+  /** The rule behind the toggle; `match` is the regex it matches in the desc. */
+  matchData?: { match?: RegExp | null };
   valid?: boolean;
   enabled?: boolean;
+  /** Stack count. Read from the UESP number input (a DOM mock returns 0 here). */
+  count?: number;
+  minTimes?: number;
+  maxTimes?: number | null;
 }
 
 /** One slot of a weapon/skill bar in `g_EsoSkillBarData`. */
@@ -182,6 +188,7 @@ export interface UespEngineGlobals {
   g_EsoBuildActiveAbilityBar?: number;
   UpdateEsoComputedStatsList_Real?: (keepSaveResults: null, noUpdate: boolean) => void;
   IsEsoBuildToggledSetEnabled: (setId: unknown) => boolean;
+  UpdateEsoBuildToggledSetData?: (inputValues: EngineInputValues) => void;
   /** Initialized to `{}` when the UESP scripts load, so it is always present. */
   g_EsoBuildToggledSetData: Record<string, EngineToggledSetEntry>;
   GetEsoInputValues?: (mergeComputedStats: unknown) => EngineInputValues;

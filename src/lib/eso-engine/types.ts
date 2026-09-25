@@ -449,8 +449,25 @@ export interface BuildInput {
    *   - "Ansuul's Torment"         → +7% damage done against monsters (base)
    *   - "Ansuul's Torment (Bonus Damage)" → +14% additional (on interrupt)
    *   - "Spectral Cloak"           → +6% damage done (via Blade Cloak proc)
+   *
+   * Unknown ids (or ids whose set is not equipped) are ignored silently.
    */
   toggledSetBonuses?: string[];
+  /**
+   * Stack count per enabled toggle id. Only relevant for toggles whose
+   * {@link SetToggle.maxTimes} is not null (e.g. "Sergeant's Mail",
+   * "Rallying Cry") — the engine multiplies the effect by this count.
+   *
+   * Defaults to 0, which makes such a toggle contribute nothing — the same as
+   * the UESP editor, whose number input starts at 0.
+   *
+   * @example
+   * ```ts
+   * toggledSetBonuses: ["Sergeant's Mail"],
+   * toggledSetBonusCounts: { "Sergeant's Mail": 4 },
+   * ```
+   */
+  toggledSetBonusCounts?: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
@@ -538,7 +555,8 @@ export interface SetToggle {
   id: string;
   /**
    * Set the toggle belongs to. Variant rules (e.g. "Ansuul's Torment (Bonus
-   * Damage)") resolve to their base set via the rule's `originalId`.
+   * Damage)") resolve to their base set via the rule's `setId` (the engine maps
+   * the rule's source `originalId` field to `setId` at load time).
    */
   setId: string;
   /** Human-readable label for UI (`displayName` when present, else `id`). */
@@ -549,6 +567,16 @@ export interface SetToggle {
    * bonus descriptions.
    */
   description: string;
+  /** Minimum stacks for a stacking toggle (0 when the rule has no `minTimes`). */
+  minTimes: number;
+  /** Maximum stacks the toggle can reach; null for toggles without a count. */
+  maxTimes: number | null;
+  /**
+   * Stack count used in this calculation (from `BuildInput.toggledSetBonusCounts`).
+   * Always 0 for toggles without `maxTimes`; for stacking toggles it is 0 when
+   * no count is provided, which makes the toggle contribute nothing.
+   */
+  count: number;
 }
 
 /**

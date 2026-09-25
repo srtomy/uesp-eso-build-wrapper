@@ -7,19 +7,33 @@ describe('collectSetToggles', () => {
     expect(collectSetToggles({})).toEqual([]);
   });
 
-  it('keeps only valid entries and flattens them to { id, setId, label, description }', () => {
+  it('returns an empty list when the toggle data is undefined', () => {
+    expect(collectSetToggles(undefined)).toEqual([]);
+  });
+
+  it('keeps only valid entries; each description is the part its rule matches', () => {
+    // As duas rules de Ansuul compartilham a MESMA linha de bônus — a descrição
+    // específica sai do trecho que a regex de cada rule casa.
+    const desc =
+      '(5 items) Increases your damage done against monsters by 7%. When you interrupt an enemy, you increase your damage done against monsters by an additional 7% for 10 seconds.';
+
     const data: Record<string, EngineToggledSetEntry> = {
       "Ansuul's Torment": {
         valid: true,
         setId: "Ansuul's Torment",
         displayName: '',
-        desc: '(5 items) Increases your damage done against monsters by 7%.',
+        desc,
+        matchData: { match: /Increases your damage done against monsters by ([0-9]+)%/i },
       },
       "Ansuul's Torment (Bonus Damage)": {
         valid: true,
         setId: "Ansuul's Torment",
         displayName: 'Bonus Damage',
-        desc: '(5 items) When you interrupt an enemy, ...',
+        desc,
+        matchData: {
+          match:
+            /When you interrupt an enemy, you increase your damage done against monsters by an additional ([0-9]+)% for [0-9]+ seconds/i,
+        },
       },
       'Spectral Cloak': { valid: false, setId: 'Spectral Cloak' },
       'Never Computed': {},
@@ -30,20 +44,29 @@ describe('collectSetToggles', () => {
         id: "Ansuul's Torment",
         setId: "Ansuul's Torment",
         label: "Ansuul's Torment",
-        description: '(5 items) Increases your damage done against monsters by 7%.',
+        description: 'Increases your damage done against monsters by 7%',
+        minTimes: 0,
+        maxTimes: null,
+        count: 0,
       },
       {
         id: "Ansuul's Torment (Bonus Damage)",
         setId: "Ansuul's Torment",
         label: 'Bonus Damage',
-        description: '(5 items) When you interrupt an enemy, ...',
+        description:
+          'When you interrupt an enemy, you increase your damage done against monsters by an additional 7% for 10 seconds',
+        minTimes: 0,
+        maxTimes: null,
+        count: 0,
       },
     ]);
   });
 
-  it('falls back to the rule id and an empty description when fields are missing', () => {
+  it('falls back to the full desc / rule id when fields are missing', () => {
     const data: Record<string, EngineToggledSetEntry> = {
       'Ring of the Wild Hunt': { valid: true },
+      'No Match': { valid: true, desc: 'Full bonus line.', matchData: { match: /nope/i } },
+      'Empty Desc': { valid: true, desc: '', matchData: { match: /./ } },
     };
 
     expect(collectSetToggles(data)).toEqual([
@@ -52,6 +75,51 @@ describe('collectSetToggles', () => {
         setId: 'Ring of the Wild Hunt',
         label: 'Ring of the Wild Hunt',
         description: '',
+        minTimes: 0,
+        maxTimes: null,
+        count: 0,
+      },
+      {
+        id: 'No Match',
+        setId: 'No Match',
+        label: 'No Match',
+        description: 'Full bonus line.',
+        minTimes: 0,
+        maxTimes: null,
+        count: 0,
+      },
+      {
+        id: 'Empty Desc',
+        setId: 'Empty Desc',
+        label: 'Empty Desc',
+        description: '',
+        minTimes: 0,
+        maxTimes: null,
+        count: 0,
+      },
+    ]);
+  });
+
+  it('exposes the stack range and the current count for stacking toggles', () => {
+    const data: Record<string, EngineToggledSetEntry> = {
+      "Sergeant's Mail": {
+        valid: true,
+        desc: 'Increases the damage of your Heavy Attacks by 119 per stack.',
+        minTimes: 0,
+        maxTimes: 4,
+        count: 3,
+      },
+    };
+
+    expect(collectSetToggles(data)).toEqual([
+      {
+        id: "Sergeant's Mail",
+        setId: "Sergeant's Mail",
+        label: "Sergeant's Mail",
+        description: 'Increases the damage of your Heavy Attacks by 119 per stack.',
+        minTimes: 0,
+        maxTimes: 4,
+        count: 3,
       },
     ]);
   });

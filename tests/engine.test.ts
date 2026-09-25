@@ -2283,3 +2283,83 @@ describe('calculateBuild set toggles', () => {
     });
   });
 });
+
+describe('toggledSetBonusCounts', () => {
+  const character = {
+    race: 'High Elf',
+    class: 'Sorcerer',
+    level: 50,
+    attributes: { health: 0, magicka: 64, stamina: 0 },
+    championPoints: 160,
+  } as const;
+
+  // Sergeant's Mail (5-piece): the toggle stacks up to 4, multiplying the
+  // effect by the stack count. Desc matches the rule's regex.
+  const piece = (name: string): UespItemApiData =>
+    ({
+      itemId: '1',
+      name,
+      setName: "Sergeant's Mail",
+      setId: '999',
+      setBonusCount: '4',
+      setBonusCount1: '2',
+      setBonusDesc1: '(2 items) Adds 129 Weapon and Spell Damage',
+      setBonusCount2: '3',
+      setBonusDesc2: '(3 items) Adds 657 Critical Chance',
+      setBonusCount3: '4',
+      setBonusDesc3: '(4 items) Adds 129 Weapon and Spell Damage',
+      setBonusCount4: '5',
+      setBonusDesc4:
+        "(5 items) When you deal damage with a Heavy Attack, you gain a stack of Sergeant's Focus for 5 seconds, increasing the damage of your Heavy Attacks by 119 per stack.",
+      setBonusCount5: '-1',
+      setBonusDesc5: '',
+    }) as UespItemApiData;
+
+  const fivePieces = {
+    Head: piece('Head'),
+    Shoulders: piece('Shoulders'),
+    Chest: piece('Chest'),
+    Hands: piece('Hands'),
+    Legs: piece('Legs'),
+  };
+
+  it('exposes the stack range and the applied count', () => {
+    const { setToggles } = calculateBuild({
+      character,
+      items: fivePieces,
+      toggledSetBonuses: ["Sergeant's Mail"],
+      toggledSetBonusCounts: { "Sergeant's Mail": 4 },
+    });
+
+    expect(setToggles).toHaveLength(1);
+    expect(setToggles[0]).toMatchObject({
+      id: "Sergeant's Mail",
+      minTimes: 0,
+      maxTimes: 4,
+      count: 4,
+    });
+  });
+
+  it('multiplies the effect by the count', () => {
+    const off = calculateBuild({ character, items: fivePieces });
+    const withStacks = calculateBuild({
+      character,
+      items: fivePieces,
+      toggledSetBonuses: ["Sergeant's Mail"],
+      toggledSetBonusCounts: { "Sergeant's Mail": 4 },
+    });
+
+    expect(withStacks.raw.HATwoHand - off.raw.HATwoHand).toBeCloseTo(119 * 4, 5);
+  });
+
+  it('contributes nothing without a count (UESP default 0)', () => {
+    const off = calculateBuild({ character, items: fivePieces });
+    const noCount = calculateBuild({
+      character,
+      items: fivePieces,
+      toggledSetBonuses: ["Sergeant's Mail"],
+    });
+
+    expect(noCount.raw.HATwoHand).toBe(off.raw.HATwoHand);
+  });
+});

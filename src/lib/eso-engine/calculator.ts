@@ -142,6 +142,7 @@ export function calculateBuild(input: BuildInput): CalculatedBuild {
     autoInherentPassives,
     enchantOverrides,
     toggledSetBonuses,
+    toggledSetBonusCounts,
   } = input;
 
   // ─── GLOBAL STATE RESET ───────────────────────────────────────────────────
@@ -598,11 +599,35 @@ export function calculateBuild(input: BuildInput): CalculatedBuild {
     };
   }
 
+  // Stacking toggles (Sergeant's Mail, Rallying Cry, ...) read their count from
+  // a UESP number input. The Node DOM mock returns 0, and
+  // UpdateEsoBuildToggledSetData overwrites the count right at the start of the
+  // calculation — so re-apply the counts from the input just after it runs,
+  // before the effects read `toggleData.count`. Same spirit as the toggle-skill
+  // patch in loader.ts.
+  const setToggleCounts = toggledSetBonusCounts ?? {};
+  const origUpdateToggledSetData = g.UpdateEsoBuildToggledSetData;
+  const hasSetToggleCounts =
+    Object.keys(setToggleCounts).length > 0 && origUpdateToggledSetData !== undefined;
+  if (hasSetToggleCounts && origUpdateToggledSetData) {
+    const origUpdate = origUpdateToggledSetData;
+    g.UpdateEsoBuildToggledSetData = function (inputValues) {
+      origUpdate(inputValues);
+      const toggleData = g.g_EsoBuildToggledSetData;
+      for (const [id, count] of Object.entries(setToggleCounts)) {
+        if (toggleData[id]?.valid) toggleData[id].count = count;
+      }
+    };
+  }
+
   try {
     updateFn(null, true);
   } finally {
     if (toggledSetIds.size > 0) {
       g.IsEsoBuildToggledSetEnabled = origIsEnabled;
+    }
+    if (hasSetToggleCounts) {
+      g.UpdateEsoBuildToggledSetData = origUpdateToggledSetData;
     }
   }
 
