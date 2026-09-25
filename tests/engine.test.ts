@@ -2362,4 +2362,17 @@ describe('toggledSetBonusCounts', () => {
 
     expect(noCount.raw.HATwoHand).toBe(off.raw.HATwoHand);
   });
+
+  it('clamps the count to maxTimes (UESP editor number input)', () => {
+    const off = calculateBuild({ character, items: fivePieces });
+    const overMax = calculateBuild({
+      character,
+      items: fivePieces,
+      toggledSetBonuses: ["Sergeant's Mail"],
+      toggledSetBonusCounts: { "Sergeant's Mail": 99 },
+    });
+
+    expect(overMax.setToggles[0]?.count).toBe(4);
+    expect(overMax.raw.HATwoHand - off.raw.HATwoHand).toBeCloseTo(119 * 4, 5);
+  });
 });

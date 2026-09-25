@@ -58,6 +58,20 @@ const stats = calculateBuild({
 });
 ```
 
+### Toggles com stack
+
+Alguns toggles acumulam até um máximo (ex.: Sergeant's Mail, Rallying Cry). No editor da UESP eles têm um campo numérico; aqui o count vem de `toggledSetBonusCounts`:
+
+```ts
+calculateBuild({
+  ...input,
+  toggledSetBonuses: ["Sergeant's Mail"],
+  toggledSetBonusCounts: { "Sergeant's Mail": 4 },
+});
+```
+
+O count padrão é `0`, o que faz um toggle com stack não contribuir com nada — igual ao editor da UESP, cujo campo numérico começa em 0. `stats.setToggles` expõe `minTimes`/`maxTimes`/`count` de cada toggle aplicável para a UI renderizar o campo, e o valor é limitado a esse intervalo.
+
 ::: warning
-`activeBuffs`, `toggleSkills` e `toggledSetBonuses` aceitam apenas **nomes/chaves exatos**. Um typo silenciosamente não ativa nada. Construa suas listas de nomes a partir das funções de catálogo em vez de hardcodar.
+`activeBuffs`, `toggleSkills`, `toggledSetBonuses` e `toggledSetBonusCounts` aceitam apenas **nomes/chaves exatos**. Um typo silenciosamente não ativa nada. Construa suas listas de nomes a partir das funções de catálogo em vez de hardcodar.
 :::

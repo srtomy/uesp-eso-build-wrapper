@@ -100,6 +100,24 @@ function stripDescriptionFormats(desc: string): string {
 }
 
 /**
+ * Clamps a stacking toggle's count to the rule's range, mirroring the UESP
+ * editor's number input (`OnEsoBuildToggleSetNumber`): negatives become 0, and
+ * the value is capped at `maxTimes` / raised to `minTimes` when those are set.
+ * Input validation only — the engine still decides how the count scales the
+ * effect.
+ */
+function clampSetToggleCount(
+  count: number,
+  minTimes: number | null | undefined,
+  maxTimes: number | null | undefined,
+): number {
+  let value = count < 0 ? 0 : count;
+  if (maxTimes != null && value > maxTimes) value = maxTimes;
+  if (minTimes != null && value < minTimes) value = minTimes;
+  return value;
+}
+
+/**
  * Calculates the Computed Character Statistics for the given build.
  *
  * Each call starts from a clean engine state (previous items, buffs, CP nodes
@@ -615,7 +633,8 @@ export function calculateBuild(input: BuildInput): CalculatedBuild {
       origUpdate(inputValues);
       const toggleData = g.g_EsoBuildToggledSetData;
       for (const [id, count] of Object.entries(setToggleCounts)) {
-        if (toggleData[id]?.valid) toggleData[id].count = count;
+        const entry = toggleData[id];
+        if (entry?.valid) entry.count = clampSetToggleCount(count, entry.minTimes, entry.maxTimes);
       }
     };
   }

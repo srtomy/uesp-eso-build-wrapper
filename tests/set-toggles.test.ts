@@ -12,8 +12,9 @@ describe('collectSetToggles', () => {
   });
 
   it('keeps only valid entries; each description is the part its rule matches', () => {
-    // As duas rules de Ansuul compartilham a MESMA linha de bônus — a descrição
-    // específica sai do trecho que a regex de cada rule casa.
+    // Both Ansuul's rules share the SAME bonus line — each rule's description is
+    // the slice its own regex matches. (`displayName` is empty for set toggles in
+    // the engine; it is set here only to cover the `displayName || id` fallback.)
     const desc =
       '(5 items) Increases your damage done against monsters by 7%. When you interrupt an enemy, you increase your damage done against monsters by an additional 7% for 10 seconds.';
 

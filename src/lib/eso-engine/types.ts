@@ -459,7 +459,8 @@ export interface BuildInput {
    * "Rallying Cry") — the engine multiplies the effect by this count.
    *
    * Defaults to 0, which makes such a toggle contribute nothing — the same as
-   * the UESP editor, whose number input starts at 0.
+   * the UESP editor, whose number input starts at 0. Values are clamped to the
+   * toggle's `minTimes`/`maxTimes` range, mirroring that input.
    *
    * @example
    * ```ts
@@ -562,8 +563,9 @@ export interface SetToggle {
   /** Human-readable label for UI (`displayName` when present, else `id`). */
   label: string;
   /**
-   * Set bonus text the toggle belongs to (the full bonus line, as the UESP
-   * shows under its checkbox). Empty when the equipped items carry no set
+   * Set bonus text the toggle belongs to: the slice of the bonus line the
+   * rule's regex matches (falls back to the full line when the rule has no
+   * regex or it doesn't match). Empty when the equipped items carry no set
    * bonus descriptions.
    */
   description: string;

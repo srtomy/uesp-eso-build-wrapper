@@ -73,7 +73,7 @@ UpdateEsoComputedStatsList_Real(null, true)  — entry point do próprio motor
     ↓
 g_EsoComputedStats (cada stat com .value atualizado in place)
     ↓
-ComputedStats (chaves nomeadas + raw com os 204 stats)
+CalculatedBuild (chaves nomeadas + raw com os 204 stats + setToggles)
 ```
 
 `debugBuild(input)` roda o mesmo cálculo e ainda retorna cada input por categoria e qual fonte contribuiu para cada stat — ferramenta de diagnóstico para investigar divergências, não caminho de produção.

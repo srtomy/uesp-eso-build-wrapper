@@ -4,7 +4,7 @@ title: Lendo o Resultado
 
 # Lendo o Resultado
 
-`calculateBuild()` retorna um objeto [ComputedStats](/api/interfaces/ComputedStats).
+`calculateBuild()` retorna um objeto [`CalculatedBuild`](/api/interfaces/CalculatedBuild) — os stats computados mais `setToggles`.
 
 ```ts
 const stats = calculateBuild({ character: { /* ... */ } });
@@ -68,6 +68,8 @@ calculateBuild({
 ```
 
 Vazia quando a build não equipa nenhum set com toggle condicional.
+
+Toggles com stack (ex.: Sergeant's Mail) só contribuem quando um count é informado via [`BuildInput.toggledSetBonusCounts`](/api/interfaces/BuildInput); cada `SetToggle` expõe `minTimes`/`maxTimes`/`count`. Veja [Buffs & Toggle Skills](/pt/guides/buffs-and-toggles).
 
 ## Depurando uma discrepância
 

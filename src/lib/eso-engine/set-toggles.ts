@@ -2,15 +2,6 @@ import type { EngineToggledSetEntry } from './engine-globals.js';
 import type { SetToggle } from './types.js';
 
 /**
- * Builds the list of set toggles that apply to the build currently loaded in
- * the engine, from `g_EsoBuildToggledSetData`.
- *
- * The engine recomputes each entry's `valid` flag on every calculation, so this
- * must be read right after the update — which is exactly where `calculateBuild`
- * calls it. Fresh objects are returned (not references into the engine state),
- * so a later calculation cannot mutate an already-returned list.
- */
-/**
  * Description for a toggle: the part of the set bonus the rule actually matches
  * (e.g. the interrupt sentence for a "(Bonus Damage)" variant), so toggles that
  * share a set bonus line get distinct descriptions. Falls back to the full line
@@ -24,6 +15,15 @@ function toggleDescription(toggle: EngineToggledSetEntry): string {
   return desc.match(match)?.[0] ?? desc;
 }
 
+/**
+ * Builds the list of set toggles that apply to the build currently loaded in
+ * the engine, from `g_EsoBuildToggledSetData`.
+ *
+ * The engine recomputes each entry's `valid` flag on every calculation, so this
+ * must be read right after the update — which is exactly where `calculateBuild`
+ * calls it. Fresh objects are returned (not references into the engine state),
+ * so a later calculation cannot mutate an already-returned list.
+ */
 export function collectSetToggles(
   toggleData: Record<string, EngineToggledSetEntry> | undefined,
 ): SetToggle[] {
