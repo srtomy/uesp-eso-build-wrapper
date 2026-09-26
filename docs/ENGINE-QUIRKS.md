@@ -120,6 +120,63 @@ shows for those abilities in v50.
 
 ---
 
+## 5. Set bonus quantization `/86` never runs (accepted limitation)
+
+**Status:** known limitation, documented 2026-09-22 (Trello #23, D2)
+
+The UESP engine snaps set-bonus averages to steps of `delta = maxNumber / 86`
+(`esoEditBuild.js:7106-7114`). This quantization **never executes in the wrapper**, because
+`g_EsoBuildSetMaxData` / `g_EsoInitialSetMaxData` are declared empty (`loader.ts:141,169`) and
+never populated — the AJAX that fills them is stubbed out (`env-setup.ts:173` mocks `$.ajax` as a
+no-op), so `GetEsoSetMaxData` (`esoEditBuild.js:5766`) never runs. With
+`maxParsedNumbers == null`, `:7106` does `continue` and the average stays at
+`floor(sum / pieceCount)`.
+
+**This is not cosmetic.** The averaged number is injected into the description text and becomes a
+real input:
+
+```
+ComputeEsoBuildSetDataAverages   :7104  averageNumbers[i][j] = floor(sum/counts)   (quantization skipped :7106)
+UpdateEsoBuildSetDesc            :7042  numbers embedded into averageDesc[i]
+GetEsoInputSetValues             :1085  reads setData.averageDesc[i]
+  → GetEsoInputSetDescValues     regex → matchResults[regexVar]
+ApplyEsoBuildRuleEffects         :14615 newStatValue = parseFloat(matchResults[regexVar])
+                                :14717 inputValues['Set'][statId] = ...
+```
+
+**When it matters:** only when the numbers **vary** between pieces of the same set
+(`numbersVary`, `:7083`) — i.e. pieces mixed across **level or quality**. A homogeneous build
+(all CP160/gold) takes the `:7116` branch that uses the first piece's value directly; the
+quantization is skipped on the real UESP site too, so results match exactly.
+
+**Magnitude:** at most `delta = maxNumber/86` ≈ **1.2% of the bonus value**. Example —
+"(5 items) Adds 6572 Health" with 3× CP160 + 2× CP140:
+
+| | Value |
+|---|---|
+| Wrapper (`floor(31116/5)`) | **6223** |
+| UESP site (quantized, delta=76.4) | **6190** |
+| Diff | 33 Health (0.5%) |
+
+**Stats affected:** whatever stat the set bonus grants, in `inputValues['Set'][statId]` — the
+universe of `Set.*` keys in `uesp-game-data.json` (74 entries). In practice the level/quality-scaled
+ones: `Health`/`Magicka`/`Stamina`, `WeaponDamage`/`SpellDamage`, `WeaponCrit`/`SpellCrit`,
+`PhysicalPenetration`/`SpellPenetration`, `PhysicalResist`/`SpellResist`, `*Regen`. Flat `%`
+bonuses (`DamageDone`, `CritDamage`, ...) don't scale with level/quality, never vary, and are
+never affected. Dependent derived stats shift by the same amount.
+
+**Decision:** accepted as-is. Reproducing it would mean populating `g_EsoInitialSetMaxData` from
+CP160/gold item descriptions — not worth it for a ≤1.2% delta in a rare mixed-level scenario, and
+the UESP author himself marks `86` as *"Best estimate so far"* (a heuristic, not a game constant).
+
+**File references:**
+- `vendor/uesp-esochardata/resources/esoEditBuild.js:7104-7114` — average + skipped quantization
+- `vendor/uesp-esochardata/resources/esoEditBuild.js:14615,14717` — number → `inputValues`
+- `src/lib/eso-engine/env-setup.ts:173` — `$.ajax` no-op
+- `src/lib/eso-engine/loader.ts:141,169` — empty `*SetMaxData` declarations
+
+---
+
 ## Debugging workflow
 
 ```ts
