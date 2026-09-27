@@ -55,6 +55,8 @@ export type {
   ToggleSkillInfo,
   ToggleSkillInput,
   ComputedStats,
+  CalculatedBuild,
+  SetToggle,
   UespItemApiData,
   EquipSlot,
   UespInitData,
