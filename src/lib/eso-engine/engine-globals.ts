@@ -65,6 +65,7 @@ export interface EngineToggleEntry {
   combatEnabled?: boolean;
   valid?: boolean;
   isPassive?: boolean | number;
+  count?: number;
   maxTimes?: unknown;
   matchData?: EngineToggleMatch;
 }
