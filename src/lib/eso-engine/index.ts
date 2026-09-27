@@ -53,6 +53,7 @@ export type {
   BuffGroup,
   PassiveSkillInfo,
   ToggleSkillInfo,
+  ToggleSkillInput,
   ComputedStats,
   UespItemApiData,
   EquipSlot,
