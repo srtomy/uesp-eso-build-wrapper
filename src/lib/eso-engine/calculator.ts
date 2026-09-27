@@ -30,6 +30,7 @@ import type {
   PassiveSkillInfo,
   SkillSlot,
   ToggleSkillInfo,
+  ToggleSkillInput,
   UespItemApiData,
 } from './types.js';
 
@@ -96,6 +97,18 @@ function stripDescriptionFormats(desc: string): string {
     plainDesc = plainDesc.replace(/<[^>]+>/g, '');
   } while (plainDesc !== previousDesc);
   return plainDesc.replace(/\|c[0-9a-fA-F]{6}|\|r/g, '');
+}
+
+/**
+ * Normalizes a toggle stack count the way the UESP UI does
+ * (`OnEsoBuildToggleSkillNumber`, esoEditBuild.js:8104): non-negative integer,
+ * clamped to the toggle's `maxTimes` when it has one.
+ */
+function normalizeToggleCount(count: number, maxTimes: unknown): number {
+  const value = Math.max(0, Math.trunc(count));
+  const max = typeof maxTimes === 'number' ? maxTimes : Number(maxTimes);
+  if (Number.isFinite(max) && max > 0) return Math.min(value, max);
+  return value;
 }
 
 /**
@@ -196,7 +209,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
     }
   }
 
-  // Toggle skills: zero enabled AND valid (valid stayed true from previous calls)
+  // Toggle skills: zero enabled, valid and count (all stayed set from previous calls)
   if (toggleSkillData && typeof toggleSkillData === 'object') {
     for (const key of Object.keys(toggleSkillData)) {
       const s = toggleSkillData[key];
@@ -204,6 +217,7 @@ export function calculateBuild(input: BuildInput): ComputedStats {
         s.enabled = false;
         s.combatEnabled = false;
         s.valid = false;
+        s.count = 0;
       }
     }
   }
@@ -435,14 +449,25 @@ export function calculateBuild(input: BuildInput): ComputedStats {
   // STEP 3c: Enable toggle skills.
   //
   // IsEsoBuildToggledSkillEnabled() checks: skillData.valid && skillData.enabled
-  // (reset of enabled, combatEnabled and valid already done in the global reset block above)
+  // (reset of enabled, combatEnabled, valid and count already done in the global
+  // reset block above)
+  //
+  // Toggles with `maxTimes` need `count > 0`: the engine multiplies the effect
+  // by toggleData.count (esoEditBuild.js:14657) and discards it when the result
+  // is 0 (:14714). Accepting `{ name, count }` is what makes them work.
   // -------------------------------------------------------------------------
   if (toggleSkills) {
-    for (const skillName of toggleSkills) {
+    for (const toggle of toggleSkills) {
       if (toggleSkillData) {
-        if (!toggleSkillData[skillName]) toggleSkillData[skillName] = {};
-        toggleSkillData[skillName].valid = true;
-        toggleSkillData[skillName].enabled = true;
+        const name = typeof toggle === 'string' ? toggle : toggle.name;
+        const count: ToggleSkillInput['count'] =
+          typeof toggle === 'string' ? undefined : toggle.count;
+        if (!toggleSkillData[name]) toggleSkillData[name] = {};
+        toggleSkillData[name].valid = true;
+        toggleSkillData[name].enabled = true;
+        if (count != null) {
+          toggleSkillData[name].count = normalizeToggleCount(count, toggleSkillData[name].maxTimes);
+        }
       }
     }
   }

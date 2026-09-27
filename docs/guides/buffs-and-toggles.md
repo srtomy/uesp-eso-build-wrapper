@@ -42,10 +42,25 @@ const stats = calculateBuild({
 });
 ```
 
-Two caveats, surfaced by [listAvailableToggleSkills()](/api/functions/listAvailableToggleSkills):
+### Stack counts (`maxTimes`)
+
+Some toggles stack, up to a maximum shown as `maxTimes` by [listAvailableToggleSkills()](/api/functions/listAvailableToggleSkills). Pass `{ name, count }` to set the number of stacks:
+
+```ts
+const stats = calculateBuild({
+  character: { /* ... */ },
+  skillBars: { bar1: [{ skillId: 40132141 }] }, // Blood Frenzy must be slotted
+  toggleSkills: [{ name: 'Blood Frenzy', count: 5 }],
+});
+```
+
+`count` is clamped to `[0, maxTimes]`. Without it (or with `count: 0`) a `maxTimes` toggle applies **no** effect — the engine multiplies the effect by `count` and drops zero results.
+
+Caveats, surfaced by [listAvailableToggleSkills()](/api/functions/listAvailableToggleSkills):
 
 - `requiresCyrodiil: true` toggles only apply when `character.cyrodiil` is also `true`.
 - `isPassive: true` toggles are backed by a passive skill and need that skill unlocked via `passiveSkills`/`skillBars` for the engine to match the description.
+- `maxTimes` toggles need `count > 0` (see above).
 
 ## Toggled set bonuses (advanced)
 
