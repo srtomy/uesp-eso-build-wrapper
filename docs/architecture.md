@@ -73,7 +73,7 @@ UpdateEsoComputedStatsList_Real(null, true)  — the engine's own entry point
     ↓
 g_EsoComputedStats (every stat's .value updated in place)
     ↓
-ComputedStats (named keys + raw record with all 204 stats)
+CalculatedBuild (named keys + raw record with all 204 stats + setToggles)
 ```
 
 `debugBuild(input)` runs the same calculation and additionally returns every input value per category and which source contributed each stat — a diagnostic tool for investigating discrepancies, not a production path.
