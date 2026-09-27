@@ -30,7 +30,7 @@ The most-used stats are typed properties:
 
 Percent-style stats come out in percent units as the engine displays them (e.g. `12.5` = 12.5%).
 
-## All 221 stats: `stats.raw`
+## All 204 stats: `stats.raw`
 
 `raw` is the complete `g_EsoComputedStats` record from the engine — every stat the UESP build editor shows, including the less common ones (BashDamage, GroupHealing, ...):
 

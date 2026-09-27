@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] — 2026-09-20
 
 ### Added
-- **engine:** aplica passivas inerentes via autoInherentPassives (#56) (e0f8f07)
+- **engine:** apply inherent passives via autoInherentPassives (#56) (e0f8f07)
 
 ### Fixed
 - **engine:** default target crit damage to 50% (DefenseCritDmg) (#59) (8f79d2b)

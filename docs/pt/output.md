@@ -30,7 +30,7 @@ Os stats mais usados são propriedades tipadas:
 
 Stats em percentual saem em unidades de percentual como o motor exibe (ex.: `12.5` = 12,5%).
 
-## Todos os 221 stats: `stats.raw`
+## Todos os 204 stats: `stats.raw`
 
 `raw` é o record completo de `g_EsoComputedStats` do motor — todo stat que o build editor da UESP mostra, incluindo os menos comuns (BashDamage, GroupHealing, ...):
 

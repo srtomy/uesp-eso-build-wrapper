@@ -132,9 +132,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      # dist/ is committed; fail if the working tree does not match the source.
-      - name: Check dist/ is up to date
-        run: git diff --exit-code dist
+      # dist/ is not committed (gitignored), so there is no drift to diff here;
+      # the `package` job validates the build output (publint / attw / test:esm /
+      # npm publish --dry-run).
 
   package:
     name: package
