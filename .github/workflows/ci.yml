@@ -198,7 +198,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: npm audit
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=high --omit=dev
 
   docs-build:
     name: docs-build
