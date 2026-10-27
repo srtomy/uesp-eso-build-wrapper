@@ -67,6 +67,7 @@
     "attw": "attw --pack . --ignore-rules cjs-resolves-to-esm no-resolution",
     "generate-data": "tsx --experimental-sqlite --no-warnings scripts/generate-data.ts",
     "db:seed": "tsx --experimental-sqlite --no-warnings scripts/seed-db.ts",
+    "fetch-http": "tsx --experimental-sqlite --no-warnings scripts/fetch-http.ts",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
     "test:esm": "node scripts/test-esm-import.mjs",
