@@ -1167,7 +1167,7 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
       expect(withCP.Magicka - withItems.Magicka).toBe(500);
     });
 
-    // Rule 39152 — CritDamage + CritHealing (display:"%", valor /100)
+    // Rule 39152 — CritDamage + CritHealing (display: "%", value /100)
     it('node 141899 (CritDamage 10% via rule 39152): SpellCritDamage delta ≈ +0.1', () => {
       const withCP = calculateBuild({
         character: HIGH_ELF_SORC_CP160,

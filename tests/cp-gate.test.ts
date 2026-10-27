@@ -39,28 +39,28 @@ function pointsFrom(entries: Record<number, number>): (id: number) => number {
 }
 
 describe('computePurchaseableNodes', () => {
-  it('com pontos zerados, só a root é comprável', () => {
+  it('with zero points, only the root is purchaseable', () => {
     const set = computePurchaseableNodes(NODES, GRAPH, pointsFrom({}));
     expect([...set]).toEqual([1]);
   });
 
-  it('a root com pontos libera o vizinho, mesmo com 0 pontos nele', () => {
+  it('a funded root unlocks its neighbour even with 0 points in it', () => {
     const set = computePurchaseableNodes(NODES, GRAPH, pointsFrom({ 1: 10 }));
     expect(set.has(2)).toBe(true);
     expect(set.has(3)).toBe(false);
   });
 
-  it('não atravessa um nó sem pontos suficientes', () => {
+  it('does not traverse a node without enough points', () => {
     const set = computePurchaseableNodes(NODES, GRAPH, pointsFrom({ 1: 10, 2: 0 }));
     expect(set.has(3)).toBe(false);
   });
 
-  it('atravessa em cadeia quando cada intermediário tem o delta', () => {
+  it('traverses a chain when every intermediate node has the delta', () => {
     const set = computePurchaseableNodes(NODES, GRAPH, pointsFrom({ 1: 10, 2: 10 }));
     expect(set).toEqual(new Set([1, 2, 3]));
   });
 
-  it('nó sem root alcançável não é comprável', () => {
+  it('a node without a reachable root is not purchaseable', () => {
     const orphan: CpGateNode[] = [...NODES, { abilityId: 99, isRoot: false, jumpPointDelta: 0 }];
     const set = computePurchaseableNodes(orphan, GRAPH, pointsFrom({ 1: 10, 2: 10 }));
     expect(set.has(99)).toBe(false);
@@ -73,13 +73,13 @@ describe('isCpNodePurchaseable', () => {
     expect(isCpNodePurchaseable(3, NODES, GRAPH, pointsFrom({ 1: 10, 2: 10 }))).toBe(true);
   });
 
-  it('id inexistente é sempre falso', () => {
+  it('an unknown id is never purchaseable', () => {
     expect(isCpNodePurchaseable(12345, NODES, GRAPH, pointsFrom({ 1: 10, 2: 10 }))).toBe(false);
   });
 });
 
 describe('buildCpLinks', () => {
-  it('mapeia skillId → abilityId mantendo o grafo simétrico', () => {
+  it('maps skillId → abilityId keeping the graph symmetric', () => {
     const skillIdToAbilityId = new Map([
       [100, 1],
       [200, 2],
@@ -94,14 +94,14 @@ describe('buildCpLinks', () => {
     expect(graph).toEqual({ 1: [2], 2: [1] });
   });
 
-  it('ignora links cujo skillId não tem abilityId', () => {
+  it('ignores links whose skillId has no abilityId', () => {
     const graph = buildCpLinks([{ parentSkillId: 1, skillId: 2 }], new Map());
     expect(graph).toEqual({});
   });
 });
 
 describe('buildCpParentMap', () => {
-  it('inverte o mapa de filhos para pais', () => {
+  it('inverts the children map into parents', () => {
     const parents = buildCpParentMap({ 1: [2, 3], 4: [3] });
     expect(parents.get(2)).toEqual([1]);
     expect(parents.get(3)).toEqual([1, 4]);
@@ -130,7 +130,7 @@ describe('createCpGate (skillId space)', () => {
     { parentSkillId: 1002, skillId: 1001 },
   ];
 
-  it('traduz os links de skillId para abilityId e aplica o gate', () => {
+  it('maps skillId links to abilityId and applies the gate', () => {
     const gate = createCpGate(nodes, links);
     expect(gate.purchaseable(pointsFrom({ 1: 10 }))).toEqual(new Set([1, 2]));
     expect(gate.isPurchaseable(3, pointsFrom({ 1: 10, 2: 10 }))).toBe(true);

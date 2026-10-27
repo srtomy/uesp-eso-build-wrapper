@@ -115,7 +115,7 @@ describe('iterateDumpRows', () => {
 
 describe('findDumpFile', () => {
   it('returns null when there is no dump for the prefix', () => {
-    expect(findDumpFile(tmpDir, 'inexistente')).toBeNull();
+    expect(findDumpFile(tmpDir, 'missing')).toBeNull();
   });
 
   it('picks the highest patch number (newest)', () => {
@@ -234,7 +234,7 @@ describe('buildUespGameData (skipApi — dump fixtures)', () => {
 
   it('fails clearly when the dump does not exist', async () => {
     await expect(
-      buildUespGameData({ dumpDir: path.join(tmpDir, 'vazio-inexistente'), skipApi: true }),
+      buildUespGameData({ dumpDir: path.join(tmpDir, 'empty-missing'), skipApi: true }),
     ).rejects.toThrowError(/not found/);
   });
 
