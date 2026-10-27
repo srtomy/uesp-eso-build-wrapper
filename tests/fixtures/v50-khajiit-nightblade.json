@@ -1,7 +1,10 @@
 {
   "_meta": {
-    "rulesVersion": "Live",
-    "exportedAt": "2026-06-21T20:43:00.688Z"
+    "rulesVersion": "51",
+    "exportedAt": "2026-06-21T20:43:00.688Z",
+    "rebaselinedAt": "2026-10-27T11:40:03.389Z",
+    "rebaselinedFrom": "51",
+    "note": "U51 re-baseline; inputs unchanged. See docs/ENGINE-QUIRKS.md (U51 rule lag)."
   },
   "character": {
     "race": "Khajiit",

@@ -1731,18 +1731,40 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
       base = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
     });
 
-    // Inferno (28967) — Destruction Staff: "While slotted, you gain Major Prophecy"
-    // Major Prophecy: +2629 SpellCrit rating → delta = 2629/21912 ≈ 0.11998
-    it('Inferno on the active bar grants Major Prophecy (+SpellCrit)', () => {
+    // Roar (32633) is one of the few active skills whose update-51 tooltip still
+    // matches a UESP `active` rule ("While slotted you gain Major Savagery"),
+    // so it exercises the skill-on-bar path. Magelight/Inner Light/Inferno lost
+    // their slotted buffs in update 51: the tooltips were reworded and UESP has
+    // not updated the rules yet — see docs/ENGINE-QUIRKS.md § U51 rule lag.
+    // Major Savagery: +2629 WeaponCrit rating → delta = 2629/21912 ≈ 0.11998
+    it('Roar on the active bar grants Major Savagery (+WeaponCrit)', () => {
+      const withRoar = calculateBuild({
+        character: HIGH_ELF_SORC_CP160,
+        skillBars: { bar1: [{ skillId: 32633 }] },
+      });
+      expect(withRoar.WeaponCrit - base.WeaponCrit).toBeCloseTo(2629 / 21912, 5);
+    });
+
+    // KNOWN UESP GAP (update 51): Inferno's tooltip changed from
+    // "While slotted on either bar, you gain Major Prophecy and Savagery,
+    // increasing your Spell and Weapon Critical rating by X" to
+    // "While slotted on either bar, gain Major Savagery, increasing Critical
+    // Chance by X%" (Major Prophecy removed). UESP's `active` rules still expect
+    // the old wording (`/While slotted you gain Major Savagery/i`), so no buff is
+    // granted — the live editor behaves the same way. Reported upstream; this
+    // assertion fails once UESP catches up, which is the signal to re-baseline.
+    // See docs/ENGINE-QUIRKS.md § U51 rule lag.
+    it('Inferno (28967) grants no crit buff until UESP updates the U51 wording', () => {
       const withInferno = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
         skillBars: { bar1: [{ skillId: 28967 }] },
       });
-      expect(withInferno.SpellCrit - base.SpellCrit).toBeCloseTo(2629 / 21912, 5);
+      expect(withInferno.SpellCrit - base.SpellCrit).toBeCloseTo(0, 5);
+      expect(withInferno.WeaponCrit - base.WeaponCrit).toBeCloseTo(0, 5);
     });
 
     it('skill on the bar resets between calls  [no bleed-through]', () => {
-      calculateBuild({ character: HIGH_ELF_SORC_CP160, skillBars: { bar1: [{ skillId: 28967 }] } });
+      calculateBuild({ character: HIGH_ELF_SORC_CP160, skillBars: { bar1: [{ skillId: 32633 }] } });
       const clean = calculateBuild({ character: HIGH_ELF_SORC_CP160 });
       expect(clean.SpellCrit).toBeCloseTo(base.SpellCrit, 5);
     });
@@ -1751,7 +1773,7 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
       // Major Prophecy applies at most 1× — no duplication when combining activeBuffs + skillBar
       const withBoth = calculateBuild({
         character: HIGH_ELF_SORC_CP160,
-        skillBars: { bar1: [{ skillId: 28967 }] },
+        skillBars: { bar1: [{ skillId: 32633 }] },
         activeBuffs: ['Major Prophecy'],
       });
       const withBuffOnly = calculateBuild({
@@ -1942,8 +1964,8 @@ describe('full build — High Elf Sorcerer CP160, 12 items, The Thief', () => {
 
   // ── listAvailableToggleSkills ─────────────────────────────────────────────────
   describe('listAvailableToggleSkills — toggle skill catalog', () => {
-    it('returns 105 toggle skills (1 anonymous entry filtered out)', () => {
-      expect(listAvailableToggleSkills()).toHaveLength(105);
+    it('returns 122 toggle skills (update 51 catalog)', () => {
+      expect(listAvailableToggleSkills()).toHaveLength(122);
     });
 
     it('each entry has name, isPassive and effects', () => {

@@ -1,7 +1,10 @@
 {
   "_meta": {
-    "rulesVersion": "Live",
-    "exportedAt": "2026-06-21T20:42:56.049Z"
+    "rulesVersion": "51",
+    "exportedAt": "2026-06-21T20:42:56.049Z",
+    "rebaselinedAt": "2026-10-27T11:40:03.113Z",
+    "rebaselinedFrom": "51",
+    "note": "U51 re-baseline; inputs unchanged. See docs/ENGINE-QUIRKS.md (U51 rule lag)."
   },
   "character": {
     "race": "High Elf",
@@ -1739,8 +1742,8 @@
     "StaminaRegen": 834,
     "SpellDamage": 4658,
     "WeaponDamage": 4658,
-    "SpellCrit": 0.4996743336984301,
-    "WeaponCrit": 0.4996743336984301,
+    "SpellCrit": 0.3796944140197152,
+    "WeaponCrit": 0.3796944140197152,
     "SpellCritDamage": 0.74,
     "WeaponCritDamage": 0.74,
     "SpellCritHealing": 0.64,
@@ -1750,9 +1753,9 @@
     "CritResist": 1320,
     "SpellPenetration": 7517,
     "PhysicalPenetration": 7517,
-    "EffectiveSpellPower": 10255,
-    "EffectiveWeaponPower": 8106,
-    "EffectivePower": 10255,
+    "EffectiveSpellPower": 9590,
+    "EffectiveWeaponPower": 7580,
+    "EffectivePower": 9590,
     "HealingTotal": 1,
     "ResurrectTime": 7,
     "SneakCost": 86,
