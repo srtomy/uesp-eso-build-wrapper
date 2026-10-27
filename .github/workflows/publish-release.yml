@@ -157,6 +157,8 @@ jobs:
   deploy-docs:
     name: deploy-docs
     needs: publish
+    # Never rebuild the public docs from a pre-release (canary/rc) ref.
+    if: ${{ !contains(needs.publish.outputs.tag, '-') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
