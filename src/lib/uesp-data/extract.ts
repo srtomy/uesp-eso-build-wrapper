@@ -3,10 +3,11 @@
  *
  * This mapping is the canonical path producing the committed `uesp-game-data.json`
  * — any change here alters the generated JSON. The wrapper consumes
- * only 7 tables (engine-only scope):
+ * only 10 tables (engine-only scope):
  *
  *   MariaDB dumps → `computedStats`, `rules`, `effects`, `cp2Skills`,
- *                    `cp2SkillDescriptions`
+ *                    `cp2SkillDescriptions`, `cp2Disciplines`,
+ *                    `cp2ClusterRoots`, `cp2SkillLinks`
  *   UESP API      → `playerSkills`, `skillTree`
  */
 

@@ -2,8 +2,13 @@
  * Wrapper UESP data pipeline.
  *
  * `uesp-data` answers "how is the `UespInitData` obtained" (MariaDB dumps,
- * UESP API, SQLite database); `eso-engine` is the engine glue and consumes the
- * result — the dependency is one-way (uesp-data → eso-engine/types).
+ * UESP API, HTTP endpoints, SQLite database); `eso-engine` is the engine glue
+ * and consumes the result — the dependency is one-way (uesp-data →
+ * eso-engine/types).
+ *
+ * Two sources produce the same `UespInitData`:
+ *   - `buildUespGameData`         — MariaDB dumps + `exportJson.php` (`db:seed`)
+ *   - `buildUespGameDataFromHttp` — live UESP endpoints only (`fetch-http`)
  */
 
 export { extractGameData, loadInitData } from './extract.js';
@@ -14,9 +19,25 @@ export type {
   BuildUespGameDataResult,
   SeedProgressEvent,
   SeedProgressKind,
-  ColumnSpec,
-  SqlType,
 } from './seed.js';
+export {
+  EDITOR_PAGE_URL,
+  assertPlausible,
+  buildRulesToTableRows,
+  buildUespGameDataFromHttp,
+  fetchEditorPage,
+  parseBuildRulesHtml,
+} from './http-source.js';
+export type {
+  BuildRulesPayload,
+  HttpBuildResult,
+  HttpSourceOptions,
+  ParsedBuildRules,
+  RulesTableRows,
+} from './http-source.js';
+export { DEFAULT_API_BASE, DEFAULT_USER_AGENT, fetchApiRows } from './api.js';
+export type { FetchApiOptions } from './api.js';
+export type { ColumnSpec, SqlType } from './schema.js';
 export {
   assertCols,
   findDumpFile,
