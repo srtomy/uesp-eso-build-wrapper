@@ -4,7 +4,7 @@ title: Troubleshooting
 
 # Troubleshooting
 
-## `UpdateEsoComputedStatsList_Real não está disponível` / engine not initialized
+## Engine not initialized (`calculateStats` returns zeros or throws)
 
 `calculateBuild()` was called before `initEsoEngineFromData()`, or the init call failed silently.
 

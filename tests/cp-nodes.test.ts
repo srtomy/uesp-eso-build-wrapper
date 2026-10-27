@@ -316,7 +316,7 @@ describe('CP node injection — isUnlocked default (D4)', () => {
     (global as any).g_EsoCpSkillDesc = { '60494': { 0: 'base', 10: 'ten' } };
   }
 
-  it('passiva (skillType 0) com points >= jumpPointDelta fica unlocked por padrão', () => {
+  it('passive node (skillType 0) with points >= jumpPointDelta is unlocked by default', () => {
     withMeta(0, 10);
     calculateBuild({
       character: BASE_CHAR,
@@ -325,7 +325,7 @@ describe('CP node injection — isUnlocked default (D4)', () => {
     expect((global as any).g_EsoCpData?.['60494']?.isUnlocked).toBe(true);
   });
 
-  it('slotável (skillType 1) sem isUnlocked explícito fica locked por padrão', () => {
+  it('slottable node (skillType 1) without an explicit isUnlocked is locked by default', () => {
     withMeta(1, 10);
     calculateBuild({
       character: BASE_CHAR,
@@ -334,7 +334,7 @@ describe('CP node injection — isUnlocked default (D4)', () => {
     expect((global as any).g_EsoCpData?.['60494']?.isUnlocked).toBe(false);
   });
 
-  it('isUnlocked explícito vence o default derivado', () => {
+  it('an explicit isUnlocked wins over the derived default', () => {
     withMeta(1, 10);
     calculateBuild({
       character: BASE_CHAR,
@@ -343,7 +343,7 @@ describe('CP node injection — isUnlocked default (D4)', () => {
     expect((global as any).g_EsoCpData?.['60494']?.isUnlocked).toBe(true);
   });
 
-  it('passiva abaixo do jumpPointDelta fica locked por padrão', () => {
+  it('a passive below the jumpPointDelta stays locked by default', () => {
     withMeta(0, 10);
     calculateBuild({
       character: BASE_CHAR,

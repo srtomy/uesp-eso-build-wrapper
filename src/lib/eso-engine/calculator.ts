@@ -589,8 +589,8 @@ export function calculateBuild(input: BuildInput): CalculatedBuild {
       if (!bar) continue;
       for (const slot of bar) {
         if (slot.skillId) {
-          // skillId = origSkillId (chave base usada por GetEsoInputSkillActiveBar)
-          // morphSkillId = ID do morph atual → abilityId para GetEsoSkillDescription
+          // skillId = origSkillId (base key used by GetEsoInputSkillActiveBar)
+          // morphSkillId = current morph id → abilityId for GetEsoSkillDescription
           activeData[slot.skillId] = { abilityId: slot.morphSkillId ?? slot.skillId };
         }
       }
