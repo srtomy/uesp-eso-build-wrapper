@@ -129,3 +129,24 @@ publish
 2. Regenerate `vendor/uesp-data/uesp-game-data.json`: `npm run generate-data -- --db /path/to/local.db --version <patch>`.
 3. Run `npm test` — golden values are locked to the vendored formulas; intentional upstream changes require updating expectations.
 4. See [Contributing](/contributing) for the full patch-update procedure.
+
+### When the patch dumps are not available
+
+`npm run fetch-http` produces the same `UespInitData` from two live UESP
+endpoints, without the MariaDB dumps:
+
+```text
+https://en.uesp.net/wiki/Special:EsoBuildEditor   → g_EsoBuildRules (rules + effects + computedStats)
+https://esolog.uesp.net/exportJson.php            → cp2*, playerSkills, skillTree
+                          ↓
+      same SQLite schema (8 dump + 2 API tables) + extractGameData as db:seed
+```
+
+The `_meta` block records `source: "http"`, the page URL and the payload sizes,
+so the dataset stays auditable. Differences from the dump path: the result is
+always the **live** rules version (the API has no version pinning), and the
+parser refuses to write a dataset when the payload looks truncated (unexpected
+or mixed rules version, orphan effects, too few rows). UESP's rules can also lag
+its own skill text for a few weeks — in that window the wrapper matches the live
+site, not the game, so re-baseline `tests/fixtures/*` and report gaps upstream
+rather than patching formulas here.

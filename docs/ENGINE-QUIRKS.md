@@ -47,6 +47,29 @@ re-export sorcerer-3/4/6 fixtures from a fresh UESP page load.
 
 ---
 
+## 1b. Update 51 rule lag: slotted-buff actives and two passives
+
+**Status:** known divergence vs the game — the wrapper matches the **live UESP editor** (same rules, same data). Affects `tests/fixtures/v50-high-elf-sorcerer-*` and `v50-dark-elf-arcanist`.
+
+**Symptom:** after the update-51 data refresh, slotted-buff actives grant nothing and two passives lose their buff.
+
+**Root cause:** update 51 reworded the tooltips; UESP's `active` / `passive` rules still match the update-50 wording, so `matchRegex` finds nothing and the effect is silently dropped.
+
+| Skill (abilityId) | Update 50 tooltip | Update 51 tooltip | Rule still expecting U50 |
+| --- | --- | --- | --- |
+| Magelight / Inner Light (42418 / 42430) | "While slotted **you** gain Major Savagery and Prophecy, increasing your … **Critical rating** by X" | "While slotted gain …, increasing **Critical Chance** by X%" | 40527 / 40528 / 42682 / 42683: `/While slotted you gain Major Savagery( and Prophecy)?/i` |
+| Inferno (28967) | "While slotted on either bar, **you** gain Major Prophecy and Savagery …" | "While slotted on either bar, gain Major Savagery, increasing Critical Chance by 12%" | same rules → no match |
+| Exploitation (45181) | "… you grant **Minor Prophecy** …" | "… grants … **Offensive Penetration** …" | 42773: `/When you cast a Dark Magic ability you grant Minor Prophecy/i` |
+| Tome-Bearer's Inspiration / Inspired Scholarship (186452 / 185842) | "gain **Major Brutality and Major Sorcery**" | "gain **Major Brutality**" | 43462: `/While slotted on either ability bar, gain Major Brutality and Major Sorcery/i` |
+
+**Measured impact** (wrapper vs the update-50 fixture values): −0.12 SpellCrit **and** WeaponCrit on the five High Elf Sorcerer fixtures; −20% Weapon/Spell Damage on the Dark Elf Arcanist fixture; Argonian Dragonknight and Khajiit Nightblade unaffected (they do not slot those skills).
+
+**Why it is not "fixed" here:** these are UESP data (rules), not wrapper formulas. Editing them would diverge from the live editor and violates the "never implement game formulas" rule. The fix belongs upstream (UESP): update the regexes above to the update-51 wording and, for 43462, keep a separate rule for Major Sorcery if the effect still exists on the tooltip.
+
+**Detection when UESP catches up:** `tests/engine.test.ts` asserts the current behaviour with a `KNOWN UESP GAP` comment (Inferno grants no crit). That test fails as soon as the rules are fixed, which is the signal to re-export the fixtures and delete the note.
+
+---
+
 ## 2. `RemoveEsoDescriptionFormats` monkey-patch: SneakCost / SprintCost / RollDodgeCost
 
 **Status:** fixed (removed in commit `22b0a0f`, June 2026)
