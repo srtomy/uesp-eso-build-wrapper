@@ -13,6 +13,11 @@ on:
         required: false
         default: 'main'
         type: string
+      npm_tag:
+        description: 'npm dist-tag for the publish (latest, rc, canary…). Pre-releases MUST use something other than latest.'
+        required: false
+        default: 'latest'
+        type: string
 
 permissions:
   contents: write
@@ -115,12 +120,25 @@ jobs:
           name: ${{ steps.version.outputs.tag }}
           body_path: /tmp/release-notes.md
           generate_release_notes: false
+          # `0.8.0-rc.1` → pre-release; a pre-release never becomes "Latest".
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to npm
         if: vars.NPM_PUBLISH_ENABLED == 'true'
-        run: npm publish --provenance --access public
+        run: |
+          TAG="${{ inputs.npm_tag }}"
+          if [ -z "$TAG" ]; then TAG=latest; fi
+          # Never let a pre-release version hijack the `latest` dist-tag.
+          case "${{ steps.version.outputs.version }}" in
+            *-*) if [ "$TAG" = "latest" ]; then
+                   echo "::error::Pre-release version requires a non-latest npm_tag (e.g. rc, canary)"
+                   exit 1
+                 fi ;;
+          esac
+          echo "Publishing ${{ steps.version.outputs.version }} with dist-tag: $TAG"
+          npm publish --tag "$TAG" --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
