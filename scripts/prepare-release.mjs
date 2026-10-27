@@ -36,13 +36,17 @@ function getLastTag() {
   }
 }
 
-function parseVersion(v) {
+export function parseVersion(v) {
   const m = v.trim().match(/^v?(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/);
   if (!m) throw new Error(`Invalid version: ${v}`);
-  return { major: +m[1], minor: +m[2], patch: +m[3], prerelease: m[4] || null, raw: `${m[1]}.${m[2]}.${m[3]}` };
+  const prerelease = m[4] || null;
+  // Keep the suffix: `0.8.0-rc.1` must stay `0.8.0-rc.1`, otherwise the RC PR
+  // would silently turn into the final release.
+  const raw = `${m[1]}.${m[2]}.${m[3]}${prerelease ? `-${prerelease}` : ''}`;
+  return { major: +m[1], minor: +m[2], patch: +m[3], prerelease, raw };
 }
 
-function bumpVersion(current, bump) {
+export function bumpVersion(current, bump) {
   if (bump === 'major') return `${current.major + 1}.0.0`;
   if (bump === 'minor') return `${current.major}.${current.minor + 1}.0`;
   return `${current.major}.${current.minor}.${current.patch + 1}`;
@@ -383,4 +387,7 @@ function main() {
   console.log('  git add package.json CHANGELOG.md && git commit -m "chore: release v' + nextVersion + '"');
 }
 
-main();
+// Only run when invoked directly; keeps the helpers importable.
+const invokedDirectly =
+  process.argv[1] && path.resolve(process.argv[1]) === path.resolve(import.meta.filename);
+if (invokedDirectly) main();
