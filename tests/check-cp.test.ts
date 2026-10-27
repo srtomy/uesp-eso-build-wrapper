@@ -31,22 +31,26 @@ describe('CP rules — structure loaded by the engine', () => {
     }
   });
 
-  it('rule 40814 exists and affects Magicka (Item category)', () => {
+  // Rule ids change every patch, so match on the rule's shape instead.
+  it('a CP rule grants Magicka in the Item category', () => {
     const matches = (global as any).ESO_CPEFFECT_MATCHES as any[];
-    const rule = matches.find((r: any) => r.ruleId === 40814 || r.ruleId === '40814');
+    const rule = matches.find((r: any) =>
+      r.effects.some((e: any) => e.statId === 'Magicka' && e.category === 'Item'),
+    );
     expect(rule).toBeDefined();
-    const magickaEffect = rule.effects.find((e: any) => e.statId === 'Magicka');
-    expect(magickaEffect).toBeDefined();
-    expect(magickaEffect.ruleId).toBe('40814');
+    expect(rule.matchRegex).toMatch(/Max Magicka per stage/i);
   });
 
-  it('rule 41216 exists and affects CritDamage with display="%"', () => {
+  it('a CP rule grants CritDamage and CritHealing with display="%"', () => {
     const matches = (global as any).ESO_CPEFFECT_MATCHES as any[];
-    const rule = matches.find((r: any) => r.ruleId === 41216 || r.ruleId === '41216');
+    const rule = matches.find(
+      (r: any) =>
+        r.effects.some((e: any) => e.statId === 'CritDamage') &&
+        r.effects.some((e: any) => e.statId === 'CritHealing'),
+    );
     expect(rule).toBeDefined();
-    const critEffect = rule.effects.find((e: any) => e.statId === 'CritDamage');
-    expect(critEffect).toBeDefined();
-    expect(critEffect.display).toBe('%');
+    const crit = rule.effects.find((e: any) => e.statId === 'CritDamage');
+    expect(crit.display).toBe('%');
   });
 
   it('g_EsoBuildRules.cp is loaded', () => {
