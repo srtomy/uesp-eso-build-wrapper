@@ -71,6 +71,10 @@ Then:
 4. Inspect with `npm run test:build path/to/uesp-build-export.json`
 5. Or drop it into `tests/fixtures/` — `tests/build-fixtures.test.ts` auto-discovers it and asserts every `expectedStats` value
 
+## Releasing
+
+Branch model, release channels (`canary` / `rc` / `latest`) and the hotfix flow are documented in [Releasing](/releasing).
+
 ## Pull requests
 
 - One feature or fix per PR

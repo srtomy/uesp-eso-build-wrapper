@@ -54,6 +54,7 @@ function englishTheme(): NavSidebar {
       { text: 'Reading the Output', link: '/output' },
       { text: 'Troubleshooting', link: '/troubleshooting' },
       { text: 'Contributing', link: '/contributing' },
+      { text: 'Releasing', link: '/releasing' },
       {
         text: 'API Reference',
         collapsed: true,

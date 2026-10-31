@@ -4,9 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g. v0.4.0 or 0.4.0) — use auto to bump from Conventional Commits'
+        description: 'Version to release (e.g. v0.4.0, 0.8.0-rc.1) — use auto to bump from Conventional Commits'
         required: false
         default: 'auto'
+        type: string
+      ref:
+        description: 'Git ref to prepare the release from (default: main). Use a release/0.x branch for a hotfix.'
+        required: false
+        default: 'main'
         type: string
 
 permissions:
@@ -25,6 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
           submodules: recursive
 
@@ -45,6 +51,7 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          base: ${{ inputs.ref }}
           branch: release/v${{ steps.prepare.outputs.version }}
           title: 'chore: release v${{ steps.prepare.outputs.version }}'
           commit-message: 'chore: release v${{ steps.prepare.outputs.version }}'
