@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-11-26
+
+### Added
+- **data:** rebuild game data and update to ESO patch 51 (#79) (988c1db)
+
+### Fixed
+- **ci:** validate release version and sync release docs (#92) (a33a932)
+
 ## [0.7.0] — 2026-10-03
 
 ### Added
@@ -109,6 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Golden build-fixture test suite (`build-fixtures.test.ts`)
 - Zero runtime dependencies
 
+[0.8.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.4.0...v0.5.0
