@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-11-26
+
+ESO update 51 support, previously validated as the `0.8.0-canary.1` pre-release.
+
+### Added
+- **data:** `npm run fetch-http` rebuilds `uesp-game-data.json` from the live UESP endpoints (build editor rules payload + `exportJson.php`), so a patch can be tracked without the MariaDB dumps (#79) (988c1db)
+- **engine:** `STATS_UNIQUE_LIST` synced with the update-51 PHP (`Item.Prosperous`, `SkillLineFlatDamage.Placeholder`)
+
+### Changed
+- **data:** game data regenerated for ESO update 51 — 1.066 rules, 1.727 effects, 204 computed stats, 4.397 skills
+- **vendor:** UESP engine (`esoEditBuild.js`) and `esoskills.js` bumped to update 51
+
+### Known issues
+- UESP's update-51 rules still match the update-50 wording of Magelight / Inner Light / Inferno / Exploitation / Tome-Bearer's Inspiration, so those slotted buffs and passives contribute no stats until the rules are fixed upstream (the live editor behaves the same way). Tracked in `docs/ENGINE-QUIRKS.md`.
+
 ## [0.7.0] — 2026-10-03
 
 ### Added
@@ -109,6 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Golden build-fixture test suite (`build-fixtures.test.ts`)
 - Zero runtime dependencies
 
+[0.8.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/srtomy/uesp-eso-build-wrapper/compare/v0.4.0...v0.5.0
