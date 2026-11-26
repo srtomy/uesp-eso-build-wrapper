@@ -120,6 +120,7 @@ export interface EnginePassiveRecord {
 /** One Champion Point node entry written into `g_EsoCpData`. */
 export interface EngineCpEntry {
   type?: string;
+  id?: number;
   isUnlocked?: boolean;
   description?: string;
   name?: string;

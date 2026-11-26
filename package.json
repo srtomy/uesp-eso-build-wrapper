@@ -81,6 +81,7 @@
     "docs:api:sync-pt": "rm -rf docs/pt/api && cp -r docs/api docs/pt/api",
     "test:explore": "tsx scripts/test-engine.ts",
     "test:build": "tsx scripts/test-build.ts",
+    "test:fixtures": "vitest run tests/build-fixtures.test.ts",
     "test:db-init": "tsx --experimental-sqlite --no-warnings scripts/test-db-init.ts"
   },
   "devDependencies": {

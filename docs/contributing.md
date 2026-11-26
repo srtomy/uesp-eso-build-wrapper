@@ -69,7 +69,7 @@ Then:
 2. DevTools (F12) → Console → paste and run the script
 3. A `uesp-build-export.json` file downloads
 4. Inspect with `npm run test:build path/to/uesp-build-export.json`
-5. Or drop it into `tests/fixtures/` — `tests/build-fixtures.test.ts` auto-discovers it and asserts every `expectedStats` value
+5. Or drop it into `tests/fixtures/` — `tests/build-fixtures.test.ts` auto-discovers it and asserts every `expectedStats` value (`npm run test:fixtures` runs just that suite)
 
 ## Releasing
 

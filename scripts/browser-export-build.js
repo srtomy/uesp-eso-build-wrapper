@@ -152,8 +152,20 @@
   if (typeof g_EsoCpData !== 'undefined') {
     Object.keys(g_EsoCpData).forEach(function (nodeId) {
       var node = g_EsoCpData[nodeId];
-      if (node && node.points > 0)
-        build.championPointNodes[nodeId] = { points: node.points };
+      if (!node || node.points == null) return;
+      // The page also stores every node under its name (esocp_simple.js:63) and
+      // keeps discipline summaries under numeric ids; export each ability once
+      // (numeric key) plus the attribute allocations (attribute1..3).
+      var keepKey = /^\d+$/.test(nodeId) || nodeId.indexOf('attribute') === 0;
+      var keepType = node.type === 'skill' || node.type === 'attribute';
+      if (!keepKey || !keepType) return;
+      if (node.points > 0) {
+        var cpEntry = { points: Number(node.points) };
+        // Champion-bar state: slottable nodes only apply when the page marked
+        // them unlocked (esocp_simple.js:684-720).
+        if (node.type === 'skill') cpEntry.isUnlocked = node.isUnlocked === true;
+        build.championPointNodes[nodeId] = cpEntry;
+      }
     });
   }
 

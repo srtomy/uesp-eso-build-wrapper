@@ -110,8 +110,13 @@ export function debugBuild(input: BuildInput): BuildDebugInfo {
   const cpSkills = g.g_EsoCpSkills ?? {};
   for (const [nodeId, cpData] of Object.entries(cpDataGlobal)) {
     if (!cpData || cpData.type !== 'skill') continue;
-    // g_EsoCpData does not store points — read from the original input
-    const inputNode = input.championPointNodes?.[nodeId];
+    // Skip the name aliases created for engine lookups (esocp_simple.js:63
+    // parity in calculator.ts): they point to the same entry as the numeric key.
+    if (!/^\d+$/.test(nodeId)) continue;
+    // g_EsoCpData does not store points — read from the original input, which
+    // may key the node by abilityId or by name.
+    const inputNode =
+      input.championPointNodes?.[nodeId] ?? input.championPointNodes?.[cpData.name ?? ''];
     cpNodes[nodeId] = {
       name: cpData.name ?? cpSkills[nodeId]?.name ?? `CP_${nodeId}`,
       points: Number(inputNode?.points ?? 0),

@@ -21,7 +21,7 @@
 import { resetDomValues, setDomAttr, setDomTextContent, setDomValue } from './env-setup.js';
 import { engineGlobals } from './engine-globals.js';
 import { collectSetToggles } from './set-toggles.js';
-import type { EnginePassiveRecord, EngineStatEntry } from './engine-globals.js';
+import type { EngineCpEntry, EnginePassiveRecord, EngineStatEntry } from './engine-globals.js';
 import type {
   BuffInfo,
   BuildInput,
@@ -430,7 +430,22 @@ export function calculateBuild(input: BuildInput): CalculatedBuild {
             const skillType = Number(meta?.skillType ?? 0);
             isUnlocked = points >= delta && skillType === 0;
           }
-          cpDataGlobal[nodeId] = { type: 'skill', isUnlocked, description: plainDesc, name };
+          const entry: EngineCpEntry = {
+            type: 'skill',
+            id: Number(nodeId),
+            isUnlocked,
+            description: plainDesc,
+            name,
+          };
+          cpDataGlobal[nodeId] = entry;
+          // Mirror the browser bootstrap: esocp_simple.js:63 stores every CP node
+          // under its name as well (`g_EsoCpData[skillName] = g_EsoCpData[skillId]`).
+          // Some engine checks read the name key directly — Bulwark at
+          // esoEditBuild.js:3806 and the legacy Shield Expert block at :2227 — so
+          // without the alias those nodes silently apply no effect. The rule loops
+          // skip non-numeric keys (`isNaN(id) continue`), so the alias never
+          // double-counts. Alias only real node names, never the `CP_<id>` fallback.
+          if (cpSkills[nodeId]?.name) cpDataGlobal[name] = entry;
         }
         // no resolvable description → node ignored (no engine effect)
       } else {
