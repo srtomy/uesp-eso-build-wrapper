@@ -88,7 +88,12 @@ vendor/
 Releases are **manual** — you decide when. Two GitHub Actions (both `workflow_dispatch`):
 
 1. **Prepare release:** Actions → `Prepare release` → Run workflow (`version: auto` bumps from Conventional Commits, or `vX.Y.Z` explicit). It runs `scripts/prepare-release.mjs` and opens a PR `release/vX.Y.Z` with `package.json` + `CHANGELOG.md`.
-2. **Publish release:** after the release PR is merged to `main`, Actions → `Publish release` → Run workflow (`ref: main`). It creates the git tag, GitHub Release (from `CHANGELOG.md`), and publishes to npm (`--provenance`, gated by `vars.NPM_PUBLISH_ENABLED` + `secrets.NPM_TOKEN`).
+2. **Publish release:** after the release PR is merged to `main`, Actions → `Publish release` → Run workflow (`ref: main`, leave `version` **empty** so it reads `package.json`). It validates that `package.json` matches the release version and that the CHANGELOG entry exists, creates the git tag, GitHub Release (from `CHANGELOG.md`), and publishes to npm (`--provenance`, gated by `vars.NPM_PUBLISH_ENABLED` + `secrets.NPM_TOKEN`).
+
+Notes:
+
+- Dispatch **Publish release** right after merging the release PR — the tag points at the current `main` HEAD, so a PR merged in between would ship unreleased.
+- Pre-releases (`X.Y.Z-rc.1`) must use an `npm_tag` other than `latest` (e.g. `rc`); the workflow blocks `latest` for them and skips the docs deploy.
 
 Local alternative (without Actions): `node scripts/prepare-release.mjs auto --dry-run` to preview, then `node scripts/prepare-release.mjs auto` + `git commit -m "chore: release vX.Y.Z"` + `gh pr create`.
 
