@@ -27,7 +27,7 @@ let engineLoaded = false;
  * @param uespResourcesPath - Path to the UESP fork's resources/ folder.
  *   E.g. path.resolve(import.meta.dirname, '../../../vendor/uesp-esochardata/resources')
  * @param initData
- *   E.g. path.resolve(import.meta.dirname, '../../../vendor/uesp-data/uesp-init-data.json')
+ *   E.g. path.resolve(import.meta.dirname, '../../../vendor/uesp-data/uesp-game-data.json')
  */
 export function loadUespEngine(uespResourcesPath: string, initData: string | UespInitData): void {
   if (engineLoaded) return; // singleton — loads only once per process
@@ -41,8 +41,8 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     if (!fs.existsSync(initData)) {
       throw new Error(
         `[eso-engine] Initialization file not found: ${initData}\n` +
-          `Run the browser extraction script and save the result to this path.\n` +
-          `See: vendor/uesp-data/browser-extract.js`,
+          `Generate it with 'npm run fetch-http' or 'npm run db:seed -- --dir <dumps> --version <patch>'.\n` +
+          `See: CONTRIBUTING.md`,
       );
     }
     data = JSON.parse(fs.readFileSync(initData, 'utf-8')) as UespInitData;

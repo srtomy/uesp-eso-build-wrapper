@@ -10,7 +10,7 @@
  *
  * UPDATING AFTER A NEW PATCH (when ZeniMax releases a new DLC):
  *   1. In vendor/uesp-esochardata/, run:
- *      git fetch upstream && git merge upstream/master
+ *      git fetch origin && git merge origin/master
  *   2. Download the latest UESP SQL dumps and seed local.db.
  *   3. Run: npm run generate-data -- --db /path/to/local.db --version <patch>
  *   4. Commit vendor/uesp-data/uesp-game-data.json

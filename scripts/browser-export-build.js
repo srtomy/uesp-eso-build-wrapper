@@ -2,7 +2,7 @@
  * UESP ESO Build Exporter — run in the Build Editor DevTools Console
  *
  * HOW TO USE:
- *   1. Open https://en.uesp.net/wiki/Special:EsoBuildEditor  (same URL as browser-extract.js)
+ *   1. Open https://en.uesp.net/wiki/Special:EsoBuildEditor  (the deployment whose data powers vendor/uesp-data/uesp-game-data.json)
  *   2. Configure your build (race, class, items, buffs, CP, etc.)
  *   3. Open DevTools (F12) → Console tab
  *   4. Paste the entire contents of this file and press Enter

@@ -501,7 +501,7 @@ export function calculateBuild(input: BuildInput): CalculatedBuild {
   // conditional passives (e.g. Destruction Staff passives, set bonuses affecting
   // "Class abilities", etc.).
   //
-  // CURRENT LIMITATION: without g_SkillsData in uesp-init-data.json, skill IDs are
+  // CURRENT LIMITATION: without g_SkillsData in uesp-game-data.json, skill IDs are
   // injected but skill line passives produce no stats. It becomes functional
   // once g_SkillsData is added to the extraction JSON.
   // (g_EsoSkillBarData already initialized with empty bars in the reset block above)
