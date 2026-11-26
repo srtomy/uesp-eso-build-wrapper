@@ -33,6 +33,8 @@ jobs:
             perf
             test
             build
-          # Exempt automated Release PRs (release-please, phase 2).
+          # Release PRs are opened by prepare-release.yml with the `prepare-release`
+          # label; their title (`chore: release vX.Y.Z`) already passes — the label
+          # is just a safety net if the title format ever changes.
           ignoreLabels: |
-            github-release
+            prepare-release

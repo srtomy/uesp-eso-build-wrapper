@@ -144,10 +144,22 @@ Options considered:
 Scope:
 
 - `prepare-release.yml`: `on: workflow_dispatch` (`version: auto|vX.Y.Z`) → `scripts/prepare-release.mjs` (B+ filter) → PR `release/vX.Y.Z` (`prepare-release` label, `chore: release vX.Y.Z`, `CHANGELOG.md` + `package.json` bump). **CI is 100% deterministic — no LLM.**
-- `publish-release.yml`: `on: workflow_dispatch` (`ref: main`, `version: auto`) → verifies `CHANGELOG.md`, builds, extracts release notes, `git tag vX.Y.Z && git push`, `softprops/action-gh-release` + `npm publish --provenance` (gated by `vars.NPM_PUBLISH_ENABLED` + `secrets.NPM_TOKEN`).
+- `publish-release.yml`: `on: workflow_dispatch` (`ref: main`, `version` **empty** → reads `package.json`) → validates the version format and that `package.json` matches it, verifies `CHANGELOG.md`, builds, extracts release notes, `git tag vX.Y.Z && git push`, `softprops/action-gh-release` + `npm publish --provenance` (gated by `vars.NPM_PUBLISH_ENABLED` + `secrets.NPM_TOKEN`).
 - `.github/release.yml`: fallback categories for GitHub auto-generated notes (labels `skip changelog` excluded).
 - Document the flow in `CONTRIBUTING.md`.
 - **AI (optional, local-only):** `changelog-polish` agent runs on the developer machine via `opencode` after the prepare PR is created, reading commit/PR bodies and rewriting bullets to user-facing language. Never in CI; the PR is the review gate.
+
+### One-time repository setup
+
+- `vars.NPM_PUBLISH_ENABLED=true` + `secrets.NPM_TOKEN` to enable npm publishing (otherwise the workflow only tags + creates the GitHub Release, and prints a manual-publish hint).
+- Protect the `release` environment (Settings → Environments) with a required reviewer — the publish job already references it, but without protection rules it is a pass-through.
+- Pages must be served by "GitHub Actions" (Settings → Pages) for the `deploy-docs` job.
+- Branch protection must list the CI checks (§3); the Prepare release PR is a normal PR and goes through the same gate.
+
+### Operational notes
+
+- Dispatch **Publish release** right after merging the release PR: the tag points at the current `main` HEAD, so a PR merged in between would ship unreleased.
+- Pre-releases (`X.Y.Z-rc.1`) never become `latest`: `npm_tag` must be `rc`/`canary`/… and the docs deploy is skipped.
 
 ---
 
