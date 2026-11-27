@@ -73,6 +73,8 @@ Then:
 4. Inspect with `npm run test:build path/to/uesp-build-export.json`
 5. Or drop it into `tests/fixtures/` — `tests/build-fixtures.test.ts` auto-discovers it and asserts every `expectedStats` value (`npm run test:fixtures` runs just that suite)
 
+> Fixtures may pin the UESP rules version they were captured with in `_meta.rulesVersion` (e.g. `"51"`). When it differs from `vendor/uesp-data/uesp-game-data.json`, the suite fails with a staleness message — regenerate the game data or recapture the build.
+
 ## Releasing
 
 Branch model, release channels (`canary` / `rc` / `latest`) and the hotfix flow are documented in [Releasing](/releasing).

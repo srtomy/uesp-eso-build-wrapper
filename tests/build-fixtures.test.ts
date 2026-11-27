@@ -38,7 +38,19 @@ const SKIP_STATS = new Set([
 // Most stats are integers; a few (DamageDone, CritDamage, Mitigation) are floats.
 const FLOAT_TOLERANCE = 0.001;
 
+// Version guard: factory-generated fixtures record the effective UESP rules version in
+// `_meta.rulesVersion` (e.g. "51"). A mismatch with the vendored game data means the golden
+// is comparing different rules — stale fixture or stale data. Legacy fixtures carry "Live".
+const GAME_DATA_FILE = path.resolve(__dirname, '../vendor/uesp-data/uesp-game-data.json');
+let gameDataVersion = '';
+try {
+  gameDataVersion = JSON.parse(fs.readFileSync(GAME_DATA_FILE, 'utf-8'))._meta?.gameVersion ?? '';
+} catch {
+  /* version guard is best-effort */
+}
+
 interface BuildFixture {
+  _meta?: { rulesVersion?: string; gameVersion?: string; exportedAt?: string };
   character: any;
   items?: any;
   activeBuffs?: string[];
@@ -55,6 +67,23 @@ interface BuildFixture {
 
 function runFixture(fixturePath: string) {
   const fixture: BuildFixture = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
+
+  // Refuse to compare a fixture captured with different rules than the vendored game data.
+  const pinnedVersion = fixture._meta?.rulesVersion;
+  if (
+    pinnedVersion &&
+    /^\d+$/.test(String(pinnedVersion)) &&
+    gameDataVersion &&
+    String(pinnedVersion) !== String(gameDataVersion)
+  ) {
+    expect
+      .soft(
+        false,
+        `_meta.rulesVersion ${pinnedVersion} ≠ vendored game data ${gameDataVersion}` +
+          ' — regenerate vendor/uesp-data/uesp-game-data.json or re-capture the fixture',
+      )
+      .toBe(true);
+  }
 
   const {
     character,
