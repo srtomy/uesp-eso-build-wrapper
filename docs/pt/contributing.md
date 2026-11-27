@@ -73,6 +73,8 @@ O `scripts/browser-export-build.js` roda no console DevTools do UESP Build Edito
 4. Inspecione com `npm run test:build caminho/uesp-build-export.json`
 5. Ou solte-o em `tests/fixtures/` — o `tests/build-fixtures.test.ts` o auto-descobre e assera cada valor de `expectedStats` (`npm run test:fixtures` roda só essa suíte)
 
+> Fixtures podem travar a versão de regras da UESP com que foram capturadas em `_meta.rulesVersion` (ex.: `"51"`). Quando ela difere do `vendor/uesp-data/uesp-game-data.json`, a suíte falha com aviso de staleness — regenere o game data ou recapture o build.
+
 ## Pull requests
 
 - Uma feature ou fix por PR
