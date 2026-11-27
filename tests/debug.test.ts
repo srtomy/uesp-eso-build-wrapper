@@ -46,8 +46,23 @@ describe('debugBuild', () => {
       points: 25,
       isUnlocked: true,
     });
+    // The engine-facing name alias must not duplicate the node in the debug output.
+    expect(debug.cpNodes['Arcane Supremacy']).toBeUndefined();
     expect(debug.computedStats.Magicka).toBe(19754);
     expect(debug.statSources).toEqual(expect.any(Object));
+  });
+
+  it('resolves CP points when the input keys the node by name', () => {
+    const debug = debugBuild({
+      character: { ...CHARACTER, championPoints: 160 },
+      championPointNodes: { 'Arcane Supremacy': { points: 25, isUnlocked: true } },
+    });
+
+    expect(debug.cpNodes['141744']).toEqual({
+      name: 'Arcane Supremacy',
+      points: 25,
+      isUnlocked: true,
+    });
   });
 
   it('restores the GetEsoInputValues monkey-patch after a calculation error', () => {

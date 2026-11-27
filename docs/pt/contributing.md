@@ -71,7 +71,7 @@ O `scripts/browser-export-build.js` roda no console DevTools do UESP Build Edito
 2. DevTools (F12) → Console → cole e rode o script
 3. Um arquivo `uesp-build-export.json` é baixado
 4. Inspecione com `npm run test:build caminho/uesp-build-export.json`
-5. Ou solte-o em `tests/fixtures/` — o `tests/build-fixtures.test.ts` o auto-descobre e assera cada valor de `expectedStats`
+5. Ou solte-o em `tests/fixtures/` — o `tests/build-fixtures.test.ts` o auto-descobre e assera cada valor de `expectedStats` (`npm run test:fixtures` roda só essa suíte)
 
 ## Pull requests
 
