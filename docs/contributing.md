@@ -43,14 +43,16 @@ Two sources change with each patch:
 
 ```bash
 cd vendor/uesp-esochardata
-git fetch upstream && git merge upstream/master
+git fetch origin && git merge origin/master
 cd ../..
 ```
 
 **2. Game data** (`vendor/uesp-data/uesp-game-data.json`):
 
 ```bash
-# self-contained: parse the UESP SQL dumps straight into uesp-game-data.json
+# live data: build editor page + public esolog API — no dumps, no database
+npm run fetch-http
+# or self-contained: parse the UESP SQL dumps straight into uesp-game-data.json
 npm run db:seed -- --dir /path/to/dumps --version <patch>
 # (or seed local.db and run: npm run generate-data -- --db /path/to/local.db --version <patch>)
 ```
@@ -65,7 +67,7 @@ Then:
 
 `scripts/browser-export-build.js` runs inside the UESP Build Editor DevTools console and exports the full build — inputs and expected stats — as JSON.
 
-1. Open [esobuilds.uesp.net](https://esobuilds.uesp.net), configure your build
+1. Open the [Build Editor](https://en.uesp.net/wiki/Special:EsoBuildEditor) — the same deployment used to generate `vendor/uesp-data/uesp-game-data.json` — and configure your build
 2. DevTools (F12) → Console → paste and run the script
 3. A `uesp-build-export.json` file downloads
 4. Inspect with `npm run test:build path/to/uesp-build-export.json`
