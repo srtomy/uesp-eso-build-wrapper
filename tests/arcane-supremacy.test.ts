@@ -1,5 +1,5 @@
 /**
- * Integration tests: CP nodes with real data from vendor/uesp-data/uesp-init-data.json.
+ * Integration tests: CP nodes with real data from vendor/uesp-data/uesp-game-data.json.
  *
  * Each suite allocates points into a real node and asserts the stat delta matches
  * the "Current bonus" value in the node's description at that point level.

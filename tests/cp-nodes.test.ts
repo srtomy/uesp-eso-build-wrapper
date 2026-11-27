@@ -4,7 +4,7 @@
  * Context: calculator.ts populates g_EsoCpData[nodeId] using the globals
  * g_EsoCpSkills (names) and g_EsoCpSkillDesc (descriptions per point level).
  * These globals are injected by loader.ts from cpSkillsData and
- * cpSkillDescData in uesp-init-data.json (extracted from the browser).
+ * cpSkillDescData in uesp-game-data.json (extracted from the browser).
  *
  * The tests use mocked globals to stay independent of the extracted JSON.
  * The UESP engine behavior (stat calculation) is not tested here —
@@ -29,8 +29,8 @@ beforeAll(() => {
   originalCpSkillDesc = (global as any).g_EsoCpSkillDesc;
 });
 
-// Mocked data simulating what the browser extracts after re-running
-// browser-extract.js (g_EsoCpSkills and g_EsoCpSkillDesc injected by the loader).
+// Mocked data simulating what the browser extracts into
+// uesp-game-data.json (g_EsoCpSkills and g_EsoCpSkillDesc injected by the loader).
 const MOCK_CP_SKILLS = {
   '60494': { name: 'Inspiration Boost', disciplineIndex: 0 },
   '60500': { name: 'Gifted Rider', disciplineIndex: 1 },
@@ -158,7 +158,7 @@ describe('CP node injection — description resolution', () => {
   });
 
   it('HTML in JSON descriptions is stripped before reaching the engine', () => {
-    // Simulates the real cpSkillDescData format (with HTML as in browser-extract)
+    // Simulates the real cpSkillDescData format (with HTML, as in uesp-game-data.json)
     (global as any).g_EsoCpSkills = { '60494': { name: 'Inspiration Boost', disciplineIndex: 0 } };
     (global as any).g_EsoCpSkillDesc = {
       '60494': {

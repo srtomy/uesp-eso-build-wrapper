@@ -425,7 +425,7 @@ const STATS_BASE_LIST = [
   'WerewolfTransformCost',
   'EnchantCooldown',
   'EnchantPotency',
-  // Added after syncing with the browser-extracted JSON (patch 49→50)
+  // Added after syncing with uesp-game-data.json (patch 49→50)
   'AOEDamageDone',
   'AOEHealingDone',
   'BleedDamageDone',

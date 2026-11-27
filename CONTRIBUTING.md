@@ -37,15 +37,19 @@ git fetch origin && git merge origin/master
 cd ../..
 ```
 
-**2. Formula data** (`vendor/uesp-data/uesp-init-data.json`):
+**2. Formula data** (`vendor/uesp-data/uesp-game-data.json`):
 
-1. Open `https://en.uesp.net/wiki/Special:EsoBuildEditor` in Chrome/Firefox
-2. Wait for the page to fully load
-3. Open DevTools (F12) → Console tab
-4. Paste the contents of `vendor/uesp-data/browser-extract.js` and press Enter
-5. A JSON file will download — save it as `vendor/uesp-data/uesp-init-data.json`
+```bash
+# Live data (build editor page + esolog API) — no dumps, no database
+npm run fetch-http
 
-> **Important:** use the same URL (`Special:EsoBuildEditor`) for both `browser-extract.js` and `browser-export-build.js`. Different UESP deployments carry different `g_SkillsData` versions and will produce divergent results.
+# Or from the self-contained MariaDB dumps
+npm run db:seed -- --dir /path/to/dumps --version <patch>
+```
+
+`uesp-game-data.json` records where it came from and which patch in its `_meta` field.
+
+> **Important:** `browser-export-build.js` must run on `https://en.uesp.net/wiki/Special:EsoBuildEditor`, the same deployment used to generate `uesp-game-data.json`. The editor is also served from other deployments (e.g. `esobuilds.uesp.net`); those may carry different `g_SkillsData` versions and produce divergent results.
 
 After updating either source, run `npm test`. Update golden values in `tests/engine.test.ts` if they changed intentionally (formula patch).
 
@@ -67,8 +71,7 @@ vendor/
   uesp-esochardata/   — git submodule: UESP engine JS (esoEditBuild.js, esobuilddata.js)
   uesp-esolog/        — git submodule: UESP skill data (esoskills.js)
   uesp-data/
-    uesp-init-data.json   — extracted game formulas (see "Updating" above)
-    browser-extract.js    — DevTools script to extract init data
+    uesp-game-data.json   — game formulas (see "Updating" above)
 ```
 
 ## Pull requests
