@@ -14,7 +14,7 @@ O [UESP Build Editor](https://esobuilds.uesp.net) tem o cálculo de stats de ESO
 
 Esta biblioteca carrega esse motor **vendored e sem modificações** dentro do Node.js e age como ponte:
 
-- **Você injeta os inputs** — ficha do personagem, itens (direto da API de itens da UESP), Champion Points, buffs, skills.
+- **Você injeta os inputs** — ficha do personagem, itens (payloads de item), Champion Points, buffs, skills.
 - **O motor da UESP calcula** cada stat com as próprias fórmulas.
 - **Você lê os outputs** — um objeto tipado com todos os stats computados.
 
@@ -25,7 +25,7 @@ O wrapper nunca implementa uma fórmula sequer do jogo. Quando um stat parece er
 - **Roda local, sem rede para calcular** — `calculateBuild()` é síncrono e não faz requisições HTTP; o motor vendored roda in-process. Ver [Arquitetura](/pt/architecture).
 - **100% fórmulas UESP** — o mesmo motor do [esobuilds.uesp.net](https://esobuilds.uesp.net), zero matemática de ESO no wrapper
 - **204 stats computados** — todas as Computed Character Statistics do build editor
-- **Item data da UESP pluga direto** — objetos `exportJson.php?table=minedItem` vão direto para `BuildInput.items`
+- **Item data pluga direto** — objetos no shape `UespItemApiData` vão direto para `BuildInput.items`
 - **Zero dependências de runtime** — Node.js puro
 - **Tipos TypeScript completos** — inputs e outputs tipados, [API Reference](/api/) documentada com TSDoc
 - **Loader singleton** — o motor carrega uma vez por processo; builds seguintes são rápidas

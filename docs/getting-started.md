@@ -18,18 +18,13 @@ npm install uesp-eso-build-wrapper
 
 Game data (`UespInitData`) is **not bundled in the npm package** — the library ships only the engine scripts. You supply the data when initializing.
 
-The canonical source is [`vendor/uesp-data/uesp-game-data.json`](https://github.com/srtomy/uesp-eso-build-wrapper/blob/main/vendor/uesp-data/uesp-game-data.json), committed to the repository and regenerated from UESP SQL dumps after each ESO patch. Its `_meta` field records which patch it was generated from — pin or update your copy deliberately so your numbers always match a known game version.
+The canonical source is [`vendor/uesp-data/uesp-game-data.json`](https://github.com/srtomy/uesp-eso-build-wrapper/blob/main/vendor/uesp-data/uesp-game-data.json), committed to the repository and refreshed after each ESO patch. Its `_meta` field records which patch it was generated from — pin or update your copy deliberately so your numbers always match a known game version.
 
 Ways to obtain it:
 
 1. **Copy from the repo** — download `uesp-game-data.json` from the repository above and load it with `fs.readFileSync`.
-2. **Generate it yourself** — the wrapper ships a self-contained pipeline that parses the UESP MariaDB dumps directly (no external project required), using the same Node >= 24 runtime as the library:
 
-   ```bash
-   npm run db:seed -- --dir /path/to/dumps --version <patch>
-   ```
-
-   (Or seed a SQLite DB and use the older `npm run generate-data -- --db /path/to/local.db --version <patch>`.)
+The wrapper does not ship a data-acquisition pipeline: the artifact is committed to the repo and the public package never fetches from UESP.
 
 ## Initialize the engine
 
@@ -72,7 +67,7 @@ The result object also carries `stats.raw` — all 204 stats as a plain record. 
 ## Next steps
 
 - [Character](/guides/character) — every character-sheet field
-- [Items & Equipment](/guides/items) — gear from the UESP item API
+- [Items & Equipment](/guides/items) — gear payloads
 - [Champion Points](/guides/champion-points) — CP nodes
 - [Buffs & Toggle Skills](/guides/buffs-and-toggles) — named buffs and toggles
 - [Skills & Passives](/guides/skills) — skill bars, morphs, passives

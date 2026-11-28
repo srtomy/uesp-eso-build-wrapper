@@ -13,7 +13,7 @@
 
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
-import { loadInitData } from '../src/lib/uesp-data';
+import { loadInitData } from '../src/lib/eso-engine/game-data';
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
 

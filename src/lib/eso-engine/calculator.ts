@@ -8,8 +8,7 @@
  *
  *   2. Inject item data DIRECTLY into g_EsoBuildItemData[slot]
  *      — no need to mock jQuery for each item field.
- *      Fields come exactly in the UESP public API format:
- *      GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>
+ *      Fields follow the UespItemApiData payload shape (all strings).
  *
  *   3. Call UpdateEsoComputedStatsList_Real(null, true)
  *      — the `noUpdate=true` parameter makes the engine compute everything but skip
@@ -152,7 +151,7 @@ function clampSetToggleCount(
  *   character: { race: 'High Elf', class: 'Sorcerer', level: 50,
  *                attributes: { health: 0, magicka: 64, stamina: 0 } },
  *   items: {
- *     Chest: chestItemFromUespApi,  // object returned by esolog.uesp.net/exportJson.php
+ *     Chest: chestItem,  // UespItemApiData payload
  *   },
  * });
  * console.log(stats.Magicka, stats.SpellDamage);

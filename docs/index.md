@@ -14,7 +14,7 @@ The [UESP Build Editor](https://esobuilds.uesp.net) has the most accurate ESO st
 
 This library loads that **vendored, unmodified engine** into Node.js and acts as a bridge:
 
-- **You inject inputs** — character sheet, items (straight from the UESP item API), Champion Points, buffs, skills.
+- **You inject inputs** — character sheet, items (item payloads), Champion Points, buffs, skills.
 - **UESP's engine computes** every stat with its own formulas.
 - **You read back outputs** — one typed object with all computed stats.
 
@@ -25,7 +25,7 @@ The wrapper never implements a single game formula. When a stat looks wrong afte
 - **Runs locally, no network for calculations** — `calculateBuild()` is synchronous and performs no HTTP requests; the vendored engine runs in-process. See [Architecture](/architecture).
 - **100% UESP formulas** — same engine powering [esobuilds.uesp.net](https://esobuilds.uesp.net), zero ESO math in the wrapper
 - **204 computed stats** — every Computed Character Statistic from the build editor
-- **UESP item data plugs in directly** — `exportJson.php?table=minedItem` objects go straight into `BuildInput.items`
+- **Item payloads plug in directly** — objects in the `UespItemApiData` shape go straight into `BuildInput.items`
 - **Zero runtime dependencies** — pure Node.js
 - **Full TypeScript types** — typed inputs and outputs, TSDoc-documented [API Reference](/api/)
 - **Singleton loader** — engine loads once per process, subsequent builds are cheap

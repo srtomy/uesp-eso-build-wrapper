@@ -41,10 +41,6 @@
     "./cp-gate": {
       "types": "./dist/lib/eso-engine/cp-gate.d.ts",
       "default": "./dist/lib/eso-engine/cp-gate.js"
-    },
-    "./uesp-data": {
-      "types": "./dist/lib/uesp-data/index.d.ts",
-      "default": "./dist/lib/uesp-data/index.js"
     }
   },
   "files": [
@@ -65,9 +61,6 @@
     "format:check": "prettier --check src tests",
     "publint": "publint",
     "attw": "attw --pack . --ignore-rules cjs-resolves-to-esm no-resolution",
-    "generate-data": "tsx --experimental-sqlite --no-warnings scripts/generate-data.ts",
-    "db:seed": "tsx --experimental-sqlite --no-warnings scripts/seed-db.ts",
-    "fetch-http": "tsx --experimental-sqlite --no-warnings scripts/fetch-http.ts",
     "prepublishOnly": "npm run build && npm run lint",
     "test": "vitest run",
     "test:esm": "node scripts/test-esm-import.mjs",
@@ -81,8 +74,7 @@
     "docs:api:sync-pt": "rm -rf docs/pt/api && cp -r docs/api docs/pt/api",
     "test:explore": "tsx scripts/test-engine.ts",
     "test:build": "tsx scripts/test-build.ts",
-    "test:fixtures": "vitest run tests/build-fixtures.test.ts",
-    "test:db-init": "tsx --experimental-sqlite --no-warnings scripts/test-db-init.ts"
+    "test:fixtures": "vitest run tests/build-fixtures.test.ts"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

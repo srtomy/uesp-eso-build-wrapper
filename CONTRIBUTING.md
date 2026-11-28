@@ -39,17 +39,9 @@ cd ../..
 
 **2. Formula data** (`vendor/uesp-data/uesp-game-data.json`):
 
-```bash
-# Live data (build editor page + esolog API) — no dumps, no database
-npm run fetch-http
-
-# Or from the self-contained MariaDB dumps
-npm run db:seed -- --dir /path/to/dumps --version <patch>
-```
-
-`uesp-game-data.json` records where it came from and which patch in its `_meta` field.
-
-> **Important:** `browser-export-build.js` must run on `https://en.uesp.net/wiki/Special:EsoBuildEditor`, the same deployment used to generate `uesp-game-data.json`. The editor is also served from other deployments (e.g. `esobuilds.uesp.net`); those may carry different `g_SkillsData` versions and produce divergent results.
+The file is an **artifact** committed to the repo: its `_meta` field records which
+patch and source it came from. This repo never fetches from UESP — acquisition is
+out of the public surface. Refresh the artifact for the new patch and commit it.
 
 After updating either source, run `npm test`. Update golden values in `tests/engine.test.ts` if they changed intentionally (formula patch).
 
@@ -64,6 +56,7 @@ src/lib/eso-engine/
   loader.ts       — bootstraps UESP scripts into Node's global scope
   env-setup.ts    — minimal DOM mock (jQuery stubs, element registry)
   calculator.ts   — calculateBuild() + catalog functions
+  game-data.ts    — loadInitData(): reads the committed artifact (tests)
   index.ts        — public API exports
   types.ts        — TypeScript types for all inputs and outputs
 
