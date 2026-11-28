@@ -40,9 +40,9 @@ Remaining items not yet implemented:
 These are bigger items, intentionally deferred:
 
 - **Version-update agent** — a `.claude/agents/` subagent to automate the ESO
-  patch-update flow (merge UESP submodules, regenerate `uesp-data`, re-export
-  fixtures, run tests, surface golden-value diffs). See `CONTRIBUTING.md` →
-  "Updating game formulas".
+  patch-update flow (merge UESP submodules, update the committed game-data
+  artifact, re-baseline fixtures, run tests, surface golden-value diffs). See
+  `CONTRIBUTING.md` → "Updating game formulas".
 - **Calculation-divergence dictionary** — a versioned doc cataloguing UESP engine
   quirks and calculation bugs found/fixed (e.g. BashDamage ordering, LA/HA item
   deltas), so future debugging starts from known pitfalls instead of from scratch.

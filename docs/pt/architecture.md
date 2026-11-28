@@ -118,7 +118,7 @@ UESP upstream
     ↓
 atualizar motor/dados vendored
     ↓
-gerar dados (npm run generate-data)
+regerar o artefato de game-data (pipeline fora do repo)
     ↓
 rodar testes (npm test)
     ↓
@@ -126,27 +126,12 @@ publicar
 ```
 
 1. Merge do upstream em `vendor/uesp-esochardata/` (e `vendor/uesp-esolog/` para descrições de skills).
-2. Regenere `vendor/uesp-data/uesp-game-data.json`: `npm run generate-data -- --db /path/to/local.db --version <patch>`.
+2. Regenere `vendor/uesp-data/uesp-game-data.json` com o pipeline privado de dados do projeto e commite o artefato — este repo nunca busca da UESP.
 3. Rode `npm test` — os golden values são travados nas fórmulas vendored; mudanças intencionais do upstream exigem atualizar as expectativas.
 4. Ver [Contribuindo](/pt/contributing) para o procedimento completo de atualização de patch.
 
-### Quando os dumps do patch não estão disponíveis
-
-`npm run fetch-http` gera o mesmo `UespInitData` a partir de dois endpoints live
-da UESP, sem os dumps MariaDB:
-
-```text
-https://en.uesp.net/wiki/Special:EsoBuildEditor   → g_EsoBuildRules (rules + effects + computedStats)
-https://esolog.uesp.net/exportJson.php            → cp2*, playerSkills, skillTree
-                          ↓
-      mesmo esquema SQLite (8 tabelas de dump + 2 de API) + extractGameData do db:seed
-```
-
-O bloco `_meta` grava `source: "http"`, a URL da página e os tamanhos do payload,
-então o dataset continua auditável. Diferenças em relação ao caminho de dump: o
-resultado é sempre a **versão live** das regras (a API não permite fixar versão),
-e o parser se recusa a gravar um dataset que pareça truncado (versão inesperada
-ou misturada, efeitos órfãos, poucas linhas). As regras da UESP também podem
-ficar atrás do próprio texto das skills por algumas semanas — nessa janela o
+O bloco `_meta` do artefato grava a fonte (dump ou endpoints live), o patch e os
+tamanhos do payload, então o dataset continua auditável. As regras da UESP também
+podem ficar atrás do próprio texto das skills por algumas semanas — nessa janela o
 wrapper bate com o site, não com o jogo: re-baseline `tests/fixtures/*` e reporte
 a divergência upstream em vez de corrigir fórmula aqui.

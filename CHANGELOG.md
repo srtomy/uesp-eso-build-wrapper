@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Data acquisition left the public repo (BREAKING)**: `npm run fetch-http`, `npm run db:seed`, `npm run generate-data`, `npm run test:db-init`, `scripts/browser-export-build.js` and the `./uesp-data` subpath were removed. `vendor/uesp-data/uesp-game-data.json` is now committed as an **artifact** produced by the project's private data pipeline — the public package never contacts UESP. `loadInitData()` moved to `src/lib/eso-engine/game-data.ts` (internal to the engine; not exported from the package entry). The `_meta` contract (source, patch, payload sizes) is unchanged.
+- Bug reports no longer ask for the removed DevTools exporter — a minimal `BuildInput` reproduces an issue just as well.
+
 ## [0.8.0] — 2026-11-26
 
 ESO update 51 support, previously validated as the `0.8.0-canary.1` pre-release.

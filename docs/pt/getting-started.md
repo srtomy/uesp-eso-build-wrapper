@@ -18,18 +18,13 @@ npm install uesp-eso-build-wrapper
 
 Os dados do jogo (`UespInitData`) **não vêm no pacote npm** — a biblioteca embala apenas os scripts do motor. Você fornece os dados na inicialização.
 
-A fonte canônica é o [`vendor/uesp-data/uesp-game-data.json`](https://github.com/srtomy/uesp-eso-build-wrapper/blob/main/vendor/uesp-data/uesp-game-data.json), commitado no repositório e regenerado dos dumps SQL da UESP a cada patch de ESO. O campo `_meta` registra de qual patch foi gerado — atualize ou fixe sua cópia deliberadamente para que seus números correspondam a uma versão conhecida do jogo.
+A fonte canônica é o [`vendor/uesp-data/uesp-game-data.json`](https://github.com/srtomy/uesp-eso-build-wrapper/blob/main/vendor/uesp-data/uesp-game-data.json), commitado no repositório e regenerado a cada patch de ESO pelo pipeline privado de dados do projeto. O campo `_meta` registra de qual patch foi gerado — atualize ou fixe sua cópia deliberadamente para que seus números correspondam a uma versão conhecida do jogo.
 
 Formas de obter:
 
 1. **Copiar do repositório** — baixe o `uesp-game-data.json` do repositório acima e carregue com `fs.readFileSync`.
-2. **Gerar você mesmo** — o wrapper traz um pipeline self-contained que faz o parse direto dos dumps MariaDB da UESP (sem depender de projeto externo), usando o mesmo runtime Node >= 24 da biblioteca:
 
-   ```bash
-   npm run db:seed -- --dir /caminho/dumps --version <patch>
-   ```
-
-   (Ou semeie um banco SQLite e use o `npm run generate-data -- --db /caminho/local.db --version <patch>`.)
+O wrapper não traz pipeline de aquisição de dados: o artefato é produzido fora deste repositório e a aquisição nunca roda a partir do pacote público.
 
 ## Inicialize o motor
 

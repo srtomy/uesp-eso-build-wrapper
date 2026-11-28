@@ -49,13 +49,10 @@ cd ../..
 
 **2. Dados do jogo** (`vendor/uesp-data/uesp-game-data.json`):
 
-```bash
-# dados ao vivo: página do build editor + API pública do esolog — sem dumps, sem banco
-npm run fetch-http
-# ou self-contained: faça o parse dos dumps SQL da UESP direto pra uesp-game-data.json
-npm run db:seed -- --dir /caminho/dumps --version <patch>
-# (ou semeie local.db e rode: npm run generate-data -- --db /caminho/local.db --version <patch>)
-```
+O arquivo é um **artefato** produzido fora deste repo pelo pipeline privado de dados
+do projeto. Este repo nunca busca da UESP — a aquisição fica de fora da superfície
+pública de propósito. Regenere o artefato lá e commite o JSON resultante; o campo
+`_meta` registra de onde veio e qual patch.
 
 Depois:
 
@@ -63,15 +60,11 @@ Depois:
 2. Rode `npm test`
 3. Atualize os golden values em `tests/engine.test.ts` se mudaram **intencionalmente** (patch de fórmula)
 
-## Validando contra o browser da UESP
+## Validação dos fixtures
 
-O `scripts/browser-export-build.js` roda no console DevTools do UESP Build Editor e exporta a build completa — inputs e stats esperados — em JSON.
+`tests/build-fixtures.test.ts` auto-descobre todo `tests/fixtures/*.json` e assere cada valor de `expectedStats` contra o wrapper, sem tolerância. Os fixtures são capturas golden do editor da UESP produzidas pelo pipeline de captura dos mantenedores e commitadas como oráculo do projeto — nunca regeradas pelo pacote público. `npm run test:fixtures` roda só essa suíte.
 
-1. Abra o [Build Editor](https://en.uesp.net/wiki/Special:EsoBuildEditor) — o mesmo deployment usado para gerar `vendor/uesp-data/uesp-game-data.json` — e configure sua build
-2. DevTools (F12) → Console → cole e rode o script
-3. Um arquivo `uesp-build-export.json` é baixado
-4. Inspecione com `npm run test:build caminho/uesp-build-export.json`
-5. Ou solte-o em `tests/fixtures/` — o `tests/build-fixtures.test.ts` o auto-descobre e assera cada valor de `expectedStats` (`npm run test:fixtures` roda só essa suíte)
+Para depurar uma build única, `npm run test:build <caminho-do-build.json>` imprime os stats do wrapper para uma build no formato do fixture (`BuildInput` + `expectedStats`).
 
 ## Pull requests
 

@@ -49,7 +49,7 @@ Duas ressalvas, expostas por [listAvailableToggleSkills()](/api/functions/listAv
 
 ## Bônus de set com toggle (avançado)
 
-Alguns efeitos de set são eles próprios toggleáveis no editor da UESP (ex.: o dano condicional de Ansuul's Torment). Estes usam chaves de regra exportadas pelo [`scripts/browser-export-build.js`](https://github.com/srtomy/uesp-eso-build-wrapper#validating-against-the-uesp-browser):
+Alguns efeitos de set são eles próprios toggleáveis no editor da UESP (ex.: o dano condicional de Ansuul's Torment). Estes usam chaves de regra que a build exportada do editor da UESP carrega:
 
 ```ts
 const stats = calculateBuild({
