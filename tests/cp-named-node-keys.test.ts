@@ -24,7 +24,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { UespItemApiData } from '../src/lib/eso-engine';
 import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
-import { loadInitData } from '../src/lib/uesp-data';
+import { loadInitData } from '../src/lib/eso-engine/game-data';
 
 beforeAll(() => {
   initEsoEngineFromData({ initData: loadInitData() });

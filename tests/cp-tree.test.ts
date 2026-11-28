@@ -9,7 +9,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { initEsoEngineFromData } from '../src/lib/eso-engine';
 import { getCpTree, buildCpTree, resetCpTreeCache } from '../src/lib/eso-engine/cp-tree';
 import { createCpGate } from '../src/lib/eso-engine/cp-gate';
-import { loadInitData } from '../src/lib/uesp-data';
+import { loadInitData } from '../src/lib/eso-engine/game-data';
 
 beforeAll(() => {
   initEsoEngineFromData({ initData: loadInitData() });

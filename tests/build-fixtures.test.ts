@@ -1,21 +1,21 @@
 /**
  * Golden tests for complete build exports.
  *
- * Each fixture in tests/fixtures/ was exported from the UESP Build Editor
- * browser via scripts/browser-export-build.js and contains:
+ * Each fixture in tests/fixtures/ is a golden capture of the UESP Build Editor
+ * state — produced by the maintainers' capture pipeline — and contains:
  *   - Full build input (character, items, buffs, CP, passives, etc.)
  *   - expectedStats: the exact values the UESP engine produced in the browser
  *
  * A test fails if our wrapper diverges from the UESP browser output for any
  * stat present in expectedStats. When a vendor update changes values
- * intentionally, regenerate the fixture from the browser and update here.
+ * intentionally, re-capture the fixture and update here.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { calculateBuild, initEsoEngineFromData } from '../src/lib/eso-engine';
-import { loadInitData } from '../src/lib/uesp-data';
+import { loadInitData } from '../src/lib/eso-engine/game-data';
 
 beforeAll(() => {
   initEsoEngineFromData({ initData: loadInitData() });
