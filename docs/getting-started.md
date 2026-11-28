@@ -18,13 +18,13 @@ npm install uesp-eso-build-wrapper
 
 Game data (`UespInitData`) is **not bundled in the npm package** — the library ships only the engine scripts. You supply the data when initializing.
 
-The canonical source is [`vendor/uesp-data/uesp-game-data.json`](https://github.com/srtomy/uesp-eso-build-wrapper/blob/main/vendor/uesp-data/uesp-game-data.json), committed to the repository and regenerated after each ESO patch by the project's private data pipeline. Its `_meta` field records which patch it was generated from — pin or update your copy deliberately so your numbers always match a known game version.
+The canonical source is [`vendor/uesp-data/uesp-game-data.json`](https://github.com/srtomy/uesp-eso-build-wrapper/blob/main/vendor/uesp-data/uesp-game-data.json), committed to the repository and refreshed after each ESO patch. Its `_meta` field records which patch it was generated from — pin or update your copy deliberately so your numbers always match a known game version.
 
 Ways to obtain it:
 
 1. **Copy from the repo** — download `uesp-game-data.json` from the repository above and load it with `fs.readFileSync`.
 
-The wrapper does not ship a data-acquisition pipeline: the artifact is produced outside this repository, and acquisition intentionally never runs from the public package.
+The wrapper does not ship a data-acquisition pipeline: the artifact is committed to the repo and the public package never fetches from UESP.
 
 ## Initialize the engine
 
@@ -67,7 +67,7 @@ The result object also carries `stats.raw` — all 204 stats as a plain record. 
 ## Next steps
 
 - [Character](/guides/character) — every character-sheet field
-- [Items & Equipment](/guides/items) — gear from the UESP item API
+- [Items & Equipment](/guides/items) — gear payloads
 - [Champion Points](/guides/champion-points) — CP nodes
 - [Buffs & Toggle Skills](/guides/buffs-and-toggles) — named buffs and toggles
 - [Skills & Passives](/guides/skills) — skill bars, morphs, passives

@@ -29,7 +29,7 @@ ComputedStats (204 stats lidos de g_EsoComputedStats)
 | Game data         | input local            | não (você carrega de arquivo/banco/memória) |
 | Dados externos    | escolha da aplicação   | opcional — responsabilidade sua          |
 
-Buscar item data em `esolog.uesp.net/exportJson.php` ou baixar SQL dumps novos acontece **fora** do caminho de cálculo: sua aplicação pode fazer isso para *obter* inputs, mas o wrapper nunca usa rede para *calcular*.
+Buscar inputs — game data, payloads de item, dumps SQL — acontece **fora** do caminho de cálculo: o wrapper só consome o que você passa e nunca usa rede para *calcular*.
 
 ## Como o motor UESP roda no Node.js
 
@@ -55,8 +55,8 @@ Porque o motor nunca foi desenhado como biblioteca Node.js. O `env-setup.ts` do 
 | Dado      | Finalidade                      | Origem                                                        |
 | --------- | ------------------------------- | ------------------------------------------------------------- |
 | Motor     | cálculos de build/stats         | scripts UESP vendored (`vendor/uesp-esochardata/resources/`)  |
-| Game data | inicialização (`UespInitData`: fórmulas, buffs, regras de CP, skills…) | fornecido pela aplicação — copie `vendor/uesp-data/uesp-game-data.json` ou gere com `npm run generate-data` |
-| Itens     | equipamento (`BuildInput.items`)| fornecido por build, direto da API de itens da UESP (`exportJson.php?table=minedItem`) |
+| Game data | inicialização (`UespInitData`: fórmulas, buffs, regras de CP, skills…) | fornecido pela aplicação — copie `vendor/uesp-data/uesp-game-data.json` |
+| Itens     | equipamento (`BuildInput.items`)| fornecido por build, como payloads de item (shape `UespItemApiData`) |
 
 ## Calculando uma build
 
@@ -118,7 +118,7 @@ UESP upstream
     ↓
 atualizar motor/dados vendored
     ↓
-regerar o artefato de game-data (pipeline fora do repo)
+atualizar o artefato de game-data
     ↓
 rodar testes (npm test)
     ↓
@@ -126,7 +126,7 @@ publicar
 ```
 
 1. Merge do upstream em `vendor/uesp-esochardata/` (e `vendor/uesp-esolog/` para descrições de skills).
-2. Regenere `vendor/uesp-data/uesp-game-data.json` com o pipeline privado de dados do projeto e commite o artefato — este repo nunca busca da UESP.
+2. Atualize `vendor/uesp-data/uesp-game-data.json` para o novo patch e commite o artefato — o `_meta` registra o patch e a fonte. Este repo nunca busca da UESP.
 3. Rode `npm test` — os golden values são travados nas fórmulas vendored; mudanças intencionais do upstream exigem atualizar as expectativas.
 4. Ver [Contribuindo](/pt/contributing) para o procedimento completo de atualização de patch.
 

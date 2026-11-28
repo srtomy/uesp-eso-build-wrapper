@@ -39,11 +39,9 @@ cd ../..
 
 **2. Formula data** (`vendor/uesp-data/uesp-game-data.json`):
 
-The file is an **artifact** produced outside this repo by the project's private
-data pipeline (the same pipeline that captures golden fixtures from the UESP
-editor). This repo never fetches from UESP — acquisition is intentionally out of
-the public surface. Regenerate the artifact there and commit the resulting JSON;
-its `_meta` field records where it came from and which patch.
+The file is an **artifact** committed to the repo: its `_meta` field records which
+patch and source it came from. This repo never fetches from UESP — acquisition is
+out of the public surface. Refresh the artifact for the new patch and commit it.
 
 After updating either source, run `npm test`. Update golden values in `tests/engine.test.ts` if they changed intentionally (formula patch).
 

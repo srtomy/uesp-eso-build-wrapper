@@ -127,5 +127,5 @@ node you traverse *through* has `points >= jumpPointDelta`.
 
 `cpDisciplinesData`, `cpClusterRootsData` and the derived `cpLinksData`
 (abilityId adjacency, the `g_EsoCpLinks` equivalent) are extracted from the
-`cp*.sql.gz` dumps together with `cpSkillsData` / `cpSkillDescData` by the
-project's data pipeline (outside this repo).
+`cp*.sql.gz` dumps into the committed data artifact, together with
+`cpSkillsData` / `cpSkillDescData`.

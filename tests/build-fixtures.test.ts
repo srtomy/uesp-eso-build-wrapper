@@ -2,7 +2,7 @@
  * Golden tests for complete build exports.
  *
  * Each fixture in tests/fixtures/ is a golden capture of the UESP Build Editor
- * state — produced by the maintainers' capture pipeline — and contains:
+ * state — committed as the project's oracle — and contains:
  *   - Full build input (character, items, buffs, CP, passives, etc.)
  *   - expectedStats: the exact values the UESP engine produced in the browser
  *

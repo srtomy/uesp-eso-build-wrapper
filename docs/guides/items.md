@@ -4,19 +4,29 @@ title: Items & Equipment
 
 # Items & Equipment
 
-Items are passed **exactly as returned by the [UESP public item API](https://esolog.uesp.net/exportJson.php?table=minedItem)** — no transformation needed. The library feeds them into the engine, which applies armor ratings, traits, enchantments and set bonuses with its own rules.
+Items are plain data. `BuildInput.items[slot]` takes an object in the `UespItemApiData` shape — the same shape the editor uses for its own item payloads. No wrapper-specific transformation is needed: the library feeds the object into the engine, which applies armor ratings, traits, enchantments and set bonuses with its own rules.
 
-## Fetching an item from the UESP API
+The full field list is in the [`UespItemApiData`](/api/type-aliases/UespItemApiData) reference; every field is a string. Where the payload comes from is your application's concern — the wrapper never fetches item data itself.
+
+## Item shape
 
 ```ts
-const res = await fetch(
-  'https://esolog.uesp.net/exportJson.php?table=minedItem&id=70&level=50&quality=5',
-);
-const data = await res.json();
-const item = data.minedItem[0]; // pick the row matching your level/quality
+import type { UespItemApiData } from 'uesp-eso-build-wrapper';
+
+const chest: UespItemApiData = {
+  itemId: '<id>',
+  name: "Hunding's Rage Cuirass",
+  type: '2',                 // armour
+  quality: '5',
+  trait: 'Reinforced',
+  enchantDesc: 'Adds up to <N> Maximum Health.',
+  setName: "Hunding's Rage",
+  setBonusCount1: '2',
+  setBonusDesc1: 'Adds <N> Weapon and Spell Damage to your damaging abilities.',
+};
 ```
 
-The API returns every level/quality variant of an item — filter the `minedItem[]` array for the `level`/`quality` you want.
+Item payloads are per level/quality variant — pass the variant that matches your build.
 
 ## Equipping items
 
@@ -80,4 +90,4 @@ items: {
 }
 ```
 
-The description must match the engine's patterns (`"Max Health by N"`, `"Magicka Recovery by N"`, ...). The safest source of a correct `abilityDesc` is the UESP item API response for the actual food item.
+The description must match the engine's patterns (`"Max Health by N"`, `"Magicka Recovery by N"`, ...). The safest source of a correct `abilityDesc` is the payload for the actual food item you're modeling.

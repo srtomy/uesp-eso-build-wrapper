@@ -2,17 +2,17 @@
  * Public types for uesp-eso-build-wrapper.
  *
  * DATA FLOW:
- * 1. Your front-end fetches item data from the UESP public API:
- *    `https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>`
- * 2. Pass the returned object (UespItemApiData) directly to BuildInput.items[slot].
+ * 1. Your application supplies item payloads in the UespItemApiData shape
+ *    (plain data; any source — your database, cached exports, fixtures).
+ * 2. Pass the object directly to BuildInput.items[slot].
  * 3. Call calculateBuild(input) — the library injects everything into the UESP engine
  *    and returns the computed stats.
  *
  * UPDATING AFTER A NEW PATCH (when ZeniMax releases a new DLC):
  *   1. In vendor/uesp-esochardata/, run:
  *      git fetch origin && git merge origin/master
- *   2. Regenerate vendor/uesp-data/uesp-game-data.json with the project's data
- *      pipeline (private, out-of-repo — this repo never fetches from UESP)
+ *   2. Refresh vendor/uesp-data/uesp-game-data.json for the new patch
+ *      (this repo never fetches from UESP — the file is a committed artifact)
  *   3. Commit vendor/uesp-data/uesp-game-data.json
  *   4. Run tests: npm test
  */
@@ -105,10 +105,9 @@ export interface ToggleSkillInput {
 }
 
 /**
- * Item data as returned by the UESP public item API
- * (esolog.uesp.net/exportJson.php?table=minedItem).
+ * Item data in the UESP editor's item payload shape.
  * Pass the object straight into BuildInput.items[slot] — no transformation needed.
- * All fields are strings, exactly as the API returns them.
+ * Every field is a string, exactly as the editor's item payloads carry them.
  */
 export interface UespItemApiData {
   itemId: string;
@@ -341,9 +340,9 @@ export interface BuildInput {
     rulesVersion?: string;
   };
   /**
-   * Equipped items. Pass the object returned by the UESP API directly.
-   * Lookup: `GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>`
-   * Map the desired item (from the .minedItem[] array) to the correct slot.
+   * Equipped items. Pass a `UespItemApiData` payload per slot.
+   * One payload exists per level/quality variant — pass the variant that
+   * matches your build.
    */
   items?: Partial<Record<EquipSlot, UespItemApiData>>;
   /**
@@ -635,7 +634,7 @@ export interface UespInitData {
   buildRules?: Record<string, unknown>;
   /**
    * Complete UESP skill database (race/class passives, actives, set skills).
-   * Captured from window.g_SkillsData after en.uesp.net/wiki/Special:EsoBuildEditor loads.
+   * Captured from the build editor's `window.g_SkillsData`.
    * Required for GetEsoSkillDescription to interpolate coefficients into texts.
    */
   skillsData?: Record<string, unknown>;

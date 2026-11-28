@@ -9,9 +9,10 @@
  * QUICK START:
  * ```ts
  * import { initEsoEngineFromData, calculateBuild } from 'uesp-eso-build-wrapper';
- * import data from 'uesp-eso-build-wrapper/vendor/uesp-data/uesp-game-data.json';
+ * import { readFileSync } from 'node:fs';
  *
- * // Initialize once (singleton) with the bundled game data
+ * // Copy vendor/uesp-data/uesp-game-data.json from the repository and load it
+ * const data = JSON.parse(readFileSync('./uesp-game-data.json', 'utf-8'));
  * initEsoEngineFromData({ initData: data });
  *
  * const stats = calculateBuild({
@@ -22,9 +23,8 @@
  *     attributes: { health: 0, magicka: 64, stamina: 0 },
  *   },
  *   items: {
- *     // Pass the object returned by:
- *     // `GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=<id>&level=<lv>&quality=<q>`
- *     Chest: uespApiResponse.minedItem[0],
+ *     // Any object matching UespItemApiData (itemId, type, trait, quality, …)
+ *     Chest: myItemPayload,
  *   },
  * });
  *
@@ -33,8 +33,8 @@
  *
  * UPDATING FORMULAS after a new ESO patch:
  *   1. In vendor/uesp-esochardata/, run: git fetch origin && git merge origin/master
- *   2. Regenerate vendor/uesp-data/uesp-game-data.json with the project's data
- *      pipeline (private, out-of-repo — this repo never fetches from UESP)
+ *   2. Refresh vendor/uesp-data/uesp-game-data.json for the new patch
+ *      (this repo never fetches from UESP — the file is a committed artifact)
  *   3. Commit vendor/uesp-data/uesp-game-data.json
  *   4. Run tests: npm test
  */

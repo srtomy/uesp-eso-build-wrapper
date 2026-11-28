@@ -49,10 +49,9 @@ cd ../..
 
 **2. Dados do jogo** (`vendor/uesp-data/uesp-game-data.json`):
 
-O arquivo é um **artefato** produzido fora deste repo pelo pipeline privado de dados
-do projeto. Este repo nunca busca da UESP — a aquisição fica de fora da superfície
-pública de propósito. Regenere o artefato lá e commite o JSON resultante; o campo
-`_meta` registra de onde veio e qual patch.
+O arquivo é um **artefato** commitado no repo: o campo `_meta` registra de qual
+patch e fonte ele veio. Este repo nunca busca da UESP — a aquisição fica fora da
+superfície pública. Atualize o artefato para o novo patch e commite.
 
 Depois:
 
@@ -62,7 +61,7 @@ Depois:
 
 ## Validação dos fixtures
 
-`tests/build-fixtures.test.ts` auto-descobre todo `tests/fixtures/*.json` e assere cada valor de `expectedStats` contra o wrapper, sem tolerância. Os fixtures são capturas golden do editor da UESP produzidas pelo pipeline de captura dos mantenedores e commitadas como oráculo do projeto — nunca regeradas pelo pacote público. `npm run test:fixtures` roda só essa suíte.
+`tests/build-fixtures.test.ts` auto-descobre todo `tests/fixtures/*.json` e assere cada valor de `expectedStats` contra o wrapper, sem tolerância. Os fixtures são capturas golden do editor da UESP, commitadas como oráculo do projeto — o pacote público nunca as regera. `npm run test:fixtures` roda só essa suíte.
 
 Para depurar uma build única, `npm run test:build <caminho-do-build.json>` imprime os stats do wrapper para uma build no formato do fixture (`BuildInput` + `expectedStats`).
 
