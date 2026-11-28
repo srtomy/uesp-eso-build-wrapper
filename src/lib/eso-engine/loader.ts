@@ -41,8 +41,8 @@ export function loadUespEngine(uespResourcesPath: string, initData: string | Ues
     if (!fs.existsSync(initData)) {
       throw new Error(
         `[eso-engine] Initialization file not found: ${initData}\n` +
-          `Generate it with 'npm run fetch-http' or 'npm run db:seed -- --dir <dumps> --version <patch>'.\n` +
-          `See: CONTRIBUTING.md`,
+          `The committed game data ships at vendor/uesp-data/uesp-game-data.json ` +
+          `— restore it from the repository (see CONTRIBUTING.md).`,
       );
     }
     data = JSON.parse(fs.readFileSync(initData, 'utf-8')) as UespInitData;

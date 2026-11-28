@@ -6,7 +6,7 @@
  *
  * Flow:
  *   1. Configure a build in the UESP Build Editor
- *   2. Run scripts/browser-export-build.js in the DevTools Console → downloads the JSON
+ *   2. Export the build (exported build JSON) or use a fixture from tests/fixtures/
  *   3. Run this script passing the JSON path
  *   4. Compare the printed stats with the ones shown on the site
  */

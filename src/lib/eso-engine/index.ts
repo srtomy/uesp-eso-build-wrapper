@@ -33,9 +33,8 @@
  *
  * UPDATING FORMULAS after a new ESO patch:
  *   1. In vendor/uesp-esochardata/, run: git fetch origin && git merge origin/master
- *   2. Regenerate the game data from the latest UESP SQL dumps:
- *      `npm run db:seed -- --dir <dumps> --version <patch>` (self-contained), or
- *      `npm run generate-data -- --db /path/to/local.db --version <patch>`
+ *   2. Regenerate vendor/uesp-data/uesp-game-data.json with the project's data
+ *      pipeline (private, out-of-repo — this repo never fetches from UESP)
  *   3. Commit vendor/uesp-data/uesp-game-data.json
  *   4. Run tests: npm test
  */
