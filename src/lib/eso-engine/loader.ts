@@ -27,7 +27,8 @@ let engineLoaded = false;
  * @param uespResourcesPath - Path to the UESP fork's resources/ folder.
  *   E.g. path.resolve(import.meta.dirname, '../../../vendor/uesp-esochardata/resources')
  * @param initData
- *   E.g. path.resolve(import.meta.dirname, '../../../vendor/uesp-data/uesp-game-data.json')
+ *   A parsed `UespInitData`, or a JSON file path (`string`). The string overload
+ *   is internal — tests/engine path only; the public entry accepts a parsed object.
  */
 export function loadUespEngine(uespResourcesPath: string, initData: string | UespInitData): void {
   if (engineLoaded) return; // singleton — loads only once per process
