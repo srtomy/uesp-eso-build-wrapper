@@ -6,7 +6,7 @@ title: Items & Equipment
 
 Items are plain data. `BuildInput.items[slot]` takes an object in the `UespItemApiData` shape — the same shape the editor uses for its own item payloads. No wrapper-specific transformation is needed: the library feeds the object into the engine, which applies armor ratings, traits, enchantments and set bonuses with its own rules.
 
-The full field list is in the [`UespItemApiData`](/api/type-aliases/UespItemApiData) reference; every field is a string. Where the payload comes from is your application's concern — the wrapper never fetches item data itself.
+The full field list is in the [`UespItemApiData`](/api/interfaces/UespItemApiData) reference; every field is a string. Where the payload comes from is your application's concern — the wrapper never fetches item data itself.
 
 ## Item shape
 

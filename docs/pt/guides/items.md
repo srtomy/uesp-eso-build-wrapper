@@ -6,7 +6,7 @@ title: Itens & Equipamentos
 
 Os itens são dados puros. `BuildInput.items[slot]` recebe um objeto no shape `UespItemApiData` — o mesmo shape que o editor usa para os próprios payloads de item. Nenhuma transformação específica do wrapper é necessária: a biblioteca injeta o objeto no motor, que aplica armor ratings, traits, encantamentos e bônus de set com as próprias regras.
 
-A lista completa de campos está na referência do [`UespItemApiData`](/api/type-aliases/UespItemApiData); todo campo é string. De onde o payload vem é assunto da sua aplicação — o wrapper nunca busca item data por conta própria.
+A lista completa de campos está na referência do [`UespItemApiData`](/api/interfaces/UespItemApiData); todo campo é string. De onde o payload vem é assunto da sua aplicação — o wrapper nunca busca item data por conta própria.
 
 ## Shape do item
 
