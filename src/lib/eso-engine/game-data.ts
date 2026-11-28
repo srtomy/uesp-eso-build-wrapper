@@ -16,13 +16,13 @@ const JSON_PATH = path.resolve(
   '../../../vendor/uesp-data/uesp-game-data.json',
 );
 
-export function loadInitData(): UespInitData {
+export function loadInitData(jsonPath: string = JSON_PATH): UespInitData {
   let raw: string;
   try {
-    raw = fs.readFileSync(JSON_PATH, 'utf-8');
+    raw = fs.readFileSync(jsonPath, 'utf-8');
   } catch (err) {
     throw new Error(
-      `[eso-engine] Game data artifact not found: ${JSON_PATH}\n` +
+      `[eso-engine] Game data artifact not found: ${jsonPath}\n` +
         `The committed game data ships at vendor/uesp-data/uesp-game-data.json ` +
         `— restore it from the repository (see CONTRIBUTING.md).\n` +
         `Cause: ${err instanceof Error ? err.message : String(err)}`,
@@ -32,7 +32,7 @@ export function loadInitData(): UespInitData {
     return JSON.parse(raw) as UespInitData;
   } catch (err) {
     throw new Error(
-      `[eso-engine] Game data artifact is not valid JSON: ${JSON_PATH}\n` +
+      `[eso-engine] Game data artifact is not valid JSON: ${jsonPath}\n` +
         `Restore vendor/uesp-data/uesp-game-data.json from the repository.\n` +
         `Cause: ${err instanceof Error ? err.message : String(err)}`,
     );
