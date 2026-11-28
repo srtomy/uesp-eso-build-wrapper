@@ -36,7 +36,7 @@ Você injeta os inputs, o próprio código da UESP calcula cada stat, você lê 
 - **Precisão de referência** — o mesmo motor `esoEditBuild.js` do [esobuilds.uesp.net](https://esobuilds.uesp.net), mantido pela UESP e atualizado a cada patch.
 - **Sem reimplementar fórmulas** — o wrapper contém zero matemática de ESO. Quando um stat parece errado depois de um patch, a correção está sempre nos *dados* do jogo alimentados ao motor, nunca no código do wrapper. É isso que mantém a precisão entre patches.
 - **Local e síncrono** — `calculateBuild()` não faz nenhuma requisição de rede. O motor roda in-process; os dados do jogo e os itens são fornecidos pela sua aplicação (arquivo, banco de dados, dados gerados).
-- **Aceita item data da UESP diretamente** — equipamentos no formato [`exportJson.php?table=minedItem`](https://esolog.uesp.net) plugam direto em `BuildInput.items`.
+- **Aceita payloads de item diretamente** — equipamentos no shape `UespItemApiData` plugam direto em `BuildInput.items`.
 - **Nativo TypeScript** — inputs/outputs tipados, [API Reference](https://srtomy.github.io/uesp-eso-build-wrapper/api/) documentada com TSDoc, além de funções de catálogo em runtime (`listAvailableBuffs`, `listRacialPassives`, …) para descobrir nomes válidos.
 
 ## Propriedades principais

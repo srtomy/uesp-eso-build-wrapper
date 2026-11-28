@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { BuildInput, ComputedStats, UespInitData } from '../src/lib/eso-engine';
 import * as api from '../src/lib/eso-engine';
 
@@ -76,6 +78,27 @@ describe('public API contract', () => {
         listAvailableToggleSkills: expect.any(Function),
       }),
     );
+  });
+
+  it('does not expose any data-acquisition helper on the entry point', () => {
+    for (const removed of [
+      'loadInitData',
+      'extractGameData',
+      'buildUespGameData',
+      'buildUespGameDataFromHttp',
+      'fetchApiRows',
+      'fetchEditorPage',
+      'parseBuildRulesHtml',
+    ]) {
+      expect((api as Record<string, unknown>)[removed]).toBeUndefined();
+    }
+  });
+
+  it('publishes only the documented subpaths', () => {
+    const pkg = JSON.parse(
+      fs.readFileSync(path.resolve(import.meta.dirname, '../package.json'), 'utf-8'),
+    ) as { exports: Record<string, unknown> };
+    expect(Object.keys(pkg.exports).sort()).toEqual(['.', './cp-gate']);
   });
 
   it('keeps representative public input and output shapes type-safe', () => {

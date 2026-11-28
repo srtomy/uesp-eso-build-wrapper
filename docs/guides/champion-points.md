@@ -78,7 +78,7 @@ championPointNodes: {
 
 ## Which node IDs exist?
 
-Node IDs are the UESP CP rule/ability IDs. The easiest way to get the correct ID for a node is the UESP Build Editor itself: configure the CP there and export the build with [`scripts/browser-export-build.js`](https://github.com/srtomy/uesp-eso-build-wrapper#validating-against-the-uesp-browser) — the export contains `championPointNodes` exactly as this library expects it.
+Node IDs are the UESP CP rule/ability IDs. The easiest way to get the correct ID for a node is the UESP Build Editor itself: configure the CP there — the editor's build data carries `championPointNodes` exactly as this library expects it.
 
 ## The CP tree and the purchaseability gate
 
@@ -127,5 +127,5 @@ node you traverse *through* has `points >= jumpPointDelta`.
 
 `cpDisciplinesData`, `cpClusterRootsData` and the derived `cpLinksData`
 (abilityId adjacency, the `g_EsoCpLinks` equivalent) are extracted from the
-`cp*.sql.gz` dumps together with `cpSkillsData` / `cpSkillDescData`:
-`npm run db:seed`.
+`cp*.sql.gz` dumps into the committed data artifact, together with
+`cpSkillsData` / `cpSkillDescData`.

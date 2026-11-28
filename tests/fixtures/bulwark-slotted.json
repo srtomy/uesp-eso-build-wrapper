@@ -2,7 +2,7 @@
   "_meta": {
     "rulesVersion": "Live",
     "exportedAt": "2026-11-26T18:42:52.957Z",
-    "note": "Bulwark slotted on the Champion Bar. isUnlocked was backfilled from the browser state; scripts/browser-export-build.js exports it natively as of this commit."
+    "note": "Bulwark slotted on the Champion Bar. isUnlocked was backfilled from the editor state; captured exports carry it natively."
   },
   "character": {
     "race": "High Elf",

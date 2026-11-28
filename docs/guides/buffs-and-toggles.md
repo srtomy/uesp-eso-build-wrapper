@@ -64,7 +64,7 @@ Caveats, surfaced by [listAvailableToggleSkills()](/api/functions/listAvailableT
 
 ## Toggled set bonuses (advanced)
 
-Some set effects are themselves toggleable in the UESP editor (e.g. Ansuul's Torment's conditional damage). These use rule keys exported by [`scripts/browser-export-build.js`](https://github.com/srtomy/uesp-eso-build-wrapper#validating-against-the-uesp-browser):
+Some set effects are themselves toggleable in the UESP editor (e.g. Ansuul's Torment's conditional damage). These use rule keys carried by a build exported from the UESP editor:
 
 ```ts
 const stats = calculateBuild({

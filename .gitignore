@@ -48,6 +48,6 @@ AGENTS.md
 docs/reference.md
 docs/research
 
-# local SQLite DB seeded from UESP dumps (regenerated via scripts/generate-data.ts)
+# local SQLite scratch DB (this repo never creates it — no data pipeline here)
 local.db
 *.db

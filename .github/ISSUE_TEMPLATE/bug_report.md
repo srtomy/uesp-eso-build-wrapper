@@ -18,8 +18,8 @@ assignees: ''
 
 ## Build input
 
-<!-- Paste the JSON returned by browser-export-build.js, or the minimal BuildInput
-     that reproduces the issue. The more complete, the faster the fix. -->
+<!-- Paste the minimal BuildInput that reproduces the issue. The more complete,
+     the faster the fix. -->
 
 ```json
 ```

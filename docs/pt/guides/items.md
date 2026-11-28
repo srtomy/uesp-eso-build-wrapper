@@ -4,19 +4,29 @@ title: Itens & Equipamentos
 
 # Itens & Equipamentos
 
-Os itens são passados **exatamente como retornados pela [API pública de itens da UESP](https://esolog.uesp.net/exportJson.php?table=minedItem)** — nenhuma transformação necessária. A biblioteca os injeta no motor, que aplica armor ratings, traits, encantamentos e bônus de set com as próprias regras.
+Os itens são dados puros. `BuildInput.items[slot]` recebe um objeto no shape `UespItemApiData` — o mesmo shape que o editor usa para os próprios payloads de item. Nenhuma transformação específica do wrapper é necessária: a biblioteca injeta o objeto no motor, que aplica armor ratings, traits, encantamentos e bônus de set com as próprias regras.
 
-## Buscando um item na API da UESP
+A lista completa de campos está na referência do [`UespItemApiData`](/api/interfaces/UespItemApiData); todo campo é string. De onde o payload vem é assunto da sua aplicação — o wrapper nunca busca item data por conta própria.
+
+## Shape do item
 
 ```ts
-const res = await fetch(
-  'https://esolog.uesp.net/exportJson.php?table=minedItem&id=70&level=50&quality=5',
-);
-const data = await res.json();
-const item = data.minedItem[0]; // escolha a linha do level/quality desejado
+import type { UespItemApiData } from 'uesp-eso-build-wrapper';
+
+const chest: UespItemApiData = {
+  itemId: '<id>',
+  name: "Hunding's Rage Cuirass",
+  type: '2',                 // armadura
+  quality: '5',
+  trait: 'Reinforced',
+  enchantDesc: 'Adds up to <N> Maximum Health.',
+  setName: "Hunding's Rage",
+  setBonusCount1: '2',
+  setBonusDesc1: 'Adds <N> Weapon and Spell Damage to your damaging abilities.',
+};
 ```
 
-A API retorna todas as variantes de level/quality de um item — filtre o array `minedItem[]` pelo `level`/`quality` que você quer.
+Payloads de item são por variante de level/quality — passe a variante que casa com a sua build.
 
 ## Equipando itens
 
@@ -80,4 +90,4 @@ items: {
 }
 ```
 
-A descrição precisa casar com os padrões do motor (`"Max Health by N"`, `"Magicka Recovery by N"`, ...). A fonte mais segura de um `abilityDesc` correto é a resposta da API de itens da UESP para o item de comida real.
+A descrição precisa casar com os padrões do motor (`"Max Health by N"`, `"Magicka Recovery by N"`, ...). A fonte mais segura de um `abilityDesc` correto é o payload do item de comida real que você está modelando.

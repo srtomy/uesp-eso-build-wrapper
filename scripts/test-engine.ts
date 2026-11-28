@@ -19,8 +19,7 @@ const gameData = JSON.parse(
 initEsoEngineFromData({ initData: gameData });
 
 // ---------------------------------------------------------------------------
-// Example: real item fetched from the UESP API
-// GET https://esolog.uesp.net/exportJson.php?table=minedItem&id=70&level=1&quality=1
+// Example: a real item payload in the UespItemApiData shape
 // (Cured Kwama Leggings — only to demonstrate the field mapping)
 // ---------------------------------------------------------------------------
 const exampleLegItem: UespItemApiData = {

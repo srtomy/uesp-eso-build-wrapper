@@ -66,4 +66,4 @@ championPointNodes: {
 
 ## Quais node IDs existem?
 
-Os node IDs são os rule/ability IDs de CP da UESP. A forma mais fácil de obter o ID correto é o próprio UESP Build Editor: configure o CP lá e exporte a build com o [`scripts/browser-export-build.js`](https://github.com/srtomy/uesp-eso-build-wrapper#validating-against-the-uesp-browser) — o export contém `championPointNodes` exatamente no formato que a biblioteca espera.
+Os node IDs são os rule/ability IDs de CP da UESP. A forma mais fácil de obter o ID correto é o próprio UESP Build Editor: configure o CP lá — os dados da build do editor contêm `championPointNodes` exatamente no formato que a biblioteca espera.
